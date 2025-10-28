@@ -101,4 +101,35 @@ class User extends Authenticatable
         // Especifica a chave estrangeira na tabela 'log_acessos'
         return $this->hasMany(LogAcesso::class, 'utilizador_id');
     }
+
+    public function isAdmin(): bool
+    {
+        return $this->perfil === 'admin';
+    }
+
+    public function isFuncionario(): bool
+    {
+        return $this->perfil === 'funcionario';
+    }
+
+    public function isFreguesia(): bool
+    {
+        return $this->perfil === 'freguesia';
+    }
+
+    /**
+     * Verifica se o utilizador tem pelo menos um dos perfis especificados
+     */
+    public function hasAnyPerfil(array $perfis): bool
+    {
+        return in_array($this->perfil, $perfis);
+    }
+
+    /**
+     * Verifica se o utilizador tem todos os perfis especificados
+     */
+    public function hasAllPerfis(array $perfis): bool
+    {
+        return empty(array_diff($perfis, [$this->perfil]));
+    }
 }
