@@ -3,25 +3,36 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     *
-     * @return void
      */
-    public function run()
+    public function run(): void
     {
-        DB::table('users')->insert([
-            'id' => 1,
-            'name' => 'admin',
-            'email' => 'admin@softui.com',
-            'password' => Hash::make('secret'),
-            'created_at' => now(),
-            'updated_at' => now()
+        // Criar o utilizador Administrador
+        User::create([
+            'nome' => 'Admin',
+            'email' => 'admin@cimbb.pt',
+            'password' => Hash::make('12345678'),
+            'perfil' => 'admin',
+            'freguesia_id' => null,
+            'telemovel' => null,
+            'email_verified_at' => now(),
+        ]);
+
+        // Criar funcionário CIMBB - SEM FACTORY
+        User::create([
+            'nome' => 'Funcionario CIMBB',
+            'email' => 'cimbb@cimbb.pt',
+            'password' => Hash::make('12345678'),
+            'perfil' => 'cimbb',
+            'freguesia_id' => null,
+            'telemovel' => null,
+            'email_verified_at' => now(),
         ]);
     }
 }
