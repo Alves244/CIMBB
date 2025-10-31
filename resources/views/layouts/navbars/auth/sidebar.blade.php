@@ -5,7 +5,7 @@
     <a class="align-items-center d-flex m-0 navbar-brand text-wrap" href="{{ route('dashboard') }}">
       {{-- TODO: Alterar logo e nome da aplicação --}}
       <img src="{{ asset('assets/img/logo-ct.png') }}" class="navbar-brand-img h-100" alt="Logo CIMBB">
-      <span class="ms-3 font-weight-bold">SMRE Beira Baixa</span>
+      <span class="ms-3 font-weight-bold">SMRE</span>
     </a>
   </div>
   <hr class="horizontal dark mt-0">
@@ -43,14 +43,18 @@
         <li class="nav-item mt-3">
           <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Gestão Freguesia</h6>
         </li>
+        {{-- ITEM CORRIGIDO --}}
         <li class="nav-item">
-          {{-- TODO: Criar rota 'freguesia.familias.index' --}}
-          <a class="nav-link {{ Request::routeIs('freguesia.familias.*') ? 'active' : '' }}" href="#"> {{-- href="{{ route('freguesia.familias.index') }}" --}}
+          {{-- Link para Gerir Famílias (rota já criada) --}}
+          <a class="nav-link {{ Request::routeIs('freguesia.familias.*') ? 'active' : '' }}" href="{{ route('freguesia.familias.index') }}">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
               <i class="fas fa-users ps-2 pe-2 text-center text-dark {{ Request::routeIs('freguesia.familias.*') ? 'text-white' : 'text-dark' }}"></i>
             </div>
-              <a class="nav-link {{ Request::routeIs('freguesia.familias.*') ? 'active' : '' }}" href="{{ route('freguesia.familias.index') }}">          </a>
+            <span class="nav-link-text ms-1">Gerir Famílias</span> {{-- <--- Texto que faltava --}}
+          </a>
+          {{-- O <a> duplicado foi removido daqui --}}
         </li>
+        {{-- FIM DO ITEM CORRIGIDO --}}
         <li class="nav-item">
             {{-- TODO: Criar rota 'freguesia.inqueritos.index' ou similar --}}
             <a class="nav-link {{ Request::routeIs('freguesia.inqueritos.*') ? 'active' : '' }}" href="#"> {{-- href="{{ route('freguesia.inqueritos.index') }}" --}}
@@ -74,7 +78,6 @@
 
 
       {{-- ===== MENU ESPECÍFICO PARA FUNCIONÁRIO CIMBB (E ADMIN) ===== --}}
-      {{-- Usamos isFuncionario() porque o middleware 'funcionario' permite admin também --}}
       @if(auth()->user()->isFuncionario() || auth()->user()->isAdmin())
         <li class="nav-item mt-3">
           <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Análise CIMBB</h6>
@@ -194,7 +197,6 @@
         </a>
       </li> --}}
       {{-- ... outros links de exemplo do template ... --}}
-      {{-- REMOVER links de Sign In / Sign Up daqui, pois só fazem sentido para guest --}}
 
     </ul>
   </div>
@@ -202,5 +204,9 @@
   {{-- Secção Footer da Sidebar (Links Docs/Upgrade) - Manter ou Remover --}}
   <div class="sidenav-footer mx-3 ">
     {{-- ... (código original do footer da sidebar) ... --}}
+    {{-- Ocultar o botão de Upgrade to PRO --}}
+    {{-- <div class="card card-background shadow-none card-background-mask-secondary" id="sidenavCard">
+      ...
+    </div> --}}
   </div>
 </aside>

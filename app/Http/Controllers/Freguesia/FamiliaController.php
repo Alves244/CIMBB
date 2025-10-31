@@ -12,26 +12,22 @@ class FamiliaController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+public function index()
     {
-        // Obter o ID da freguesia do utilizador logado
         $freguesiaId = Auth::user()->freguesia_id;
 
-        // Verificar se o utilizador tem uma freguesia associada
         if (!$freguesiaId) {
-            // Redirecionar ou mostrar erro se não tiver freguesia (não deveria acontecer para este perfil)
             return redirect()->route('dashboard')->with('error', 'Utilizador sem freguesia associada.');
         }
 
-        // Buscar apenas as famílias pertencentes a essa freguesia
-        // Opcional: Ordenar por ano ou código, paginar resultados, etc.
-        $familias = Familia::where('freguesia_id', $freguesiaId)
-                            ->orderBy('ano_instalacao', 'desc') // Exemplo: ordenar por ano mais recente
-                            ->paginate(15); // Exemplo: mostrar 15 por página
+        // Carrega as famílias E o seu agregadoFamiliar associado
+        $familias = Familia::with('agregadoFamiliar')
+                            ->where('freguesia_id', $freguesiaId)
+                            ->orderBy('ano_instalacao', 'desc')
+                            ->paginate(15);
 
-        // Retornar a view da listagem, passando os dados das famílias
-        // A view estará em resources/views/freguesia/familias/index.blade.php
-        return view('freguesia.familias.index', compact('familias'));
+        // Volta a colocar a linha original
+        return view('freguesia.familias.listar', compact('familias'));
     }
 
     /**
