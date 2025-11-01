@@ -6,52 +6,51 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\View;
 
 class InfoUserController extends Controller
 {
-
+    /**
+     * Mostra o formulário de edição de perfil.
+     */
     public function create()
     {
-        return view('laravel-examples/user-profile');
+        return view('laravel-examples.user-profile');
     }
 
+    /**
+     * Atualiza a informação do utilizador.
+     */
     public function store(Request $request)
     {
-
-        $attributes = request()->validate([
-            'name' => ['required', 'max:50'],
-            'email' => ['required', 'email', 'max:50', Rule::unique('users')->ignore(Auth::user()->id)],
-            'phone'     => ['max:50'],
-            'location' => ['max:70'],
-            'about_me'    => ['max:150'],
-        ]);
-        if($request->get('email') != Auth::user()->email)
-        {
-            if(env('IS_DEMO') && Auth::user()->id == 1)
-            {
-                return redirect()->back()->withErrors(['msg2' => 'You are in a demo version, you can\'t change the email address.']);
-                
-            }
+        // Validação dos dados recebidos do formulário
+        $validatedData = $request->validate([
             
-        }
-        else{
-            $attribute = request()->validate([
-                'email' => ['required', 'email', 'max:50', Rule::unique('users')->ignore(Auth::user()->id)],
-            ]);
-        }
-        
-        
-        User::where('id',Auth::user()->id)
-        ->update([
-            'name'    => $attributes['name'],
-            'email' => $attribute['email'],
-            'phone'     => $attributes['phone'],
-            'location' => $attributes['location'],
-            'about_me'    => $attributes["about_me"],
+            // ALTERAÇÃO AQUI: max:255 mudou para max:15
+            'nome' => 'required|string|max:25',
+            
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore(Auth::id()),
+            ],
+
+            // ALTERAÇÃO AQUI: max:20 mudou para digits:9
+            // 'digits:9' força a que tenha exatamente 9 caracteres E que sejam todos numéricos.
+            'telemovel' => 'nullable|digits:9', 
         ]);
 
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-        return redirect('/user-profile')->with('success','Profile updated successfully');
+        // Atualizar o utilizador autenticado com os novos dados
+        $user->update([
+            'nome' => $validatedData['nome'],
+            'email' => $validatedData['email'],
+            'telemovel' => $validatedData['telemovel'],
+        ]);
+
+        // Redirecionar para trás com uma mensagem de sucesso
+        return back()->with('success', 'Perfil atualizado com sucesso!');
     }
 }
