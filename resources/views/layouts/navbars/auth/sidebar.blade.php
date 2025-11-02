@@ -17,7 +17,7 @@
                style="{{ Request::routeIs('dashboard') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
             <i class="fas fa-tachometer-alt ps-2 pe-2 text-center {{ Request::routeIs('dashboard') ? 'text-white' : 'text-dark' }}"></i>
           </div>
-          <span class="nav-link-text ms-1">Dashboard</span>
+          <span class="nav-link-text ms-1">Página Inicial</span>
         </a>
       </li>
 

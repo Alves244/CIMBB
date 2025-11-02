@@ -1,9 +1,6 @@
-@extends('layouts.user_type.auth') {{-- Usa o mesmo layout que o profile --}}
+@extends('layouts.user_type.auth') {{-- Usa o layout correto que descobrimos --}}
 
-@section('content') {{-- Usa a secção 'content' --}}
-
-  {{-- A sidebar e a topnav já são incluídas automaticamente pelo 'layouts.user_type.auth' --}}
-  {{-- Não precisamos de @include('layouts.navbars...') aqui --}}
+@section('content') {{-- Usa a secção 'content' correta --}}
 
   <div class="container-fluid py-4">
     <div class="row">
@@ -14,7 +11,7 @@
               <h6 class="mb-0">Famílias Registadas</h6>
               <p class="text-sm">Freguesia: {{ Auth::user()->freguesia->nome ?? 'N/A' }}</p>
             </div>
-            {{-- Botão Adicionar (Verde, como pediste) --}}
+            {{-- Botão Adicionar (Verde) --}}
             <a href="{{ route('freguesia.familias.create') }}" class="btn bg-gradient-success btn-sm mb-0">
               <i class="fas fa-plus me-1"></i> Adicionar Família
             </a>
@@ -57,20 +54,22 @@
                         <p class="text-xs font-weight-bold mb-0">{{ ucfirst($familia->tipologia_propriedade) }}</p>
                       </td>
                       <td class="align-middle">
-                        <a href="{{ route('freguesia.familias.show', $familia->id) }}" class="btn btn-link text-info text-gradient px-1 mb-0" data-bs-toggle="tooltip" data-bs-original-title="Ver Detalhes">
-                          <i class="fas fa-eye text-sm"></i>
+                        {{-- Botão Ver (REMOVIDO) --}}
+    
+                        {{-- Botão Editar (Corrigido para 'text-success' - verde e com texto) --}}
+                        <a href="{{ route('freguesia.familias.edit', $familia->id) }}" class="btn btn-link text-success text-gradient px-1 mb-0" data-bs-toggle="tooltip" data-bs-original-title="Editar Família">
+                            <i class="fas fa-pencil-alt text-sm"></i>
                         </a>
-                        <a href="{{ route('freguesia.familias.edit', $familia->id) }}" class="btn btn-link text-secondary text-gradient px-1 mb-0" data-bs-toggle="tooltip" data-bs-original-title="Editar Família">
-                          <i class="fas fa-pencil-alt text-sm"></i>
-                        </a>
+                        
+                        {{-- Botão Apagar (Mantido) --}}
                         <form action="{{ route('freguesia.familias.destroy', $familia->id) }}" method="POST" class="d-inline">
-                          @csrf
-                          @method('DELETE')
-                          <button type="submit" class="btn btn-link text-danger text-gradient px-1 mb-0"
-                                  onclick="return confirm('Tem a certeza que deseja apagar esta família (Código: {{ $familia->codigo }})? Esta ação não pode ser revertida.')"
-                                  data-bs-toggle="tooltip" data-bs-original-title="Apagar Família">
-                            <i class="fas fa-trash text-sm"></i>
-                          </button>
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-link text-danger text-gradient px-1 mb-0"
+                                    onclick="return confirm('Tem a certeza que deseja apagar esta família (Código: {{ $familia->codigo }})? Esta ação não pode ser revertida.')"
+                                    data-bs-toggle="tooltip" data-bs-original-title="Apagar Família">
+                                <i class="fas fa-trash text-sm"></i>
+                            </button>
                         </form>
                       </td>
                     </tr>
@@ -92,9 +91,6 @@
         </div>
       </div>
     </div>
-    
-    {{-- O footer é incluído automaticamente pelo 'layouts.user_type.auth', não precisamos disto --}}
-    {{-- @include('layouts.footers.auth.footer') --}}
   </div>
 
 @endsection

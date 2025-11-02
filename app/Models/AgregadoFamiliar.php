@@ -10,15 +10,25 @@ class AgregadoFamiliar extends Model
 {
     use HasFactory;
 
-    // Garante que o Laravel usa a tabela 'agregado_familiars'
     protected $table = 'agregado_familiars';
+    public $timestamps = false; // (Já tinhas isto)
 
-    // Indica que não há timestamps created_at/updated_at nesta tabela
-    public $timestamps = false;
+    /**
+     * Os atributos que podem ser preenchidos em massa.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'familia_id', // Embora estejamos a usar a relação, é boa prática tê-lo
+        'adultos_laboral',
+        'adultos_65_mais',
+        'criancas',
+        // 'total_membros' não é necessário porque é gerado pelo MySQL
+    ];
+
 
     /**
      * Define a relação inversa: Um Agregado Familiar pertence a uma Família.
-     * (Relação E no ER [cite: 522])
      */
     public function familia(): BelongsTo
     {
