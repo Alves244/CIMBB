@@ -11,12 +11,15 @@
 
       {{-- ===== MENU COMUM ===== --}}
       <li class="nav-item">
+        {{-- MUDANÇA AQUI no link do Dashboard --}}
         <a class="nav-link {{ Request::routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-          {{-- MUDANÇA: Usar style="" para forçar o verde --}}
           <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('dashboard') ? '' : 'bg-white' }}"
                style="{{ Request::routeIs('dashboard') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
-            <i class="fas fa-tachometer-alt ps-2 pe-2 text-center {{ Request::routeIs('dashboard') ? 'text-white' : 'text-dark' }}"></i>
+            
+            {{-- MUDANÇA AQUI: Ícone alterado para 'fas fa-home' --}}
+            <i class="fas fa-home ps-2 pe-2 text-center {{ Request::routeIs('dashboard') ? 'text-white' : 'text-dark' }}"></i>
           </div>
+          {{-- MUDANÇA AQUI: Texto alterado para 'Página Inicial' --}}
           <span class="nav-link-text ms-1">Página Inicial</span>
         </a>
       </li>
@@ -26,7 +29,6 @@
       </li>
       <li class="nav-item">
         <a class="nav-link {{ Request::routeIs('profile') ? 'active' : '' }}" href="{{ route('profile') }}">
-          {{-- MUDANÇA: Usar style="" para forçar o verde --}}
           <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('profile') ? '' : 'bg-white' }}"
                style="{{ Request::routeIs('profile') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
              <i class="fas fa-user ps-2 pe-2 text-center {{ Request::routeIs('profile') ? 'text-white' : 'text-dark' }}"></i>
@@ -44,7 +46,6 @@
         </li>
         <li class="nav-item">
           <a class="nav-link {{ Request::routeIs('freguesia.familias.*') ? 'active' : '' }}" href="{{ route('freguesia.familias.index') }}">
-            {{-- MUDANÇA: Usar style="" para forçar o verde --}}
             <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('freguesia.familias.*') ? '' : 'bg-white' }}"
                  style="{{ Request::routeIs('freguesia.familias.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
               <i class="fas fa-users ps-2 pe-2 text-center {{ Request::routeIs('freguesia.familias.*') ? 'text-white' : 'text-dark' }}"></i>
@@ -54,7 +55,6 @@
         </li>
         <li class="nav-item">
             <a class="nav-link {{ Request::routeIs('freguesia.inqueritos.*') ? 'active' : '' }}" href="#">
-              {{-- MUDANÇA: Usar style="" para forçar o verde --}}
               <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('freguesia.inqueritos.*') ? '' : 'bg-white' }}"
                    style="{{ Request::routeIs('freguesia.inqueritos.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
                 <i class="fas fa-poll ps-2 pe-2 text-center {{ Request::routeIs('freguesia.inqueritos.*') ? 'text-white' : 'text-dark' }}"></i>
@@ -64,7 +64,6 @@
         </li>
          <li class="nav-item">
             <a class="nav-link {{ Request::routeIs('freguesia.tickets.*') ? 'active' : '' }}" href="#">
-              {{-- MUDANÇA: Usar style="" para forçar o verde --}}
               <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('freguesia.tickets.*') ? '' : 'bg-white' }}"
                    style="{{ Request::routeIs('freguesia.tickets.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
                 <i class="fas fa-question-circle ps-2 pe-2 text-center {{ Request::routeIs('freguesia.tickets.*') ? 'text-white' : 'text-dark' }}"></i>
@@ -83,7 +82,6 @@
         </li>
         <li class="nav-item">
           <a class="nav-link {{ Request::routeIs('funcionario.dashboard.*') ? 'active' : '' }}" href="#">
-            {{-- MUDANÇA: Usar style="" para forçar o verde --}}
             <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('funcionario.dashboard.*') ? '' : 'bg-white' }}"
                  style="{{ Request::routeIs('funcionario.dashboard.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
               <i class="fas fa-chart-line ps-2 pe-2 text-center {{ Request::routeIs('funcionario.dashboard.*') ? 'text-white' : 'text-dark' }}"></i>
@@ -93,7 +91,6 @@
         </li>
         <li class="nav-item">
             <a class="nav-link {{ Request::routeIs('funcionario.relatorios.*') ? 'active' : '' }}" href="#">
-              {{-- MUDANÇA: Usar style="" para forçar o verde --}}
               <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('funcionario.relatorios.*') ? '' : 'bg-white' }}"
                    style="{{ Request::routeIs('funcionario.relatorios.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
                 <i class="fas fa-file-alt ps-2 pe-2 text-center {{ Request::routeIs('funcionario.relatorios.*') ? 'text-white' : 'text-dark' }}"></i>
@@ -103,7 +100,6 @@
         </li>
          <li class="nav-item">
             <a class="nav-link {{ Request::routeIs('funcionario.exportar.*') ? 'active' : '' }}" href="#">
-              {{-- MUDANÇA: Usar style="" para forçar o verde --}}
               <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('funcionario.exportar.*') ? '' : 'bg-white' }}"
                    style="{{ Request::routeIs('funcionario.exportar.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
                 <i class="fas fa-file-export ps-2 pe-2 text-center {{ Request::routeIs('funcionario.exportar.*') ? 'text-white' : 'text-dark' }}"></i>
@@ -122,7 +118,6 @@
         </li>
         <li class="nav-item">
           <a class="nav-link {{ Request::routeIs('admin.user-management') ? 'active' : '' }}" href="{{ route('admin.user-management') }}">
-            {{-- MUDANÇA: Usar style="" para forçar o verde --}}
             <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.user-management') ? '' : 'bg-white' }}"
                  style="{{ Request::routeIs('admin.user-management') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
               <i class="fas fa-users-cog ps-2 pe-2 text-center {{ Request::routeIs('admin.user-management') ? 'text-white' : 'text-dark' }}"></i>
@@ -132,7 +127,6 @@
         </li>
          <li class="nav-item">
           <a class="nav-link {{ Request::routeIs('admin.concelhos.*') ? 'active' : '' }}" href="#">
-            {{-- MUDANÇA: Usar style="" para forçar o verde --}}
             <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.concelhos.*') ? '' : 'bg-white' }}"
                  style="{{ Request::routeIs('admin.concelhos.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
               <i class="fas fa-map-marker-alt ps-2 pe-2 text-center {{ Request::routeIs('admin.concelhos.*') ? 'text-white' : 'text-dark' }}"></i>
@@ -142,7 +136,6 @@
         </li>
         <li class="nav-item">
           <a class="nav-link {{ Request::routeIs('admin.freguesias.*') ? 'active' : '' }}" href="#">
-            {{-- MUDANÇA: Usar style="" para forçar o verde --}}
             <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.freguesias.*') ? '' : 'bg-white' }}"
                  style="{{ Request::routeIs('admin.freguesias.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
               <i class="fas fa-map-pin ps-2 pe-2 text-center {{ Request::routeIs('admin.freguesias.*') ? 'text-white' : 'text-dark' }}"></i>
@@ -152,7 +145,6 @@
         </li>
          <li class="nav-item">
             <a class="nav-link {{ Request::routeIs('admin.tickets.*') ? 'active' : '' }}" href="#">
-              {{-- MUDANÇA: Usar style="" para forçar o verde --}}
               <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.tickets.*') ? '' : 'bg-white' }}"
                    style="{{ Request::routeIs('admin.tickets.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
                 <i class="fas fa-headset ps-2 pe-2 text-center {{ Request::routeIs('admin.tickets.*') ? 'text-white' : 'text-dark' }}"></i>
@@ -162,7 +154,6 @@
         </li>
          <li class="nav-item">
             <a class="nav-link {{ Request::routeIs('admin.logs.*') ? 'active' : '' }}" href="#">
-              {{-- MUDANÇA: Usar style="" para forçar o verde --}}
               <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.logs.*') ? '' : 'bg-white' }}"
                    style="{{ Request::routeIs('admin.logs.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
                 <i class="fas fa-clipboard-list ps-2 pe-2 text-center {{ Request::routeIs('admin.logs.*') ? 'text-white' : 'text-dark' }}"></i>
@@ -172,7 +163,6 @@
         </li>
          <li class="nav-item">
             <a class="nav-link {{ Request::routeIs('admin.parametros.*') ? 'active' : '' }}" href="#">
-              {{-- MUDANÇA: Usar style="" para forçar o verde --}}
               <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.parametros.*') ? '' : 'bg-white' }}"
                    style="{{ Request::routeIs('admin.parametros.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
                 <i class="fas fa-cogs ps-2 pe-2 text-center {{ Request::routeIs('admin.parametros.*') ? 'text-white' : 'text-dark' }}"></i>
@@ -186,8 +176,6 @@
     </ul>
   </div>
 
-  {{-- Secção Footer da Sidebar (Ocultada) --}}
   <div class="sidenav-footer mx-3 " style="display: none;">
-    {{-- ... --}}
   </div>
 </aside>
