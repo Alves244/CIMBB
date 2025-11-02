@@ -23,11 +23,14 @@ class SessionsController extends Controller
         if(Auth::attempt($attributes))
         {
             session()->regenerate();
-            return redirect('dashboard')->with(['success'=>'You are logged in.']);
+            // MENSAGEM 1 TRADUZIDA:
+            return redirect('dashboard')->with(['success'=>'Iniciou sessão com sucesso.']);
         }
         else{
-
-            return back()->withErrors(['email'=>'Email or password invalid.']);
+            // MENSAGEM 2 TRADUZIDA:
+            // Nota: Se criaste o ficheiro lang/pt/auth.php, podias usar:
+            // return back()->withErrors(['email'=> trans('auth.failed')]);
+            return back()->withErrors(['email'=>'Email ou password inválidos.']);
         }
     }
     
@@ -36,6 +39,7 @@ class SessionsController extends Controller
 
         Auth::logout();
 
-        return redirect('/login')->with(['success'=>'You\'ve been logged out.']);
+        // MENSAGEM 3 TRADUZIDA (A que procuravas):
+        return redirect('/login')->with(['success'=>'Terminou a sessão com sucesso.']);
     }
 }

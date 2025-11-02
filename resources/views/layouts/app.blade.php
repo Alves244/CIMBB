@@ -15,7 +15,7 @@
   @endif
 
   <link rel="apple-touch-icon" sizes="76x76" href="{{ asset('assets/img/apple-icon.png') }}">
-  <link rel="icon" type="image/png" href="{{ asset('assets/img/cimbb/logo/logo-cimbb-sem o nome.png') }}">
+  <link rel="icon" type="image/png" href="{{ asset('assets/img/favicon.png') }}">
   <title>
     SMRE Beira Baixa
   </title>
@@ -27,7 +27,9 @@
   <link id="pagestyle" href="{{ asset('assets/css/soft-ui-dashboard.css?v=1.0.3') }}" rel="stylesheet" />
 </head>
 
-<body class="g-sidenav-show  bg-gray-100 {{ (\Request::is('rtl') ? 'rtl' : (Request::is('virtual-reality') ? 'virtual-reality' : '')) }} ">
+{{-- ***** ALTERAÇÃO AQUI ***** --}}
+{{-- Mudei 'bg-gray-100' para 'bg-white' para o fundo ficar branco puro --}}
+<body class="g-sidenav-show  bg-white {{ (\Request::is('rtl') ? 'rtl' : (Request::is('virtual-reality') ? 'virtual-reality' : '')) }} ">
   @auth
     @yield('auth')
   @endauth
@@ -35,8 +37,7 @@
     @yield('guest')
   @endguest
 
-  {{-- ***** BLOCO DE ALERTAS ALTERADO ***** --}}
-  {{-- 1. Mensagem de SUCESSO (Centrada, 5 segundos) --}}
+  {{-- Mensagem de SUCESSO (Centrada, 5 segundos) --}}
   @if(session()->has('success'))
     <div x-data="{ show: true}"
         x-init="setTimeout(() => show = false, 5000)"
@@ -47,18 +48,16 @@
     </div>
   @endif
 
-  {{-- 2. Mensagem de ERRO (Centrada, 5 segundos) --}}
+  {{-- Mensagem de ERRO (Centrada, 5 segundos) --}}
   @if(session()->has('error') || $errors->any())
     <div x-data="{ show: true}"
          x-init="setTimeout(() => show = false, 5000)"
          x-show="show" x-transition
          class="position-fixed bg-gradient-danger rounded top-3 start-50 translate-middle-x text-sm py-2 px-4 text-white" 
          style="z-index: 9999;">
-        {{-- Mostra o primeiro erro de validação OU a sessão 'error' --}}
         <p class="m-0">{{ $errors->any() ? $errors->first() : session('error') }}</p>
     </div>
   @endif
-  {{-- ***** FIM DO BLOCO DE ALERTAS ***** --}}
 
 
     <script src="{{ asset('assets/js/core/popper.min.js') }}"></script>
