@@ -10,22 +10,27 @@ class AtividadeEconomica extends Model
 {
     use HasFactory;
 
-    // Garante que o Laravel usa a tabela 'atividade_economicas'
     protected $table = 'atividade_economicas';
 
     /**
-     * Define a relação inversa: Uma Atividade Económica pertence a uma Família.
-     * (Relação F no ER [cite: 523])
+     * Ação obrigatória: Adicionar os campos que podem ser preenchidos.
      */
+    protected $fillable = [
+        'familia_id',
+        'tipo',
+        'setor_id',
+        'descricao',
+        // 'data_registo' é preenchido automaticamente pelo 'timestamps()'
+    ];
+
+
+    /* --- Relações (já as tinhas) --- */
+
     public function familia(): BelongsTo
     {
         return $this->belongsTo(Familia::class);
     }
 
-    /**
-     * Define a relação inversa: Uma Atividade Económica pertence a um Setor de Atividade.
-     * (Relação G no ER [cite: 524])
-     */
     public function setorAtividade(): BelongsTo
     {
         return $this->belongsTo(SetorAtividade::class, 'setor_id');

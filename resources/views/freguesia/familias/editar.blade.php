@@ -5,30 +5,28 @@
     <div class="container-fluid py-4">
         <div class="row">
             <div class="col-12 col-lg-8 mx-auto">
+                {{-- CARD 1: FORMULÁRIO PRINCIPAL DA FAMÍLIA (Sem alterações) --}}
                 <div class="card">
                     <div class="card-header pb-0">
                         <h6>Editar Família</h6>
                         <p class="text-sm">Código: {{ $familia->codigo }}</p>
                     </div>
                     <div class="card-body">
-                        {{-- O formulário faz POST para a rota 'update', mas usa o método PUT --}}
                         <form action="{{ route('freguesia.familias.update', $familia->id) }}" method="POST" role="form text-left">
                             @csrf
-                            @method('PUT') {{-- Importante para dizer ao Laravel que é uma atualização --}}
-
+                            @method('PUT')
+                            {{-- (O resto do formulário da família fica aqui, como já tinhas) --}}
                             <p class="text-sm font-weight-bold">Informação Base da Família</p>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="codigo_display" class="form-control-label">Código Único</label>
-                                        {{-- O código não pode ser editado --}}
                                         <input class="form-control" type="text" id="codigo_display" value="{{ $familia->codigo }}" disabled readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="ano_instalacao" class="form-control-label">Ano de Instalação *</label>
-                                        {{-- Preenche com o valor antigo (se a validação falhar) OU com o valor atual da família --}}
                                         <input class="form-control" type="number" name="ano_instalacao" id="ano_instalacao" value="{{ old('ano_instalacao', $familia->ano_instalacao) }}" required>
                                     </div>
                                 </div>
@@ -62,9 +60,7 @@
                                     </div>
                                 </div>
                             </div>
-
                             <hr class="horizontal dark mt-4">
-
                             <p class="text-sm font-weight-bold">Agregado Familiar</p>
                             <div class="row">
                                  <div class="col-md-4">
@@ -86,16 +82,85 @@
                                     </div>
                                 </div>
                             </div>
-
                             <div class="text-end">
                                 <a href="{{ route('freguesia.familias.index') }}" class="btn btn-secondary mt-4">Cancelar</a>
                                 <button type="submit" class="btn bg-gradient-success mt-4">Guardar Alterações</button>
                             </div>
                         </form>
                     </div>
-                </div>
+                </div> {{-- Fim do Card 1 --}}
+
+                {{-- ***** CARD 2: ATIVIDADES ECONÓMICAS (COM LINKS ATIVOS) ***** --}}
+                <div class="card mt-4">
+                    <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Atividades Económicas</h6>
+                        {{-- BOTÃO ADICIONAR (ATIVADO) --}}
+                        <a href="{{ route('freguesia.familias.atividades.create', $familia->id) }}" class="btn bg-gradient-success btn-sm mb-0">
+                            <i class="fas fa-plus me-1"></i> Adicionar Atividade
+                        </a>
+                    </div>
+                    <div class="card-body px-0 pt-0 pb-2">
+                        <div class="table-responsive p-0">
+                            <table class="table align-items-center mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tipo</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Setor de Atividade</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Descrição</th>
+                                        <th class="text-secondary opacity-7">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($familia->atividadesEconomicas as $atividade)
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex px-3 py-1">
+                                                    <h6 class="mb-0 text-sm">{{ $atividade->tipo == 'conta_propria' ? 'Conta Própria' : 'Conta Outrem' }}</h6>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <p class="text-xs font-weight-bold mb-0">{{ $atividade->setorAtividade->nome ?? 'N/A' }}</p>
+                                            </td>
+                                            <td>
+                                                <p class="text-xs font-weight-bold mb-0">{{ Str::limit($atividade->descricao, 50) ?? 'N/A' }}</p>
+                                            </td>
+                                            <td class="align-middle">
+                                                {{-- BOTÃO EDITAR (ATIVADO) --}}
+                                                <a href="{{ route('freguesia.atividades.edit', $atividade->id) }}" class="btn btn-link text-success text-gradient px-1 mb-0">
+                                                    <i class="fas fa-pencil-alt text-sm"></i>
+                                                </a>
+                                                {{-- BOTÃO APAGAR (ATIVADO) --}}
+                                                <form action="{{ route('freguesia.atividades.destroy', $atividade->id) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-link text-danger text-gradient px-1 mb-0"
+                                                            onclick="return confirm('Tem a certeza que deseja apagar esta atividade?')">
+                                                        <i class="fas fa-trash text-sm"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="4" class="text-center text-sm py-4">Nenhuma atividade económica registada para esta família.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div> {{-- Fim do Card 2 --}}
             </div>
         </div>
     </div>
 
 @endsection
+
+@push('js')
+  <script>
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+  </script>
+@endpush

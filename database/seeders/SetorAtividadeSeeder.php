@@ -25,12 +25,16 @@ class SetorAtividadeSeeder extends Seeder
             ['nome' => 'Outro', 'descricao' => 'A especificar na descrição da atividade', 'ativo' => true],
         ];
 
-        // Inserir usando o Model
+        // ***** ALTERAÇÃO AQUI *****
+        // Usar firstOrCreate() em vez de create()
         foreach ($setores as $setor) {
-            SetorAtividade::create($setor);
+            SetorAtividade::firstOrCreate(
+                ['nome' => $setor['nome']], // 1. Procura por um setor com este nome
+                [ // 2. Se não encontrar, cria com estes dados
+                    'descricao' => $setor['descricao'],
+                    'ativo' => $setor['ativo']
+                ]
+            );
         }
-        
-        // Ou alternativamente usando DB Facade:
-        // DB::table('setor_atividades')->insert($setores);
     }
 }

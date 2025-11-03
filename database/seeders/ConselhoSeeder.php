@@ -24,11 +24,15 @@ class ConselhoSeeder extends Seeder
             ['nome' => 'Idanha-a-Nova', 'codigo' => null],
         ];
 
-        // Usar o Model para criar os registos (melhor prática)
+        // ***** ALTERAÇÃO AQUI *****
+        // Usar firstOrCreate() em vez de create()
         foreach ($concelhos as $concelho) {
-            Conselho::create($concelho);
+            Conselho::firstOrCreate(
+                ['nome' => $concelho['nome']], // 1. Procura por um concelho com este nome
+                [ // 2. Se não encontrar, cria-o com estes dados
+                    'codigo' => $concelho['codigo']
+                ]
+            );
         }
-        // Ou usar o DB facade (mais simples para inserts diretos)
-        // DB::table('conselhos')->insert($concelhos);
     }
 }

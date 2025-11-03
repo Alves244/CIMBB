@@ -10,6 +10,8 @@ use App\Http\Controllers\Freguesia\FamiliaController; // Importa o FamiliaContro
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Freguesia\AtividadeEconomicaController;
+use App\Http\Controllers\Freguesia\InqueritoFreguesiaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -73,6 +75,13 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['freguesia'])->prefix('freguesia')->name('freguesia.')->group(function () {
         // Rota para Famílias (já funciona)
         Route::resource('familias', FamiliaController::class);
+        // Rotas para Atividades Económicas (novas)
+        Route::resource('familias.atividades', AtividadeEconomicaController::class)->shallow();
+
+        // Rotas para Inquéritos Anuais da Freguesia (novas)
+        Route::get('inqueritos', [InqueritoFreguesiaController::class, 'index'])->name('inqueritos.index');
+        Route::get('inqueritos/adicionar', [InqueritoFreguesiaController::class, 'create'])->name('inqueritos.create');
+        Route::post('inqueritos', [InqueritoFreguesiaController::class, 'store'])->name('inqueritos.store');
     });
 
      // --- Rotas do Template (Remover se não forem usadas) ---

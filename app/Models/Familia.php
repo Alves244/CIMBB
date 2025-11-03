@@ -54,6 +54,6 @@ class Familia extends Model
 
     public function inqueritosAnuais(): HasMany
     {
-        return $this->hasMany(InqueritoAnual::class);
+        return $this->hasMany(InqueritoFreguesia::class);
     }
 }

@@ -4,17 +4,16 @@
 
     <div class="container-fluid py-4">
         <div class="row">
-            <div class="col-12 col-lg-8 mx-auto">
+            <div class="col-12 col-lg-8 mx-auto"> {{-- Centraliza o formulário --}}
                 <div class="card">
                     <div class="card-header pb-0">
                         <h6>Formulário de Registo de Nova Família</h6>
                         <p class="text-sm">Freguesia: {{ Auth::user()->freguesia->nome ?? 'N/A' }}</p>
                     </div>
                     <div class="card-body">
+                        {{-- O formulário faz POST para a rota 'freguesia.familias.store' --}}
                         <form action="{{ route('freguesia.familias.store') }}" method="POST" role="form text-left">
-                            @csrf 
-
-                            {{-- Bloco de Erros de Validação REMOVIDO DAQUI --}}
+                            @csrf {{-- Token de segurança do Laravel, obrigatório --}}
 
                             <p class="text-sm font-weight-bold">Informação Base da Família</p>
                             <div class="row">

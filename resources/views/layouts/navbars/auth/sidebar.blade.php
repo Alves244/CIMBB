@@ -54,13 +54,12 @@
           </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{ Request::routeIs('freguesia.inqueritos.*') ? 'active' : '' }}" href="#">
-              <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('freguesia.inqueritos.*') ? '' : 'bg-white' }}"
-                   style="{{ Request::routeIs('freguesia.inqueritos.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
-                <i class="fas fa-poll ps-2 pe-2 text-center {{ Request::routeIs('freguesia.inqueritos.*') ? 'text-white' : 'text-dark' }}"></i>
-              </div>
+          <a class="nav-link {{ Request::routeIs('freguesia.inqueritos.*') ? 'active' : '' }}" href="{{ route('freguesia.inqueritos.index') }}">
+            <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('freguesia.inqueritos.*') ? '' : 'bg-white' }}" style="{{ Request::routeIs('freguesia.inqueritos.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
+              <i class="fas fa-poll ps-2 pe-2 text-center {{ Request::routeIs('freguesia.inqueritos.*') ? 'text-white' : 'text-dark' }}"></i>
+            </div>
               <span class="nav-link-text ms-1">Inquérito Anual</span>
-            </a>
+          </a>
         </li>
          <li class="nav-item">
             <a class="nav-link {{ Request::routeIs('freguesia.tickets.*') ? 'active' : '' }}" href="#">
