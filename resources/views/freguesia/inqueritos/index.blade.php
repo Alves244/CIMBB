@@ -35,6 +35,7 @@
                   </tr>
                 </thead>
                 <tbody>
+                  {{-- Este 'forelse' está correto e não tem 'dd()' --}}
                   @forelse ($inqueritos as $inquerito)
                     <tr>
                       <td>
@@ -49,8 +50,10 @@
                         <span class="badge badge-sm bg-gradient-info">{{ $inquerito->satisfacao_global }}</span>
                       </td>
                       <td class="align-middle">
-                        {{-- TODO: Adicionar botões Ver/Editar se necessário --}}
-                        <a href="#" class="btn btn-link text-info text-gradient px-1 mb-0" data-bs-toggle="tooltip" data-bs-original-title="Ver Inquérito">
+                        
+                        {{-- ***** BOTÃO "VER" CORRIGIDO ***** --}}
+                        {{-- O href aponta para a nova rota 'show' --}}
+                        <a href="{{ route('freguesia.inqueritos.show', $inquerito->id) }}" class="btn btn-link text-info text-gradient px-1 mb-0" data-bs-toggle="tooltip" data-bs-original-title="Ver Inquérito">
                             <i class="fas fa-eye text-sm"></i>
                         </a>
                       </td>
@@ -72,6 +75,7 @@
 @endsection
 
 @push('js')
+  {{-- Script para ativar os tooltips (ex: 'Ver Inquérito') --}}
   <script>
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {

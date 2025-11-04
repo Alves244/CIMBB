@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Freguesia;
 
 use App\Http\Controllers\Controller;
-use App\Models\InqueritoFreguesia; // O modelo que criámos
+use App\Models\InqueritoFreguesia; // O modelo
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -11,7 +11,6 @@ class InqueritoFreguesiaController extends Controller
 {
     /**
      * Mostra a lista (histórico) de inquéritos submetidos pela freguesia.
-     * (Isto permite ver o que foi feito nos anos anteriores)
      */
     public function index()
     {
@@ -27,7 +26,7 @@ class InqueritoFreguesiaController extends Controller
         $anoAtual = date('Y');
         $jaPreencheuEsteAno = $inqueritosPassados->contains('ano', $anoAtual);
 
-        // Passa os dados para a view
+        // Passa os dados para a view (o seu index.blade.php)
         return view('freguesia.inqueritos.index', [
             'inqueritos' => $inqueritosPassados,
             'jaPreencheuEsteAno' => $jaPreencheuEsteAno,
@@ -37,6 +36,7 @@ class InqueritoFreguesiaController extends Controller
 
     /**
      * Mostra o formulário para criar um novo inquérito.
+     * (Carrega a sua view 'adicionar')
      */
     public function create()
     {
@@ -66,16 +66,20 @@ class InqueritoFreguesiaController extends Controller
         $user = Auth::user();
         $anoAtual = date('Y');
 
-        // Validação (baseada no PDF)
+        // Validação (com a correção do erro "1E")
         $dadosValidados = $request->validate([
             'escala_integracao' => 'required|integer|min:1|max:5',
             'aspectos_positivos' => 'nullable|string|max:2000',
             'aspectos_negativos' => 'nullable|string|max:2000',
-            'satisfacao_global' => 'required|integer|min:1E|max:5',
+            
+            // ***** LINHA CORRIGIDA *****
+            'satisfacao_global' => 'required|integer|min:1|max:5', 
+
             'sugestoes' => 'nullable|string|max:2000',
         ]);
 
         try {
+            // Cria o inquérito
             InqueritoFreguesia::create([
                 'freguesia_id' => $user->freguesia_id,
                 'utilizador_id' => $user->id,
@@ -95,5 +99,20 @@ class InqueritoFreguesiaController extends Controller
             // Se falhar (ex: tentar submeter 2x ao mesmo tempo)
             return back()->withInput()->with('error', 'Erro ao guardar o inquérito: '.$e->getMessage());
         }
+    }
+
+    /**
+     * Mostra os detalhes de um inquérito preenchido.
+     * (O NOVO MÉTODO PARA O BOTÃO "VER")
+     */
+    public function show(InqueritoFreguesia $inquerito)
+    {
+        // 1. Verificar se o inquérito pertence à freguesia do utilizador
+        if ($inquerito->freguesia_id !== Auth::user()->freguesia_id) {
+            abort(403, 'Acesso não autorizado.'); // Proteção
+        }
+
+        // 2. Passar o inquérito para a nova view 'show.blade.php'
+        return view('freguesia.inqueritos.show', compact('inquerito'));
     }
 }

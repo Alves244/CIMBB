@@ -8,6 +8,7 @@ use App\Models\Familia;
 use App\Models\SetorAtividade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule; // Adicionado para validação do 'in'
 
 class AtividadeEconomicaController extends Controller
 {
@@ -18,6 +19,7 @@ class AtividadeEconomicaController extends Controller
     private function verificarPermissao(AtividadeEconomica $atividade)
     {
         // Carrega a família da atividade e compara a freguesia_id com a do utilizador
+        // (Usa a relação 'familia')
         if ($atividade->familia->freguesia_id !== Auth::user()->freguesia_id) {
             abort(403, 'Acesso não autorizado.'); // Pára a execução
         }
@@ -25,6 +27,7 @@ class AtividadeEconomicaController extends Controller
 
     /**
      * Mostra o formulário para criar uma nova atividade para uma família específica.
+     * (Carrega o seu 'adicionar.blade.php')
      */
     public function create(Familia $familia)
     {
@@ -49,21 +52,20 @@ class AtividadeEconomicaController extends Controller
 
         // 2. Validar
         $dadosValidados = $request->validate([
-            'tipo' => 'required|in:conta_propria,conta_outrem',
+            'tipo' => ['required', Rule::in(['conta_propria', 'conta_outrem'])], // Validação correta
             'setor_id' => 'required|exists:setor_atividades,id',
             'descricao' => 'nullable|string|max:500',
         ]);
 
         try {
-            // 3. Criar
+            // 3. Criar (Usa a relação 'atividadesEconomicas')
             $familia->atividadesEconomicas()->create([
                 'tipo' => $dadosValidados['tipo'],
                 'setor_id' => $dadosValidados['setor_id'],
                 'descricao' => $dadosValidados['descricao'],
             ]);
 
-            // 4. Redirecionar para a PÁGINA DE EDIÇÃO DA FAMÍLIA (Melhor fluxo)
-            // (Na tua mensagem pediste para a lista, mas assim vês o resultado logo)
+            // 4. Redirecionar para a PÁGINA DE EDIÇÃO DA FAMÍLIA
              return redirect()->route('freguesia.familias.edit', $familia->id)
                            ->with('success', 'Nova atividade económica adicionada!');
 
@@ -74,6 +76,7 @@ class AtividadeEconomicaController extends Controller
     
     /**
      * Mostra o formulário para editar uma atividade existente.
+     * (Carrega o seu 'editar.blade.php')
      */
     public function edit(AtividadeEconomica $atividade)
     {
@@ -81,7 +84,6 @@ class AtividadeEconomicaController extends Controller
 
         $setores = SetorAtividade::where('ativo', true)->orderBy('nome')->get();
         
-        // Passa a $atividade (que já inclui a família) e os $setores para a view
         return view('freguesia.atividades.editar', [
             'atividade' => $atividade,
             'setores' => $setores
@@ -97,7 +99,7 @@ class AtividadeEconomicaController extends Controller
 
         // Validar os dados
         $dadosValidados = $request->validate([
-            'tipo' => 'required|in:conta_propria,conta_outrem',
+            'tipo' => ['required', Rule::in(['conta_propria', 'conta_outrem'])],
             'setor_id' => 'required|exists:setor_atividades,id',
             'descricao' => 'nullable|string|max:500',
         ]);
@@ -105,9 +107,9 @@ class AtividadeEconomicaController extends Controller
         try {
             $atividade->update($dadosValidados);
 
-            // ***** COMO PEDISTE: Redirecionar de volta para a LISTA DE FAMÍLIAS *****
-            return redirect()->route('freguesia.familias.index')
-                           ->with('success', 'Atividade económica da família '.$atividade->familia->codigo.' foi atualizada.');
+            // Redirecionar de volta para a PÁGINA DE EDIÇÃO DA FAMÍLIA
+            return redirect()->route('freguesia.familias.edit', $atividade->familia_id)
+                           ->with('success', 'Atividade económica atualizada.');
 
         } catch (\Exception $e) {
             return back()->withInput()->with('error', 'Erro ao atualizar a atividade: '.$e->getMessage());
@@ -122,15 +124,21 @@ class AtividadeEconomicaController extends Controller
         $this->verificarPermissao($atividade); // Verifica permissão
         
         try {
-            $familia_codigo = $atividade->familia->codigo; // Guarda o código antes de apagar
+            $familia_id = $atividade->familia_id; // Guarda o ID da família
             $atividade->delete();
 
-            // ***** COMO PEDISTE: Redirecionar de volta para a LISTA DE FAMÍLIAS *****
-            return redirect()->route('freguesia.familias.index')
-                           ->with('success', 'Atividade económica da família '.$familia_codigo.' foi apagada.');
+            // Redirecionar de volta para a PÁGINA DE EDIÇÃO DA FAMÍLIA
+            return redirect()->route('freguesia.familias.edit', $familia_id)
+                           ->with('success', 'Atividade económica foi apagada.');
 
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao apagar a atividade.');
         }
+    }
+
+    // O método show() não é necessário se não o estiver a usar
+    public function show(AtividadeEconomica $atividade) 
+    { 
+        return $this->edit($atividade); // Por agora, redireciona para a edição
     }
 }

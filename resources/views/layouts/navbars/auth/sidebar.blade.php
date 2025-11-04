@@ -11,15 +11,11 @@
 
       {{-- ===== MENU COMUM ===== --}}
       <li class="nav-item">
-        {{-- MUDANÇA AQUI no link do Dashboard --}}
         <a class="nav-link {{ Request::routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
           <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('dashboard') ? '' : 'bg-white' }}"
                style="{{ Request::routeIs('dashboard') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
-            
-            {{-- MUDANÇA AQUI: Ícone alterado para 'fas fa-home' --}}
             <i class="fas fa-home ps-2 pe-2 text-center {{ Request::routeIs('dashboard') ? 'text-white' : 'text-dark' }}"></i>
           </div>
-          {{-- MUDANÇA AQUI: Texto alterado para 'Página Inicial' --}}
           <span class="nav-link-text ms-1">Página Inicial</span>
         </a>
       </li>
@@ -28,10 +24,10 @@
         <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">A Minha Conta</h6>
       </li>
       <li class="nav-item">
-        <a class="nav-link {{ Request::routeIs('profile') ? 'active' : '' }}" href="{{ route('profile') }}">
-          <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('profile') ? '' : 'bg-white' }}"
-               style="{{ Request::routeIs('profile') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
-             <i class="fas fa-user ps-2 pe-2 text-center {{ Request::routeIs('profile') ? 'text-white' : 'text-dark' }}"></i>
+        <a class="nav-link {{ (Request::routeIs('profile') || Request::routeIs('user-profile')) ? 'active' : '' }}" href="{{ route('profile') }}">
+          <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ (Request::routeIs('profile') || Request::routeIs('user-profile')) ? '' : 'bg-white' }}"
+               style="{{ (Request::routeIs('profile') || Request::routeIs('user-profile')) ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
+             <i class="fas fa-user ps-2 pe-2 text-center {{ (Request::routeIs('profile') || Request::routeIs('user-profile')) ? 'text-white' : 'text-dark' }}"></i>
           </div>
           <span class="nav-link-text ms-1">Meu Perfil</span>
         </a>
@@ -62,10 +58,11 @@
           </a>
         </li>
          <li class="nav-item">
-            <a class="nav-link {{ Request::routeIs('freguesia.tickets.*') ? 'active' : '' }}" href="#">
-              <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('freguesia.tickets.*') ? '' : 'bg-white' }}"
-                   style="{{ Request::routeIs('freguesia.tickets.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
-                <i class="fas fa-question-circle ps-2 pe-2 text-center {{ Request::routeIs('freguesia.tickets.*') ? 'text-white' : 'text-dark' }}"></i>
+            {{-- ***** NOVO LINK DE SUPORTE ADICIONADO ***** --}}
+            <a class="nav-link {{ Request::routeIs('freguesia.suporte.*') ? 'active' : '' }}" href="{{ route('freguesia.suporte.index') }}">
+              <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('freguesia.suporte.*') ? '' : 'bg-white' }}"
+                   style="{{ Request::routeIs('freguesia.suporte.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
+                <i class="fas fa-question-circle ps-2 pe-2 text-center {{ Request::routeIs('freguesia.suporte.*') ? 'text-white' : 'text-dark' }}"></i>
               </div>
               <span class="nav-link-text ms-1">Suporte</span>
             </a>

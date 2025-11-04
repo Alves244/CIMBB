@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Freguesia;
 
 use App\Http\Controllers\Controller;
 use App\Models\Familia;
+use App\Models\AgregadoFamiliar; // Importante
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\DB; // Importante para a Transação
 use Illuminate\Support\Str;
 
 class FamiliaController extends Controller
@@ -22,10 +23,11 @@ class FamiliaController extends Controller
             return redirect()->route('dashboard')->with('error', 'Utilizador sem freguesia associada.');
         }
 
-        $familias = Familia::with('agregadoFamiliar')
+        // Carrega a relação 'agregadoFamiliar'
+        $familias = Familia::with('agregadoFamiliar') 
                             ->where('freguesia_id', $freguesiaId)
                             ->orderBy('ano_instalacao', 'desc')
-                            ->paginate(15);
+                            ->paginate(15); // Paginação
 
         return view('freguesia.familias.listar', compact('familias'));
     }
@@ -56,9 +58,7 @@ class FamiliaController extends Controller
         
         // 2. Gerar o Código Automático
         try {
-            // Obter o utilizador e carregar as relações necessárias
             $user = Auth::user();
-            // Usar load() para garantir que as relações estão carregadas
             $freguesia = $user->freguesia->load('conselho');
             $conselho = $freguesia->conselho;
             
@@ -66,48 +66,34 @@ class FamiliaController extends Controller
                 throw new \Exception("Não foi possível encontrar o concelho associado à freguesia.");
             }
 
-            // ***** LÓGICA DAS INICIAIS ALTERADA *****
-
-            // Gerar as iniciais (Ex: "Aranhas" -> "A" | "Castelo Branco" -> "CB")
             $iniciaisFreguesia = $this->gerarIniciais($freguesia->nome);
             $iniciaisConselho = $this->gerarIniciais($conselho->nome);
             
-            // Combinar as iniciais
-            // Começa com a inicial da Freguesia
             $iniciaisCompletas = $iniciaisFreguesia;
-            
-            // Adiciona a inicial do Concelho SÓ SE for diferente da inicial da Freguesia
-            // (Ex: Freguesia "Penamacor" (P) e Concelho "Penamacor" (P) -> fica só "P")
-            // (Ex: Freguesia "Aranhas" (A) e Concelho "Penamacor" (P) -> fica "AP")
             if ($iniciaisFreguesia != $iniciaisConselho) {
                 $iniciaisCompletas .= $iniciaisConselho;
             }
 
-            // ***** FIM DA ALTERAÇÃO *****
-
-            // Obter o ano atual (Ex: 2025)
             $ano = date('Y');
-            
-            // Construir o prefixo (Ex: "FMAP2025-" ou "FMP2025-")
             $prefixo = 'FM'.$iniciaisCompletas.$ano.'-';
 
-            // 3. Encontrar o último número sequencial para este prefixo
+            // 3. Encontrar o último número sequencial
             $ultimoCodigo = Familia::where('codigo', 'like', $prefixo.'%')
                                     ->orderBy('codigo', 'desc')
                                     ->first();
 
             $novoNumero = 1;
             if ($ultimoCodigo) {
-                // Extrai o número do código (Ex: "FMCB2025-0001" -> "0001")
                 $numero = (int) substr($ultimoCodigo->codigo, -4);
                 $novoNumero = $numero + 1;
             }
 
-            // 4. Formatar o novo código (Ex: "FMAP2025-0001")
+            // 4. Formatar o novo código
             $novoCodigo = $prefixo.str_pad($novoNumero, 4, '0', STR_PAD_LEFT);
 
             // 5. Usar uma Transação
-            DB::transaction(function () use ($dadosValidados, $novoCodigo, $user, $freguesia) {
+            $familia = null; 
+            DB::transaction(function () use ($dadosValidados, $novoCodigo, $user, $freguesia, &$familia) {
                 
                 // 5a. Criar a Família
                 $familia = Familia::create([
@@ -128,8 +114,9 @@ class FamiliaController extends Controller
                 ]);
             });
 
-            // 6. Redirecionar
-            return redirect()->route('freguesia.familias.index')->with('success', 'Nova família registada com sucesso!');
+            // 6. Redirecionar para a PÁGINA DE EDIÇÃO (fluxo melhorado)
+            return redirect()->route('freguesia.familias.edit', $familia->id)
+                             ->with('success', 'Nova família registada! Pode agora adicionar as atividades económicas.');
 
         } catch (\Exception $e) {
             return back()->withInput()->with('error', 'Erro ao guardar a família: '.$e->getMessage());
@@ -137,41 +124,120 @@ class FamiliaController extends Controller
     }
 
     /**
-     * Função privada para gerar iniciais a partir de um nome.
-     * Ex: "Castelo Branco" -> "CB"
-     * Ex: "Idanha-a-Nova" -> "IAN"
-     * Ex: "Sertã" -> "S"
+     * Função privada para gerar iniciais (O seu código original)
      */
     private function gerarIniciais($nome)
     {
-        // Substitui traços por espaços (ex: Idanha-a-Nova -> Idanha a Nova)
         $nomeLimpo = str_replace('-', ' ', $nome);
-        
-        // Separa o nome por espaços
         $palavras = explode(' ', $nomeLimpo);
         $iniciais = '';
 
-        // Pega na primeira letra de cada palavra
         foreach ($palavras as $palavra) {
-            // Ignora palavras pequenas como 'e', 'da', 'do'
             if (strlen($palavra) > 0 && !in_array(strtolower($palavra), ['e', 'da', 'do', 'de', 'das', 'dos'])) {
                 $iniciais .= Str::upper(substr($palavra, 0, 1));
             }
         }
-
-        // Se o nome for só uma palavra (ex: "Sertã"), usa só a primeira letra
         if (empty($iniciais) && strlen($nome) > 0) {
             return Str::upper(substr($nome, 0, 1));
         }
-
         return $iniciais;
     }
 
-
-    /* --- Resto dos métodos (show, edit, update, destroy) --- */
     
-    public function show(Familia $familia) { /* ... */ }
-    public function edit(Familia $familia) { /* ... */ }
-    public function update(Request $request, Familia $familia) { /* ... */ }
-    public function destroy(Familia $familia) { /* ... */ }
+    /* --- ESTES SÃO OS MÉTODOS QUE FALTAVAM --- */
+    
+    /**
+     * Mostra o formulário para editar a Família E as suas Atividades.
+     * (Carrega o seu 'editar.blade.php')
+     */
+    public function edit(Familia $familia)
+    {
+        // 1. Verificar se a família pertence à freguesia do utilizador
+        if ($familia->freguesia_id !== Auth::user()->freguesia_id) {
+            abort(403, 'Acesso não autorizado.'); // Proteção
+        }
+
+        // 2. Carregar as relações da família de forma eficiente (Eager Loading)
+        // (Usa as relações 'agregadoFamiliar' e 'atividadesEconomicas.setorAtividade')
+        $familia->load('agregadoFamiliar', 'atividadesEconomicas.setorAtividade');
+
+        // 3. Retorna a view de edição da família
+        return view('freguesia.familias.editar', compact('familia'));
+    }
+
+    /**
+     * Atualiza a Família e o seu Agregado Familiar na base de dados.
+     * (Chamado pelo formulário no 'editar.blade.php')
+     */
+    public function update(Request $request, Familia $familia)
+    {
+        // 1. Verificar se a família pertence à freguesia do utilizador
+        if ($familia->freguesia_id !== Auth::user()->freguesia_id) {
+            abort(403, 'Acesso não autorizado.');
+        }
+
+        // 2. Validar os dados da Família (Card 1)
+        $validatedFamilia = $request->validate([
+            'ano_instalacao' => 'required|integer|min:1900|max:'.date('Y'),
+            'nacionalidade' => 'required|string|max:50',
+            'tipologia_habitacao' => 'required|string|in:casa,quinta,apartamento',
+            'tipologia_propriedade' => 'required|string|in:propria,arrendada',
+        ]);
+        
+        // 3. Validar os dados do Agregado (Card 1)
+        $validatedAgregado = $request->validate([
+            'adultos_laboral' => 'required|integer|min:0',
+            'adultos_65_mais' => 'required|integer|min:0',
+            'criancas' => 'required|integer|min:0',
+        ]);
+
+        // 4. Usar uma Transação para garantir que tudo é salvo
+        try {
+            DB::transaction(function () use ($familia, $validatedFamilia, $validatedAgregado) {
+                
+                // 4a. Atualizar a Família
+                $familia->update($validatedFamilia);
+
+                // 4b. Atualizar ou Criar o Agregado Familiar associado
+                $familia->agregadoFamiliar()->updateOrCreate(
+                    ['familia_id' => $familia->id], // Condição para encontrar
+                    $validatedAgregado // Dados para atualizar ou criar
+                );
+            });
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'Erro ao guardar as alterações: '.$e->getMessage());
+        }
+
+        // 6. Redirecionar de volta com sucesso
+        return redirect()->route('freguesia.familias.edit', $familia->id)
+                         ->with('success', 'Família atualizada com sucesso.');
+    }
+
+    /**
+     * Remove a Família (e o Agregado/Atividades via 'onDelete: cascade')
+     */
+    public function destroy(Familia $familia)
+    {
+        // 1. Verificar se a família pertence à freguesia do utilizador
+        if ($familia->freguesia_id !== Auth::user()->freguesia_id) {
+            abort(403, 'Acesso não autorizado.');
+        }
+        
+        try {
+            $familia->delete();
+            return redirect()->route('freguesia.familias.index')
+                             ->with('success', 'Família (Código: '.$familia->codigo.') foi apagada com sucesso.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Não foi possível apagar a família. Verifique se existem dados associados.');
+        }
+    }
+    
+    /**
+     * Mostra uma única família (pode redirecionar para a edição)
+     */
+    public function show(Familia $familia) 
+    { 
+        // Ação padrão é redirecionar para a edição
+        return $this->edit($familia);
+    }
 }

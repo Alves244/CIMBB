@@ -20,17 +20,17 @@ class AtividadeEconomica extends Model
         'tipo',
         'setor_id',
         'descricao',
-        // 'data_registo' é preenchido automaticamente pelo 'timestamps()'
     ];
 
 
-    /* --- Relações (já as tinhas) --- */
+    /* --- Relações --- */
 
     public function familia(): BelongsTo
     {
         return $this->belongsTo(Familia::class);
     }
 
+    // Corresponde a $atividade->setorAtividade
     public function setorAtividade(): BelongsTo
     {
         return $this->belongsTo(SetorAtividade::class, 'setor_id');

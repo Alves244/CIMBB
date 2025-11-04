@@ -6,12 +6,13 @@ use App\Http\Controllers\InfoUserController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\ResetController;
 use App\Http\Controllers\SessionsController;
-use App\Http\Controllers\Freguesia\FamiliaController; // Importa o FamiliaController
+use App\Http\Controllers\Freguesia\FamiliaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Freguesia\AtividadeEconomicaController;
 use App\Http\Controllers\Freguesia\InqueritoFreguesiaController;
+use App\Http\Controllers\Freguesia\TicketSuporteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,12 +38,9 @@ Route::group(['middleware' => 'guest'], function () {
 Route::middleware(['auth'])->group(function () {
 
     Route::get('/', [HomeController::class, 'home'])->name('home');
-    
-    // ***** ALTERAÇÃO AQUI *****
-    // Esta rota agora chama o método 'dashboard' no HomeController
     Route::get('dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
 
-    // Rotas de Perfil (já funcionam)
+    // Rotas de Perfil
     Route::get('profile', function () { return view('profile'); })->name('profile');
     Route::get('/user-profile', [InfoUserController::class, 'create']);
     Route::post('/user-profile', [InfoUserController::class, 'store']);
@@ -73,15 +71,24 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware(['freguesia'])->prefix('freguesia')->name('freguesia.')->group(function () {
-        // Rota para Famílias (já funciona)
+        
+        // Rotas para Famílias (CRUD completo)
         Route::resource('familias', FamiliaController::class);
-        // Rotas para Atividades Económicas (novas)
+        
+        // Rotas para Atividades Económicas (aninhadas e 'shallow')
         Route::resource('familias.atividades', AtividadeEconomicaController::class)->shallow();
 
-        // Rotas para Inquéritos Anuais da Freguesia (novas)
+        // Rotas para Inquéritos Anuais da Freguesia
         Route::get('inqueritos', [InqueritoFreguesiaController::class, 'index'])->name('inqueritos.index');
         Route::get('inqueritos/adicionar', [InqueritoFreguesiaController::class, 'create'])->name('inqueritos.create');
         Route::post('inqueritos', [InqueritoFreguesiaController::class, 'store'])->name('inqueritos.store');
+        Route::get('inqueritos/{inquerito}', [InqueritoFreguesiaController::class, 'show'])->name('inqueritos.show');
+    
+        // Usar 'resource' é mais limpo, mas vamos limitar às rotas que precisamos
+        Route::get('suporte', [TicketSuporteController::class, 'index'])->name('suporte.index');
+        Route::get('suporte/adicionar', [TicketSuporteController::class, 'create'])->name('suporte.create');
+        Route::post('suporte', [TicketSuporteController::class, 'store'])->name('suporte.store');
+        Route::get('suporte/{ticket}', [TicketSuporteController::class, 'show'])->name('suporte.show');
     });
 
      // --- Rotas do Template (Remover se não forem usadas) ---

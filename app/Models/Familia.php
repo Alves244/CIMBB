@@ -16,8 +16,6 @@ class Familia extends Model
 
     /**
      * Os atributos que podem ser preenchidos em massa (mass assignable).
-     *
-     * @var array<int, string>
      */
     protected $fillable = [
         'codigo',
@@ -30,7 +28,7 @@ class Familia extends Model
     ];
 
 
-    /* --- Relações (já as tinhas) --- */
+    /* --- Relações --- */
 
     public function freguesia(): BelongsTo
     {
@@ -47,13 +45,15 @@ class Familia extends Model
         return $this->hasOne(AgregadoFamiliar::class);
     }
 
+    // Corresponde a $familia->atividadesEconomicas
     public function atividadesEconomicas(): HasMany
     {
         return $this->hasMany(AtividadeEconomica::class);
     }
 
-    public function inqueritosAnuais(): HasMany
-    {
-        return $this->hasMany(InqueritoFreguesia::class);
-    }
+    // Relação para o Inquérito (se for por família, o que não é o caso)
+    // public function inqueritosAnuais(): HasMany
+    // {
+    //     return $this->hasMany(InqueritoFreguesia::class); //
+    // }
 }
