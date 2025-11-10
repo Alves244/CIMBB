@@ -25,6 +25,7 @@ class Familia extends Model
         'tipologia_habitacao',
         'tipologia_propriedade',
         'utilizador_registo_id',
+        'localizacao', 
     ];
 
 
@@ -45,15 +46,8 @@ class Familia extends Model
         return $this->hasOne(AgregadoFamiliar::class);
     }
 
-    // Corresponde a $familia->atividadesEconomicas
     public function atividadesEconomicas(): HasMany
     {
         return $this->hasMany(AtividadeEconomica::class);
     }
-
-    // Relação para o Inquérito (se for por família, o que não é o caso)
-    // public function inqueritosAnuais(): HasMany
-    // {
-    //     return $this->hasMany(InqueritoFreguesia::class); //
-    // }
 }

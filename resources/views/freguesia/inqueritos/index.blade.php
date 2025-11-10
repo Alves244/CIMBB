@@ -12,7 +12,6 @@
               <p class="text-sm">Freguesia: {{ Auth::user()->freguesia->nome ?? 'N/A' }}</p>
             </div>
 
-            {{-- O botão só aparece se o inquérito deste ano AINDA NÃO foi preenchido --}}
             @if(!$jaPreencheuEsteAno)
                 <a href="{{ route('freguesia.inqueritos.create') }}" class="btn bg-gradient-success btn-sm mb-0">
                     <i class="fas fa-plus me-1"></i> Preencher Inquérito ({{ $anoAtual }})
@@ -35,7 +34,6 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {{-- Este 'forelse' está correto e não tem 'dd()' --}}
                   @forelse ($inqueritos as $inquerito)
                     <tr>
                       <td>
@@ -50,9 +48,7 @@
                         <span class="badge badge-sm bg-gradient-info">{{ $inquerito->satisfacao_global }}</span>
                       </td>
                       <td class="align-middle">
-                        
-                        {{-- ***** BOTÃO "VER" CORRIGIDO ***** --}}
-                        {{-- O href aponta para a nova rota 'show' --}}
+
                         <a href="{{ route('freguesia.inqueritos.show', $inquerito->id) }}" class="btn btn-link text-info text-gradient px-1 mb-0" data-bs-toggle="tooltip" data-bs-original-title="Ver Inquérito">
                             <i class="fas fa-eye text-sm"></i>
                         </a>
@@ -75,7 +71,6 @@
 @endsection
 
 @push('js')
-  {{-- Script para ativar os tooltips (ex: 'Ver Inquérito') --}}
   <script>
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {

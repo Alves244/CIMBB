@@ -19,11 +19,10 @@ class AgregadoFamiliar extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'familia_id', // Embora estejamos a usar a relação, é boa prática tê-lo
+        'familia_id',
         'adultos_laboral',
         'adultos_65_mais',
         'criancas',
-        // 'total_membros' não é necessário porque é gerado pelo MySQL
     ];
 
 

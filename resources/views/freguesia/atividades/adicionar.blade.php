@@ -8,7 +8,6 @@
                 <div class="card">
                     <div class="card-header pb-0">
                         <h6>Adicionar Atividade Económica</h6>
-                        {{-- Este ficheiro SIM, usa a $familia --}}
                         <p class="text-sm">Família: {{ $familia->codigo }} ({{ $familia->nacionalidade }})</p>
                     </div>
                     <div class="card-body">

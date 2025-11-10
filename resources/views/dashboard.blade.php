@@ -3,27 +3,115 @@
 @section('content') {{-- Usa a secção 'content' correta --}}
 
   <div class="container-fluid py-4">
+    
+    {{-- ***** LINHA DE 4 CARTÕES DE ESTATÍSTICA ***** --}}
     <div class="row">
+      <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+        <div class="card">
+          <div class="card-body p-3">
+            <div class="row">
+              <div class="col-8">
+                <div class="numbers">
+                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Famílias</p>
+                  <h5 class="font-weight-bolder mb-0">
+                    {{ $totalFamilias }}
+                  </h5>
+                </div>
+              </div>
+              <div class="col-4 text-end">
+                <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
+                  <i class="fas fa-users text-lg opacity-10" aria-hidden="true"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+        <div class="card">
+          <div class="card-body p-3">
+            <div class="row">
+              <div class="col-8">
+                <div class="numbers">
+                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Membros</p>
+                  <h5 class="font-weight-bolder mb-0">
+                    {{ $totalMembros }}
+                  </h5>
+                </div>
+              </div>
+              <div class="col-4 text-end">
+                <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
+                  <i class="fas fa-user-friends text-lg opacity-10" aria-hidden="true"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+        <div class="card">
+          <div class="card-body p-3">
+            <div class="row">
+              <div class="col-8">
+                <div class="numbers">
+                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Adultos</p>
+                  <h5 class="font-weight-bolder mb-0">
+                    {{ $totalAdultos }}
+                  </h5>
+                </div>
+              </div>
+              <div class="col-4 text-end">
+                <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
+                  <i class="fas fa-user text-lg opacity-10" aria-hidden="true"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-sm-6">
+        <div class="card">
+          <div class="card-body p-3">
+            <div class="row">
+              <div class="col-8">
+                <div class="numbers">
+                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Crianças</p>
+                  <h5 class="font-weight-bolder mb-0">
+                    {{ $totalCriancas }}
+                  </h5>
+                </div>
+              </div>
+              <div class="col-4 text-end">
+                <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
+                  <i class="fas fa-child text-lg opacity-10" aria-hidden="true"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {{-- ***** FIM DA LINHA DE CARTÕES ***** --}}
+
+
+    <div class="row mt-4">
       
-      {{-- Coluna da Esquerda: Caixa de Boas-Vindas --}}
+      {{-- Coluna da Esquerda: Caixa de Boas-Vindas (JÁ TINHA) --}}
       <div class="col-lg-7 mb-lg-0 mb-4">
         <div class="card h-100">
           <div class="card-body p-4">
             <div class="row">
               <div class="col-12">
                 <div class="d-flex flex-column h-100">
-                  {{-- 1. Caixa de Boas-Vindas --}}
-                  <h5 class="font-weight-bolder">Bem-vindo, {{ $userName ?? 'Utilizador' }}!</h5>
-                  
-                  {{-- 2. Descrição do Programa --}}
+                  <h5 class="font-weight-bolder">Bem-vindo, {{ Auth::user()->nome }}!</h5>
                   <p class="mb-4">
                     Este é o Sistema de Monitorização da Integração de Residentes Estrangeiros (SMRE) 
                     da Comunidade Intermunicipal da Beira Baixa (CIMBB).
                   </p>
-                  <p class="mb-4">
-                    Esta plataforma permite o registo e a análise de dados demográficos e 
-                    socioeconómicos das famílias estrangeiras residentes no território, 
-                    facilitando a tomada de decisões estratégicas.
+                  {{-- Mostra a localidade que está a ver --}}
+                  <p class="mb-0">
+                    <i class="fa fa-map-marker-alt text-success me-1"></i>
+                    A visualizar dados de: <span class="font-weight-bold">{{ $nomeLocalidade }}</span>
                   </p>
                 </div>
               </div>
@@ -32,23 +120,14 @@
         </div>
       </div>
 
-      {{-- Coluna da Direita: Gráfico de Nacionalidades --}}
+      {{-- Coluna da Direita: Gráfico de Nacionalidades (JÁ TINHA) --}}
       <div class="col-lg-5">
         <div class="card h-100">
           <div class="card-header pb-0">
-            <h6>Nacionalidades</h6>
-            {{-- Filtro (só aparece se for freguesia) --}}
-            @if(auth()->user()->isFreguesia())
-              <p class="text-sm">
-                <i class="fa fa-map-marker-alt text-success me-1"></i>
-                <span class="font-weight-bold">Dados da Freguesia:</span> {{ auth()->user()->freguesia->nome ?? 'N/A' }}
-              </p>
-            @else
-              <p class="text-sm">
-                <i class="fa fa-globe text-success me-1"></i>
-                <span class="font-weight-bold">Dados de Todo o Território</span>
-              </p>
-            @endif
+            <h6>Nacionalidades (Top 10)</h6>
+            <p class="text-sm">
+                <span class="font-weight-bold">{{ $tituloDashboard }}</span>
+            </p>
           </div>
           <div class="card-body p-3 d-flex align-items-center justify-content-center">
             @if($chartValues->count() > 0)
@@ -71,7 +150,7 @@
 
 {{-- Adicionar o Script do Chart.js no final da página --}}
 @push('js')
-  {{-- O 'chartjs.min.js' já é carregado pelo teu app.blade.php --}}
+  {{-- O 'chartjs.min.js' já é carregado pelo seu app.blade.php --}}
   <script>
     document.addEventListener("DOMContentLoaded", (event) => {
       var ctx = document.getElementById("nacionalidadeChart");

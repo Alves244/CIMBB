@@ -4,16 +4,16 @@
 
     <div class="container-fluid py-4">
         <div class="row">
-            <div class="col-12 col-lg-8 mx-auto"> {{-- Centraliza o formulário --}}
+            <div class="col-12 col-lg-8 mx-auto">
                 <div class="card">
                     <div class="card-header pb-0">
                         <h6>Formulário de Registo de Nova Família</h6>
                         <p class="text-sm">Freguesia: {{ Auth::user()->freguesia->nome ?? 'N/A' }}</p>
                     </div>
                     <div class="card-body">
-                        {{-- O formulário faz POST para a rota 'freguesia.familias.store' --}}
+                        
                         <form action="{{ route('freguesia.familias.store') }}" method="POST" role="form text-left">
-                            @csrf {{-- Token de segurança do Laravel, obrigatório --}}
+                            @csrf 
 
                             <p class="text-sm font-weight-bold">Informação Base da Família</p>
                             <div class="row">
@@ -49,6 +49,21 @@
                                             <option value="" disabled {{ old('tipologia_propriedade') ? '' : 'selected' }}>-- Selecione uma opção --</option>
                                             <option value="propria" {{ old('tipologia_propriedade') == 'propria' ? 'selected' : '' }}>Própria</option>
                                             <option value="arrendada" {{ old('tipologia_propriedade') == 'arrendada' ? 'selected' : '' }}>Arrendada</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {{-- ***** NOVO CAMPO ADICIONADO ***** --}}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="localizacao" class="form-control-label">Localização (Perg. 11-13) *</label>
+                                        <select class="form-control" name="localizacao" id="localizacao" required>
+                                            <option value="" disabled {{ old('localizacao') ? '' : 'selected' }}>-- Selecione uma opção --</option>
+                                            <option value="nucleo_urbano" {{ old('localizacao') == 'nucleo_urbano' ? 'selected' : '' }}>Núcleo Urbano (Sede Freguesia)</option>
+                                            <option value="aldeia_anexa" {{ old('localizacao') == 'aldeia_anexa' ? 'selected' : '' }}>Aldeia Anexa</option>
+                                            <option value="espaco_agroflorestal" {{ old('localizacao') == 'espaco_agroflorestal' ? 'selected' : '' }}>Quinta / Espaço Agroflorestal</option>
                                         </select>
                                     </div>
                                 </div>

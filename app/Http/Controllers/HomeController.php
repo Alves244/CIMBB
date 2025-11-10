@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Familia;
+use App\Models\AgregadoFamiliar; // 1. IMPORTAR AgregadoFamiliar
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\User; // <-- 1. ADICIONA ESTE IMPORT NO TOPO
 
 class HomeController extends Controller
 {
@@ -27,43 +28,76 @@ class HomeController extends Controller
      */
     public function home()
     {
-        // Vamos redirecionar a rota '/' (home) para o novo 'dashboard' com dados
+        // Redireciona a rota '/' (home) para o 'dashboard'
         return redirect()->route('dashboard');
     }
 
     /**
      * Mostra o dashboard principal da aplicação com dados.
-     * (ESTE É O NOVO MÉTODO)
+     * (ESTE MÉTODO FOI ATUALIZADO)
      */
     public function dashboard()
     {
-        /** @var \App\Models\User $user */ // <-- 2. ADICIONA ESTA "DICA" PHPDoc
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        // 1. Preparar a consulta de famílias (baseado no perfil)
-        $query = Familia::query();
+        // --- 1. Preparar as Consultas Base ---
+        $familiaQuery = Familia::query();
+        $agregadoQuery = AgregadoFamiliar::query();
 
-        if ($user->isFreguesia()) { // <-- O sublinhado vermelho deve desaparecer
-            // Se for 'freguesia', mostra SÓ os da sua freguesia
-            $query->where('freguesia_id', $user->freguesia_id);
+        // --- 2. Aplicar Filtro de Freguesia (se necessário) ---
+        $tituloDashboard = "Dashboard Regional (Todo o Território)";
+        $nomeLocalidade = "Beira Baixa (Todos os Concelhos)";
+
+        if ($user->isFreguesia()) { //
+            $freguesiaId = $user->freguesia_id;
+            
+            // Filtra a consulta de Famílias
+            $familiaQuery->where('freguesia_id', $freguesiaId);
+            
+            // Filtra a consulta de Agregados (usando a relação)
+            $agregadoQuery->whereHas('familia', function ($q) use ($freguesiaId) {
+                $q->where('freguesia_id', $freguesiaId);
+            });
+            
+            $tituloDashboard = "Dashboard da Freguesia";
+            $nomeLocalidade = $user->freguesia->nome ?? 'N/A';
         }
-        // Se for 'cimbb' ou 'admin', mostra todos (não adiciona filtro)
+        // Se for 'cimbb' ou 'admin', as consultas ($familiaQuery, $agregadoQuery) não levam filtro.
 
-        // 2. Contar as nacionalidades
-        $nacionalidadesData = $query->select('nacionalidade', DB::raw('count(*) as total'))
+        // --- 3. Executar Consultas Agregadas ---
+        
+        // Contagem de Nacionalidades para o gráfico
+        $nacionalidadesData = (clone $familiaQuery) // Clonamos para não afetar outras contagens
+                                    ->select('nacionalidade', DB::raw('count(*) as total'))
                                     ->groupBy('nacionalidade')
                                     ->orderBy('total', 'desc')
-                                    ->limit(10) // Limitar às 10 principais
+                                    ->limit(10) 
                                     ->get();
+        
+        // Contagens principais
+        $totalFamilias = $familiaQuery->count();
+        $totalMembros = $agregadoQuery->sum('total_membros'); // Soma de todos os membros
+        $totalAdultos = $agregadoQuery->sum('adultos_laboral') + $agregadoQuery->sum('adultos_65_mais');
+        $totalCriancas = $agregadoQuery->sum('criancas');
 
-        // 3. Preparar dados para o Chart.js
+        // --- 4. Preparar dados para o Chart.js ---
         $chartLabels = $nacionalidadesData->pluck('nacionalidade');
         $chartValues = $nacionalidadesData->pluck('total');
 
-        // 4. Passar os dados para a view
+        // --- 5. Passar os dados para a view ---
         return view('dashboard', [
-            'title' => 'Página Inicial', // Isto muda o título na navbar!
-            'userName' => $user->nome,
+            'title' => 'Página Inicial',
+            'nomeLocalidade' => $nomeLocalidade,
+            'tituloDashboard' => $tituloDashboard,
+            
+            // Os 4 cartões de estatística
+            'totalFamilias' => $totalFamilias,
+            'totalMembros' => $totalMembros,
+            'totalAdultos' => $totalAdultos,
+            'totalCriancas' => $totalCriancas,
+            
+            // Os dados do gráfico
             'chartLabels' => $chartLabels,
             'chartValues' => $chartValues,
         ]);

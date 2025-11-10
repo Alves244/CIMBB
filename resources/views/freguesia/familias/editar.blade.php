@@ -5,7 +5,6 @@
     <div class="container-fluid py-4">
         <div class="row">
             <div class="col-12 col-lg-8 mx-auto">
-                {{-- CARD 1: FORMULÁRIO PRINCIPAL DA FAMÍLIA (Sem alterações) --}}
                 <div class="card">
                     <div class="card-header pb-0">
                         <h6>Editar Família</h6>
@@ -15,7 +14,7 @@
                         <form action="{{ route('freguesia.familias.update', $familia->id) }}" method="POST" role="form text-left">
                             @csrf
                             @method('PUT')
-                            {{-- (O resto do formulário da família fica aqui, como já tinhas) --}}
+                            
                             <p class="text-sm font-weight-bold">Informação Base da Família</p>
                             <div class="row">
                                 <div class="col-md-6">
@@ -59,6 +58,17 @@
                                         </select>
                                     </div>
                                 </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="localizacao" class="form-control-label">Localização (Perg. 11-13) *</label>
+                                        <select class="form-control" name="localizacao" id="localizacao" required>
+                                            <option value="nucleo_urbano" {{ old('localizacao', $familia->localizacao) == 'nucleo_urbano' ? 'selected' : '' }}>Núcleo Urbano (Sede Freguesia)</option>
+                                            <option value="aldeia_anexa" {{ old('localizacao', $familia->localizacao) == 'aldeia_anexa' ? 'selected' : '' }}>Aldeia Anexa</option>
+                                            <option value="espaco_agroflorestal" {{ old('localizacao', $familia->localizacao) == 'espaco_agroflorestal' ? 'selected' : '' }}>Quinta / Espaço Agroflorestal</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                             <hr class="horizontal dark mt-4">
                             <p class="text-sm font-weight-bold">Agregado Familiar</p>
@@ -88,13 +98,11 @@
                             </div>
                         </form>
                     </div>
-                </div> {{-- Fim do Card 1 --}}
+                </div> 
 
-                {{-- ***** CARD 2: ATIVIDADES ECONÓMICAS (COM LINKS ATIVOS) ***** --}}
                 <div class="card mt-4">
                     <div class="card-header pb-0 d-flex justify-content-between align-items-center">
                         <h6 class="mb-0">Atividades Económicas</h6>
-                        {{-- BOTÃO ADICIONAR (ATIVADO) --}}
                         <a href="{{ route('freguesia.familias.atividades.create', $familia->id) }}" class="btn bg-gradient-success btn-sm mb-0">
                             <i class="fas fa-plus me-1"></i> Adicionar Atividade
                         </a>
@@ -125,11 +133,9 @@
                                                 <p class="text-xs font-weight-bold mb-0">{{ Str::limit($atividade->descricao, 50) ?? 'N/A' }}</p>
                                             </td>
                                             <td class="align-middle">
-                                                {{-- BOTÃO EDITAR (ATIVADO) --}}
                                                 <a href="{{ route('freguesia.atividades.edit', $atividade->id) }}" class="btn btn-link text-success text-gradient px-1 mb-0">
                                                     <i class="fas fa-pencil-alt text-sm"></i>
                                                 </a>
-                                                {{-- BOTÃO APAGAR (ATIVADO) --}}
                                                 <form action="{{ route('freguesia.atividades.destroy', $atividade->id) }}" method="POST" class="d-inline">
                                                     @csrf
                                                     @method('DELETE')
@@ -149,7 +155,7 @@
                             </table>
                         </div>
                     </div>
-                </div> {{-- Fim do Card 2 --}}
+                </div>
             </div>
         </div>
     </div>

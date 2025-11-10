@@ -4,15 +4,15 @@
 
     <div class="container-fluid py-4">
         <div class="row">
-            <div class="col-12 col-lg-8 mx-auto"> {{-- Centraliza o card --}}
+            <div class="col-12 col-lg-8 mx-auto"> 
                 <div class="card">
                     <div class="card-header pb-0 d-flex justify-content-between align-items-center">
                         <div>
-                            {{-- Título --}}
+                         
                             <h6 class="mb-0">Inquérito Anual (Ano: {{ $inquerito->ano }})</h6>
                             <p class="text-sm">Preenchido em: {{ $inquerito->created_at->format('d/m/Y H:i') }}</p>
                         </div>
-                        {{-- Botão Voltar --}}
+                        
                         <a href="{{ route('freguesia.inqueritos.index') }}" class="btn btn-secondary btn-sm mb-0">
                             <i class="fas fa-arrow-left me-1"></i> Voltar à Lista
                         </a>

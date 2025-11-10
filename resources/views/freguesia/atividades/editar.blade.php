@@ -8,15 +8,13 @@
                 <div class="card">
                     <div class="card-header pb-0">
                         <h6>Editar Atividade Económica</h6>
-                        {{-- Mostra a que família pertence --}}
                         <p class="text-sm">Família: {{ $atividade->familia->codigo }}</p>
                     </div>
                     <div class="card-body">
                         
-                        {{-- O formulário faz POST para a rota 'update' de atividades --}}
                         <form action="{{ route('freguesia.atividades.update', $atividade->id) }}" method="POST" role="form text-left">
                             @csrf
-                            @method('PUT') {{-- Método PUT para atualização --}}
+                            @method('PUT') 
 
                             <p class="text-sm font-weight-bold">Detalhes da Atividade</p>
                             
@@ -25,7 +23,6 @@
                                     <div class="form-group">
                                         <label for="tipo" class="form-control-label">Tipo de Atividade *</label>
                                         <select class="form-control" name="tipo" id="tipo" required>
-                                            {{-- Preenche com o valor antigo ou o valor guardado --}}
                                             <option value="conta_propria" {{ old('tipo', $atividade->tipo) == 'conta_propria' ? 'selected' : '' }}>Conta Própria (Negócio)</option>
                                             <option value="conta_outrem" {{ old('tipo', $atividade->tipo) == 'conta_outrem' ? 'selected' : '' }}>Conta Outrem (Empregado)</option>
                                         </select>
@@ -51,7 +48,6 @@
                             </div>
 
                             <div class="text-end">
-                                {{-- Link "Cancelar" volta para a página de EDIÇÃO da família --}}
                                 <a href="{{ route('freguesia.familias.edit', $atividade->familia_id) }}" class="btn btn-secondary mt-4">Cancelar</a>
                                 <button type="submit" class="btn bg-gradient-success mt-4">Guardar Alterações</a
                             </div>

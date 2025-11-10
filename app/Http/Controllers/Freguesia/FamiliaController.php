@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Freguesia;
 
 use App\Http\Controllers\Controller;
 use App\Models\Familia;
-use App\Models\AgregadoFamiliar; // Importante
+use App\Models\AgregadoFamiliar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB; // Importante para a Transação
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class FamiliaController extends Controller
@@ -23,11 +23,10 @@ class FamiliaController extends Controller
             return redirect()->route('dashboard')->with('error', 'Utilizador sem freguesia associada.');
         }
 
-        // Carrega a relação 'agregadoFamiliar'
         $familias = Familia::with('agregadoFamiliar') 
                             ->where('freguesia_id', $freguesiaId)
                             ->orderBy('ano_instalacao', 'desc')
-                            ->paginate(15); // Paginação
+                            ->paginate(15);
 
         return view('freguesia.familias.listar', compact('familias'));
     }
@@ -45,12 +44,13 @@ class FamiliaController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Validar os dados que vêm do formulário
+        // 1. Validar os dados
         $dadosValidados = $request->validate([
             'ano_instalacao' => 'required|integer|min:1900|max:'.date('Y'),
             'nacionalidade' => 'required|string|max:50',
             'tipologia_habitacao' => 'required|in:casa,quinta,apartamento',
             'tipologia_propriedade' => 'required|in:propria,arrendada',
+            'localizacao' => 'required|in:nucleo_urbano,aldeia_anexa,espaco_agroflorestal', // Campo que adicionámos
             'adultos_laboral' => 'required|integer|min:0',
             'adultos_65_mais' => 'required|integer|min:0',
             'criancas' => 'required|integer|min:0',
@@ -103,6 +103,7 @@ class FamiliaController extends Controller
                     'freguesia_id' => $freguesia->id,
                     'tipologia_habitacao' => $dadosValidados['tipologia_habitacao'],
                     'tipologia_propriedade' => $dadosValidados['tipologia_propriedade'],
+                    'localizacao' => $dadosValidados['localizacao'], 
                     'utilizador_registo_id' => $user->id,
                 ]);
 
@@ -114,8 +115,9 @@ class FamiliaController extends Controller
                 ]);
             });
 
-            // 6. Redirecionar para a PÁGINA DE EDIÇÃO (fluxo melhorado)
-            return redirect()->route('freguesia.familias.edit', $familia->id)
+            // 6. ***** LINHA CORRIGIDA *****
+            // Removemos o '->id' e passamos o objeto $familia completo.
+            return redirect()->route('freguesia.familias.edit', $familia)
                              ->with('success', 'Nova família registada! Pode agora adicionar as atividades económicas.');
 
         } catch (\Exception $e) {
@@ -124,7 +126,7 @@ class FamiliaController extends Controller
     }
 
     /**
-     * Função privada para gerar iniciais (O seu código original)
+     * Função privada para gerar iniciais
      */
     private function gerarIniciais($nome)
     {
@@ -144,81 +146,72 @@ class FamiliaController extends Controller
     }
 
     
-    /* --- ESTES SÃO OS MÉTODOS QUE FALTAVAM --- */
-    
     /**
-     * Mostra o formulário para editar a Família E as suas Atividades.
-     * (Carrega o seu 'editar.blade.php')
+     * Mostra o formulário para editar a Família
      */
     public function edit(Familia $familia)
     {
-        // 1. Verificar se a família pertence à freguesia do utilizador
-        if ($familia->freguesia_id !== Auth::user()->freguesia_id) {
-            abort(403, 'Acesso não autorizado.'); // Proteção
-        }
-
-        // 2. Carregar as relações da família de forma eficiente (Eager Loading)
-        // (Usa as relações 'agregadoFamiliar' e 'atividadesEconomicas.setorAtividade')
-        $familia->load('agregadoFamiliar', 'atividadesEconomicas.setorAtividade');
-
-        // 3. Retorna a view de edição da família
-        return view('freguesia.familias.editar', compact('familia'));
-    }
-
-    /**
-     * Atualiza a Família e o seu Agregado Familiar na base de dados.
-     * (Chamado pelo formulário no 'editar.blade.php')
-     */
-    public function update(Request $request, Familia $familia)
-    {
-        // 1. Verificar se a família pertence à freguesia do utilizador
         if ($familia->freguesia_id !== Auth::user()->freguesia_id) {
             abort(403, 'Acesso não autorizado.');
         }
 
-        // 2. Validar os dados da Família (Card 1)
+        $familia->load('agregadoFamiliar', 'atividadesEconomicas.setorAtividade');
+
+        return view('freguesia.familias.editar', compact('familia'));
+    }
+
+    /**
+     * Atualiza a Família e o seu Agregado Familiar
+     */
+    public function update(Request $request, Familia $familia)
+    {
+        if ($familia->freguesia_id !== Auth::user()->freguesia_id) {
+            abort(403, 'Acesso não autorizado.');
+        }
+
+        // 1. Validar os dados da Família (com o novo campo 'localizacao')
         $validatedFamilia = $request->validate([
             'ano_instalacao' => 'required|integer|min:1900|max:'.date('Y'),
             'nacionalidade' => 'required|string|max:50',
             'tipologia_habitacao' => 'required|string|in:casa,quinta,apartamento',
             'tipologia_propriedade' => 'required|string|in:propria,arrendada',
+            'localizacao' => 'required|in:nucleo_urbano,aldeia_anexa,espaco_agroflorestal', // <-- CAMPO ADICIONADO
         ]);
         
-        // 3. Validar os dados do Agregado (Card 1)
+        // 2. Validar os dados do Agregado
         $validatedAgregado = $request->validate([
             'adultos_laboral' => 'required|integer|min:0',
             'adultos_65_mais' => 'required|integer|min:0',
             'criancas' => 'required|integer|min:0',
         ]);
 
-        // 4. Usar uma Transação para garantir que tudo é salvo
+        // 3. Usar uma Transação
         try {
             DB::transaction(function () use ($familia, $validatedFamilia, $validatedAgregado) {
                 
-                // 4a. Atualizar a Família
+                // 3a. Atualizar a Família
                 $familia->update($validatedFamilia);
 
-                // 4b. Atualizar ou Criar o Agregado Familiar associado
+                // 3b. Atualizar ou Criar o Agregado Familiar associado
                 $familia->agregadoFamiliar()->updateOrCreate(
-                    ['familia_id' => $familia->id], // Condição para encontrar
-                    $validatedAgregado // Dados para atualizar ou criar
+                    ['familia_id' => $familia->id], 
+                    $validatedAgregado 
                 );
             });
         } catch (\Exception $e) {
             return back()->withInput()->with('error', 'Erro ao guardar as alterações: '.$e->getMessage());
         }
 
-        // 6. Redirecionar de volta com sucesso
+        // 4. Redirecionar de volta com sucesso
         return redirect()->route('freguesia.familias.edit', $familia->id)
                          ->with('success', 'Família atualizada com sucesso.');
     }
 
     /**
-     * Remove a Família (e o Agregado/Atividades via 'onDelete: cascade')
+     * Remove a Família
      */
     public function destroy(Familia $familia)
     {
-        // 1. Verificar se a família pertence à freguesia do utilizador
         if ($familia->freguesia_id !== Auth::user()->freguesia_id) {
             abort(403, 'Acesso não autorizado.');
         }
@@ -233,11 +226,10 @@ class FamiliaController extends Controller
     }
     
     /**
-     * Mostra uma única família (pode redirecionar para a edição)
+     * Mostra uma única família (redireciona para a edição)
      */
     public function show(Familia $familia) 
     { 
-        // Ação padrão é redirecionar para a edição
         return $this->edit($familia);
     }
 }

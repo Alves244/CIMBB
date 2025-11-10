@@ -1,6 +1,6 @@
-@extends('layouts.user_type.auth') {{-- Usa o layout correto --}}
+@extends('layouts.user_type.auth') 
 
-@section('content') {{-- Usa a secção 'content' correta --}}
+@section('content') 
 
   <div class="container-fluid py-4">
     <div class="row">
@@ -9,10 +9,8 @@
           <div class="card-header pb-0 d-flex justify-content-between align-items-center">
             <div>
               <h6 class="mb-0">Famílias Registadas</h6>
-              {{-- Garante que o utilizador e a freguesia existem antes de aceder ao nome --}}
               <p class="text-sm">Freguesia: {{ Auth::user()->freguesia->nome ?? 'N/A' }}</p>
             </div>
-            {{-- Botão Adicionar (Verde) --}}
             <a href="{{ route('freguesia.familias.create') }}" class="btn bg-gradient-success btn-sm mb-0">
               <i class="fas fa-plus me-1"></i> Adicionar Família
             </a>
@@ -32,7 +30,6 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {{-- Loop 'forelse' para tratar de tabelas vazias --}}
                   @forelse ($familias as $familia)
                     <tr>
                       <td>
@@ -47,7 +44,6 @@
                         <p class="text-xs font-weight-bold mb-0">{{ $familia->nacionalidade }}</p>
                       </td>
                       <td class="align-middle text-center text-sm">
-                        {{-- Acede à relação 'agregadoFamiliar' --}}
                         <span class="text-secondary text-xs font-weight-bold">{{ $familia->agregadoFamiliar?->total_membros ?? 'N/A' }}</span>
                       </td>
                       <td>
@@ -58,12 +54,10 @@
                       </td>
                       <td class="align-middle">
                         
-                        {{-- ÍCONE EDITAR (LÁPIS VERDE) --}}
                         <a href="{{ route('freguesia.familias.edit', $familia->id) }}" class="btn btn-link text-success text-gradient px-1 mb-0" data-bs-toggle="tooltip" data-bs-original-title="Editar Família">
                             <i class="fas fa-pencil-alt text-sm"></i>
                         </a>
                         
-                        {{-- ÍCONE APAGAR (CAIXOTE VERMELHO) --}}
                         <form action="{{ route('freguesia.familias.destroy', $familia->id) }}" method="POST" class="d-inline">
                             @csrf
                             @method('DELETE')
@@ -84,7 +78,6 @@
               </table>
             </div>
           </div>
-          {{-- Paginação --}}
           @if ($familias->hasPages())
             <div class="card-footer px-3 border-0 d-flex align-items-center justify-content-between">
               {{ $familias->links() }}
@@ -98,7 +91,6 @@
 @endsection
 
 @push('js')
-  {{-- Script para ativar os tooltips (ex: 'Editar Família') --}}
   <script>
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {

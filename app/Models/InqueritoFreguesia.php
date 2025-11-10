@@ -5,7 +5,7 @@ namespace App\Models;
 // CORRIGIDO: Usar barras invertidas '\'
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo; // Adiciona esta linha
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InqueritoFreguesia extends Model
 {
