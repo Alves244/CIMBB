@@ -16,10 +16,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ConselhoSeeder::class,
             FreguesiaSeeder::class, 
-            SetorAtividadeSeeder::class,
+            SetorAtividadeSeeder::class, // Chamado SÓ UMA VEZ
             UserSeeder::class,
-            SetorAtividadeSeeder::class,
-            // Adicionar aqui outros seeders se necessário (ex: FamiliaSeeder para teste)
+            // A chamada duplicada foi removida
         ]);
     }
 }

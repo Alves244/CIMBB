@@ -71,12 +71,11 @@
               </table>
             </div>
           </div>
-          {{-- Paginação --}}
           @if ($meusTickets->hasPages())
             <div class="card-footer px-3 border-0 d-flex align-items-center justify-content-between">
               {{ $meusTickets->links() }}
             </div>
-          @endif {{-- ***** O @endif QUE FALTAVA ***** --}}
+          @endif 
         </div>
       </div>
     </div>
