@@ -11,20 +11,24 @@ class AgregadoFamiliar extends Model
     use HasFactory;
 
     protected $table = 'agregado_familiars';
-    public $timestamps = false; // (Já tinhas isto)
+    public $timestamps = false; 
 
     /**
      * Os atributos que podem ser preenchidos em massa.
-     *
-     * @var array<int, string>
+     * (ATUALIZADO PARA OS 9 NOVOS CAMPOS)
      */
     protected $fillable = [
         'familia_id',
-        'adultos_laboral',
-        'adultos_65_mais',
-        'criancas',
+        'adultos_laboral_m',
+        'adultos_laboral_f',
+        'adultos_laboral_n',
+        'adultos_65_mais_m',
+        'adultos_65_mais_f',
+        'adultos_65_mais_n',
+        'criancas_m',
+        'criancas_f',
+        'criancas_n',
     ];
-
 
     /**
      * Define a relação inversa: Um Agregado Familiar pertence a uma Família.

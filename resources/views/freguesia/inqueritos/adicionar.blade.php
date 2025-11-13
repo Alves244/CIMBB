@@ -22,27 +22,27 @@
                             {{-- Pergunta 11 --}}
                             <div class="form-group mt-4">
                                 {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                                <label for="total_nucleo_urbano" class="form-control-label h6 text-dark">11. Agregados familiares que residem no núcleo urbano da sede da freguesia</label>
+                                <label for="total_nucleo_urbano" class="form-control-label h6 text-dark">1. Agregados familiares que residem no núcleo urbano da sede da freguesia</label>
                                 <input class="form-control" type="number" name="total_nucleo_urbano" id="total_nucleo_urbano" value="{{ old('total_nucleo_urbano', $preenchido['total_nucleo_urbano']) }}" min="0" required>
                             </div>
                             
                             {{-- Pergunta 12 --}}
                             <div class="form-group">
                                 {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                                <label for="total_aldeia_anexa" class="form-control-label h6 text-dark">12. Agregados familiares que residem em aldeias anexas</label>
+                                <label for="total_aldeia_anexa" class="form-control-label h6 text-dark">2. Agregados familiares que residem em aldeias anexas</label>
                                 <input class="form-control" type="number" name="total_aldeia_anexa" id="total_aldeia_anexa" value="{{ old('total_aldeia_anexa', $preenchido['total_aldeia_anexa']) }}" min="0" required>
                             </div>
 
                             {{-- Pergunta 13 --}}
                             <div class="form-group">
                                 {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                                <label for="total_agroflorestal" class="form-control-label h6 text-dark">13. Agregados familiares que residem em quintas ou propriedades no espaço agroflorestal</label>
+                                <label for="total_agroflorestal" class="form-control-label h6 text-dark">3. Agregados familiares que residem em quintas ou propriedades no espaço agroflorestal</label>
                                 <input class="form-control" type="number" name="total_agroflorestal" id="total_agroflorestal" value="{{ old('total_agroflorestal', $preenchido['total_agroflorestal']) }}" min="0" required>
                             </div>
                             
                             {{-- Pergunta 14 --}}
                             {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                            <h6 class="mt-4 text-dark">14. Número total de indivíduos</h6>
+                            <h6 class="mt-4 text-dark">4. Número total de indivíduos</h6>
                              <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
@@ -60,7 +60,7 @@
                             
                             {{-- Pergunta 15 --}}
                             {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                            <h6 class="mt-4 text-dark">15. Agregados familiares que vivem em casa ou propriedade adquiridas (Própria vs Arrendada)</h6>
+                            <h6 class="mt-4 text-dark">5. Agregados familiares que vivem em casa ou propriedade adquiridas</h6>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
@@ -78,7 +78,7 @@
                             
                             {{-- Perguntas 16-19 --}}
                             {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                            <h6 class="mt-4 text-dark">16. Nº de atividades por Conta Própria (Perg. 16-17)</h6>
+                            <h6 class="mt-4 text-dark">6. Nº de atividades por Conta Própria</h6>
                             <div class="row">
                                 @foreach($setores as $setor)
                                 <div class="col-md-6">
@@ -93,7 +93,7 @@
                             </div>
                             
                             {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                            <h6 class="mt-4 text-dark">17. Nº de atividades por Conta de Outrem (Perg. 18-19)</h6>
+                            <h6 class="mt-4 text-dark">7. Nº de atividades por Conta de Outrem</h6>
                             <div class="row">
                                 @foreach($setores as $setor)
                                 <div class="col-md-6">
@@ -119,7 +119,7 @@
                             {{-- Pergunta 20 --}}
                             <div class="form-group mt-4">
                                 {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                                <label for="escala_integracao" class="form-control-label h6 text-dark">18. Escala de integração *</label>
+                                <label for="escala_integracao" class="form-control-label h6 text-dark">8. Escala de integração *</label>
                                 <p class="text-xs">Como classifica o nível de integração geral dos novos residentes na comunidade?</p>
                                 <select class="form-control" name="escala_integracao" id="escala_integracao" required>
                                     <option value="" disabled {{ old('escala_integracao') ? '' : 'selected' }}>-- Selecione um valor de 1 a 5 --</option>
@@ -134,21 +134,21 @@
                             {{-- Pergunta 21 --}}
                             <div class="form-group">
                                 {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                                <label for="aspectos_positivos" class="form-control-label h6 text-dark">19. Aspectos positivos da/na integração</label>
+                                <label for="aspectos_positivos" class="form-control-label h6 text-dark">9. Aspectos positivos da/na integração</label>
                                 <textarea class="form-control" name="aspectos_positivos" id="aspectos_positivos" rows="4" placeholder="Descreva os pontos positivos observados...">{{ old('aspectos_positivos') }}</textarea>
                             </div>
                             
                             {{-- Pergunta 22 --}}
                             <div class="form-group">
                                 {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                                <label for="aspectos_negativos" class="form-control-label h6 text-dark">20. Aspectos negativos/dificuldades na integração</label>
+                                <label for="aspectos_negativos" class="form-control-label h6 text-dark">10. Aspectos negativos/dificuldades na integração</label>
                                 <textarea class="form-control" name="aspectos_negativos" id="aspectos_negativos" rows="4" placeholder="Descreva as principais dificuldades ou pontos negativos...">{{ old('aspectos_negativos') }}</textarea>
                             </div>
 
                             {{-- Pergunta 23 --}}
                             <div class="form-group">
                                 {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                                <label for="satisfacao_global" class="form-control-label h6 text-dark">21. Nível de satisfação global com a integração/impacte dos novos residentes *</label>
+                                <label for="satisfacao_global" class="form-control-label h6 text-dark">11. Nível de satisfação global com a integração/impacte dos novos residentes *</label>
                                 <p class="text-xs">Como classifica o impacto geral (social, económico) dos novos residentes na freguesia?</p>
                                 <select class="form-control" name="satisfacao_global" id="satisfacao_global" required>
                                     <option value="" disabled {{ old('satisfacao_global') ? '' : 'selected' }}>-- Selecione um valor de 1 a 5 --</option>
@@ -163,7 +163,7 @@
                             {{-- Pergunta 24 --}}
                             <div class="form-group">
                                 {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                                <label for="sugestoes" class="form-control-label h6 text-dark">22. Apresente as suas sugestões relativamente a medidas ou intervenções necessárias</label>
+                                <label for="sugestoes" class="form-control-label h6 text-dark">12. Apresente as suas sugestões relativamente a medidas ou intervenções necessárias</label>
                                 <textarea class="form-control" name="sugestoes" id="sugestoes" rows="4" placeholder="Que medidas ou intervenções poderiam melhorar a integração?">{{ old('sugestoes') }}</textarea>
                             </div>
                             

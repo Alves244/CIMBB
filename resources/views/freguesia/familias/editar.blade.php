@@ -1,10 +1,16 @@
 @extends('layouts.user_type.auth')
 
+{{-- 1. Adicionar o CSS do Choices.js --}}
+@push('css')
+    <link href="{{ asset('assets/css/plugins/choices.min.css') }}" rel="stylesheet" />
+@endpush
+
 @section('content')
 
     <div class="container-fluid py-4">
         <div class="row">
             <div class="col-12 col-lg-8 mx-auto">
+                {{-- CARD 1: FORMULÁRIO PRINCIPAL DA FAMÍLIA (ATUALIZADO) --}}
                 <div class="card">
                     <div class="card-header pb-0">
                         <h6>Editar Família</h6>
@@ -26,15 +32,23 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="ano_instalacao" class="form-control-label">Ano de Instalação *</label>
-                                        <input class="form-control" type="number" name="ano_instalacao" id="ano_instalacao" value="{{ old('ano_instalacao', $familia->ano_instalacao) }}" required>
+                                        <input class="form-control" type="number" name="ano_instalacao" id="ano_instalacao" value="{{ old('ano_instalacao', $familia->ano_instalacao) }}" required min="1900">
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="nacionalidade" class="form-control-label">Nacionalidade *</label>
-                                        <input class="form-control" type="text" name="nacionalidade" id="nacionalidade" value="{{ old('nacionalidade', $familia->nacionalidade) }}" required>
+                                        {{-- 2. CAMPO DE NACIONALIDADE ALTERADO --}}
+                                        <label for="nacionalidade-select" class="form-control-label">Nacionalidade *</label>
+                                        <select class="form-control" name="nacionalidade" id="nacionalidade-select" required>
+                                            <option value="" disabled>-- Pesquise ou selecione --</option>
+                                            @foreach ($nacionalidades as $nacionalidade)
+                                                <option value="{{ $nacionalidade }}" {{ old('nacionalidade', $familia->nacionalidade) == $nacionalidade ? 'selected' : '' }}>
+                                                    {{ $nacionalidade }}
+                                                </option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -58,7 +72,6 @@
                                         </select>
                                     </div>
                                 </div>
-                                
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="localizacao" class="form-control-label">Localização (Perg. 11-13) *</label>
@@ -70,39 +83,43 @@
                                     </div>
                                 </div>
                             </div>
+                            
                             <hr class="horizontal dark mt-4">
-                            <p class="text-sm font-weight-bold">Agregado Familiar</p>
+                            <p class="text-sm font-weight-bold">Agregado Familiar (Perg. 14)</p>
+                            @php $agregado = $familia->agregadoFamiliar; @endphp
                             <div class="row">
-                                 <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="adultos_laboral" class="form-control-label">Nº Adultos (Idade Laboral) *</label>
-                                        <input class="form-control" type="number" name="adultos_laboral" id="adultos_laboral" value="{{ old('adultos_laboral', $familia->agregadoFamiliar->adultos_laboral ?? 0) }}" min="0" required>
-                                    </div>
+                                <div class="col-md-4">
+                                    <label class="form-control-label">Adultos (Idade Laboral)</label>
+                                    <div class="input-group mb-1"><span class="input-group-text" style="width: 40px;">M</span><input class="form-control" type="number" name="adultos_laboral_m" value="{{ old('adultos_laboral_m', $agregado->adultos_laboral_m ?? 0) }}" min="0" required></div>
+                                    <div class="input-group mb-1"><span class="input-group-text" style="width: 40px;">F</span><input class="form-control" type="number" name="adultos_laboral_f" value="{{ old('adultos_laboral_f', $agregado->adultos_laboral_f ?? 0) }}" min="0" required></div>
+                                    <div class="input-group mb-3"><span class="input-group-text" style="width: 40px;">N/S</span><input class="form-control" type="number" name="adultos_laboral_n" value="{{ old('adultos_laboral_n', $agregado->adultos_laboral_n ?? 0) }}" min="0" required></div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="adultos_65_mais" class="form-control-label">Nº Adultos (65+ anos) *</label>
-                                        <input class="form-control" type="number" name="adultos_65_mais" id="adultos_65_mais" value="{{ old('adultos_65_mais', $familia->agregadoFamiliar->adultos_65_mais ?? 0) }}" min="0" required>
-                                    </div>
+                                    <label class="form-control-label">Adultos (65+ anos)</label>
+                                    <div class="input-group mb-1"><span class="input-group-text" style="width: 40px;">M</span><input class="form-control" type="number" name="adultos_65_mais_m" value="{{ old('adultos_65_mais_m', $agregado->adultos_65_mais_m ?? 0) }}" min="0" required></div>
+                                    <div class="input-group mb-1"><span class="input-group-text" style="width: 40px;">F</span><input class="form-control" type="number" name="adultos_65_mais_f" value="{{ old('adultos_65_mais_f', $agregado->adultos_65_mais_f ?? 0) }}" min="0" required></div>
+                                    <div class="input-group mb-3"><span class="input-group-text" style="width: 40px;">N/S</span><input class="form-control" type="number" name="adultos_65_mais_n" value="{{ old('adultos_65_mais_n', $agregado->adultos_65_mais_n ?? 0) }}" min="0" required></div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="criancas" class="form-control-label">Nº Crianças / Jovens *</label>
-                                        <input class="form-control" type="number" name="criancas" id="criancas" value="{{ old('criancas', $familia->agregadoFamiliar->criancas ?? 0) }}" min="0" required>
-                                    </div>
+                                    <label class="form-control-label">Crianças / Jovens</label>
+                                    <div class="input-group mb-1"><span class="input-group-text" style="width: 40px;">M</span><input class="form-control" type="number" name="criancas_m" value="{{ old('criancas_m', $agregado->criancas_m ?? 0) }}" min="0" required></div>
+                                    <div class="input-group mb-1"><span class="input-group-text" style="width: 40px;">F</span><input class="form-control" type="number" name="criancas_f" value="{{ old('criancas_f', $agregado->criancas_f ?? 0) }}" min="0" required></div>
+                                    <div class="input-group mb-3"><span class="input-group-text" style="width: 40px;">N/S</span><input class="form-control" type="number" name="criancas_n" value="{{ old('criancas_n', $agregado->criancas_n ?? 0) }}" min="0" required></div>
                                 </div>
                             </div>
+                            
                             <div class="text-end">
                                 <a href="{{ route('freguesia.familias.index') }}" class="btn btn-secondary mt-4">Cancelar</a>
                                 <button type="submit" class="btn bg-gradient-success mt-4">Guardar Alterações</button>
                             </div>
                         </form>
                     </div>
-                </div> 
+                </div> {{-- Fim do Card 1 --}}
 
+                {{-- CARD 2: ATIVIDADES ECONÓMICAS (Mantém-se igual) --}}
                 <div class="card mt-4">
                     <div class="card-header pb-0 d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0">Atividades Económicas</h6>
+                        <h6 class="mb-0">Atividades Económicas (Perg. 16-19)</h6>
                         <a href="{{ route('freguesia.familias.atividades.create', $familia->id) }}" class="btn bg-gradient-success btn-sm mb-0">
                             <i class="fas fa-plus me-1"></i> Adicionar Atividade
                         </a>
@@ -155,7 +172,7 @@
                             </table>
                         </div>
                     </div>
-                </div>
+                </div> {{-- Fim do Card 2 --}}
             </div>
         </div>
     </div>
@@ -163,10 +180,19 @@
 @endsection
 
 @push('js')
-  <script>
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-      return new bootstrap.Tooltip(tooltipTriggerEl)
-    })
-  </script>
+    {{-- 3. Adicionar o JS do Choices.js --}}
+    <script src="{{ asset('assets/js/plugins/choices.min.js') }}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function(event) {
+            if (document.getElementById('nacionalidade-select')) {
+                var element = document.getElementById('nacionalidade-select');
+                new Choices(element, {
+                    searchEnabled: true,
+                    searchPlaceholderValue: 'Pesquisar...',
+                    itemSelectText: 'Clicas para selecionar',
+                    noResultsText: 'Nacionalidade não encontrada',
+                });
+            }
+        });
+    </script>
 @endpush

@@ -25,10 +25,12 @@
   <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
   <link href="{{ asset('assets/css/nucleo-svg.css') }}" rel="stylesheet" />
   <link id="pagestyle" href="{{ asset('assets/css/soft-ui-dashboard.css?v=1.0.3') }}" rel="stylesheet" />
+
+  {{-- ***** ESTA É A LINHA QUE CORRIGE O SEU PROBLEMA DE CSS ***** --}}
+  @stack('css')
+
 </head>
 
-{{-- ***** ALTERAÇÃO AQUI ***** --}}
-{{-- Mudei 'bg-gray-100' para 'bg-white' para o fundo ficar branco puro --}}
 <body class="g-sidenav-show  bg-white {{ (\Request::is('rtl') ? 'rtl' : (Request::is('virtual-reality') ? 'virtual-reality' : '')) }} ">
   @auth
     @yield('auth')
@@ -82,6 +84,7 @@
   <script async defer src="https://buttons.github.io/buttons.js"></script>
   <script src="{{ asset('assets/js/soft-ui-dashboard.min.js?v=1.0.3') }}"></script>
 
+  {{-- O JavaScript extra (como o Choices.js) será "empurrado" aqui --}}
   @stack('js')
 </body>
 

@@ -1,5 +1,10 @@
 @extends('layouts.user_type.auth')
 
+{{-- 1. Adicionar o CSS do Choices.js --}}
+@push('css')
+    <link href="{{ asset('assets/css/plugins/choices.min.css') }}" rel="stylesheet" />
+@endpush
+
 @section('content')
 
     <div class="container-fluid py-4">
@@ -11,7 +16,6 @@
                         <p class="text-sm">Freguesia: {{ Auth::user()->freguesia->nome ?? 'N/A' }}</p>
                     </div>
                     <div class="card-body">
-                        
                         <form action="{{ route('freguesia.familias.store') }}" method="POST" role="form text-left">
                             @csrf 
 
@@ -20,13 +24,23 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="ano_instalacao" class="form-control-label">Ano de Instalação *</label>
-                                        <input class="form-control" type="number" name="ano_instalacao" id="ano_instalacao" placeholder="Ex: 2024" value="{{ old('ano_instalacao') }}" required>
+                                        <input class="form-control" type="number" name="ano_instalacao" id="ano_instalacao" placeholder="Ex: 2024" value="{{ old('ano_instalacao') }}" required min="1900">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="nacionalidade" class="form-control-label">Nacionalidade *</label>
-                                        <input class="form-control" type="text" name="nacionalidade" id="nacionalidade" value="{{ old('nacionalidade') }}" required>
+                                        {{-- 2. CAMPO DE NACIONALIDADE ALTERADO --}}
+                                        <label for="nacionalidade-select" class="form-control-label">Nacionalidade *</label>
+                                        {{-- Trocámos <input> por <select> e demos um ID --}}
+                                        <select class="form-control" name="nacionalidade" id="nacionalidade-select" required>
+                                            <option value="" disabled selected>-- Pesquise ou selecione --</option>
+                                            {{-- Preenchemos a lista com os dados do controller --}}
+                                            @foreach ($nacionalidades as $nacionalidade)
+                                                <option value="{{ $nacionalidade }}" {{ old('nacionalidade') == $nacionalidade ? 'selected' : '' }}>
+                                                    {{ $nacionalidade }}
+                                                </option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -53,8 +67,6 @@
                                     </div>
                                 </div>
                             </div>
-                            
-                            {{-- ***** NOVO CAMPO ADICIONADO ***** --}}
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
@@ -70,27 +82,59 @@
                             </div>
 
                             <hr class="horizontal dark mt-4">
-
-                            <p class="text-sm font-weight-bold">Agregado Familiar</p>
+                            <p class="text-sm font-weight-bold">Agregado Familiar (Perg. 14)</p>
                             <div class="row">
-                                 <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="adultos_laboral" class="form-control-label">Nº Adultos (Idade Laboral) *</label>
-                                        <input class="form-control" type="number" name="adultos_laboral" id="adultos_laboral" value="{{ old('adultos_laboral', 0) }}" min="0" required>
-                                    </div>
+                                <div class="col-md-4">
+                                    <label class="form-control-label">Adultos (Idade Laboral)</label>
+                                    <div class="input-group mb-1"><span class="input-group-text" style="width: 40px;">M</span><input class="form-control" type="number" name="adultos_laboral_m" value="{{ old('adultos_laboral_m', 0) }}" min="0" required></div>
+                                    <div class="input-group mb-1"><span class="input-group-text" style="width: 40px;">F</span><input class="form-control" type="number" name="adultos_laboral_f" value="{{ old('adultos_laboral_f', 0) }}" min="0" required></div>
+                                    <div class="input-group mb-3"><span class="input-group-text" style="width: 40px;">N/S</span><input class="form-control" type="number" name="adultos_laboral_n" value="{{ old('adultos_laboral_n', 0) }}" min="0" required></div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="adultos_65_mais" class="form-control-label">Nº Adultos (65+ anos) *</label>
-                                        <input class="form-control" type="number" name="adultos_65_mais" id="adultos_65_mais" value="{{ old('adultos_65_mais', 0) }}" min="0" required>
-                                    </div>
+                                    <label class="form-control-label">Adultos (65+ anos)</label>
+                                    <div class="input-group mb-1"><span class="input-group-text" style="width: 40px;">M</span><input class="form-control" type="number" name="adultos_65_mais_m" value="{{ old('adultos_65_mais_m', 0) }}" min="0" required></div>
+                                    <div class="input-group mb-1"><span class="input-group-text" style="width: 40px;">F</span><input class="form-control" type="number" name="adultos_65_mais_f" value="{{ old('adultos_65_mais_f', 0) }}" min="0" required></div>
+                                    <div class="input-group mb-3"><span class="input-group-text" style="width: 40px;">N/S</span><input class="form-control" type="number" name="adultos_65_mais_n" value="{{ old('adultos_65_mais_n', 0) }}" min="0" required></div>
                                 </div>
                                 <div class="col-md-4">
+                                    <label class="form-control-label">Crianças / Jovens</label>
+                                    <div class="input-group mb-1"><span class="input-group-text" style="width: 40px;">M</span><input class="form-control" type="number" name="criancas_m" value="{{ old('criancas_m', 0) }}" min="0" required></div>
+                                    <div class="input-group mb-1"><span class="input-group-text" style="width: 40px;">F</span><input class="form-control" type="number" name="criancas_f" value="{{ old('criancas_f', 0) }}" min="0" required></div>
+                                    <div class="input-group mb-3"><span class="input-group-text" style="width: 40px;">N/S</span><input class="form-control" type="number" name="criancas_n" value="{{ old('criancas_n', 0) }}" min="0" required></div>
+                                </div>
+                            </div>
+
+                            <hr class="horizontal dark mt-4">
+                            <p class="text-sm font-weight-bold">Atividade Económica Principal (Opcional)</p>
+                            <p class="text-xs">Pode adicionar a atividade principal aqui. Atividades adicionais podem ser inseridas na página de edição.</p>
+                            <div class="row">
+                                <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="criancas" class="form-control-label">Nº Crianças / Jovens *</label>
-                                        <input class="form-control" type="number" name="criancas" id="criancas" value="{{ old('criancas', 0) }}" min="0" required>
+                                        <label for="atividade_tipo" class="form-control-label">Tipo de Atividade (Perg. 16/18)</label>
+                                        <select class="form-control" name="atividade_tipo" id="atividade_tipo">
+                                            <option value="">-- Nenhuma --</option>
+                                            <option value="conta_propria" {{ old('atividade_tipo') == 'conta_propria' ? 'selected' : '' }}>Conta Própria</option>
+                                            <option value="conta_outrem" {{ old('atividade_tipo') == 'conta_outrem' ? 'selected' : '' }}>Conta de Outrem</option>
+                                        </select>
                                     </div>
                                 </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="atividade_setor_id" class="form-control-label">Setor de Atividade (Perg. 17/19)</label>
+                                        <select class="form-control" name="atividade_setor_id" id="atividade_setor_id">
+                                            <option value="">-- Nenhuma --</option>
+                                            @foreach ($setores as $setor)
+                                                <option value="{{ $setor->id }}" {{ old('atividade_setor_id') == $setor->id ? 'selected' : '' }}>
+                                                    {{ $setor->nome }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="atividade_descricao" class="form-control-label">Descrição da Atividade (opcional)</label>
+                                <textarea class="form-control" name="atividade_descricao" id="atividade_descricao" rows="2" placeholder="Descreva brevemente a atividade...">{{ old('atividade_descricao') }}</textarea>
                             </div>
 
                             <div class="text-end">
@@ -103,5 +147,22 @@
             </div>
         </div>
     </div>
-
 @endsection
+
+{{-- 3. Adicionar o JS do Choices.js --}}
+@push('js')
+    <script src="{{ asset('assets/js/plugins/choices.min.js') }}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function(event) {
+            if (document.getElementById('nacionalidade-select')) {
+                var element = document.getElementById('nacionalidade-select');
+                new Choices(element, {
+                    searchEnabled: true,
+                    searchPlaceholderValue: 'Pesquisar...',
+                    itemSelectText: 'Clicas para selecionar',
+                    noResultsText: 'Nacionalidade não encontrada',
+                });
+            }
+        });
+    </script>
+@endpush

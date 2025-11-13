@@ -12,28 +12,33 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('agregado_familiars', function (Blueprint $table) {
-            $table->id(); // id INT AUTO_INCREMENT PRIMARY KEY [cite: 161, 442]
-            $table->unsignedBigInteger('familia_id')->unique(); // familia_id INT UNIQUE NOT NULL [cite: 161, 443]
-            $table->integer('adultos_laboral')->default(0); // adultos_laboral INT DEFAULT 0 CHECK (>=0) [cite: 161, 444]
-            $table->integer('adultos_65_mais')->default(0); // adultos_65_mais INT DEFAULT 0 CHECK (>=0) [cite: 161, 445]
-            $table->integer('criancas')->default(0); // criancas INT DEFAULT 0 CHECK (>=0) [cite: 161, 446]
-            // total_membros INT GENERATED ALWAYS AS (adultos_laboral + adultos_65_mais + criancas) STORED [cite: 161, 447]
+            $table->id();
+            $table->unsignedBigInteger('familia_id')->unique();
+
+            // --- NOVOS CAMPOS DE GÉNERO (Perg. 14) ---
+            $table->integer('adultos_laboral_m')->default(0)->comment('Adultos Idade Laboral - Masculino');
+            $table->integer('adultos_laboral_f')->default(0)->comment('Adultos Idade Laboral - Feminino');
+            $table->integer('adultos_laboral_n')->default(0)->comment('Adultos Idade Laboral - N/I (Não Informado)');
+            
+            $table->integer('adultos_65_mais_m')->default(0)->comment('Adultos 65+ - Masculino');
+            $table->integer('adultos_65_mais_f')->default(0)->comment('Adultos 65+ - Feminino');
+            $table->integer('adultos_65_mais_n')->default(0)->comment('Adultos 65+ - N/I (Não Informado)');
+            
+            $table->integer('criancas_m')->default(0)->comment('Crianças/Jovens - Masculino');
+            $table->integer('criancas_f')->default(0)->comment('Crianças/Jovens - Feminino');
+            $table->integer('criancas_n')->default(0)->comment('Crianças/Jovens - N/I (Não Informado)');
+
+            // --- TOTAIS GERADOS AUTOMATICAMENTE PELA BD ---
+            // (Estes são os campos que o seu código antigo usava)
+            $table->integer('adultos_laboral')->storedAs('adultos_laboral_m + adultos_laboral_f + adultos_laboral_n');
+            $table->integer('adultos_65_mais')->storedAs('adultos_65_mais_m + adultos_65_mais_f + adultos_65_mais_n');
+            $table->integer('criancas')->storedAs('criancas_m + criancas_f + criancas_n');
             $table->integer('total_membros')->storedAs('adultos_laboral + adultos_65_mais + criancas');
 
-            // Chave estrangeira para familia_id -> familias.id (ON DELETE CASCADE) [cite: 161, 448]
+            // Chave estrangeira (como já tinha)
             $table->foreign('familia_id')
-                  ->references('id')->on('familias') // Tabela 'familias'
+                  ->references('id')->on('familias')
                   ->onDelete('cascade');
-
-            // Laravel não suporta CHECK constraints diretamente no schema builder,
-            // mas as colunas são unsigned por defeito ou podemos usar validação no Model/Controller.
-            // Para garantir >= 0 no DB, podemos fazer:
-            // $table->unsignedInteger('adultos_laboral')->default(0);
-            // $table->unsignedInteger('adultos_65_mais')->default(0);
-            // $table->unsignedInteger('criancas')->default(0);
-            // Vamos manter integer() por simplicidade e confiar na validação da aplicação.
-
-            // Não necessita de timestamps() se não for especificado
         });
     }
 

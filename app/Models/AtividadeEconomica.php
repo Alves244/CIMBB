@@ -30,7 +30,6 @@ class AtividadeEconomica extends Model
         return $this->belongsTo(Familia::class);
     }
 
-    // Corresponde a $atividade->setorAtividade
     public function setorAtividade(): BelongsTo
     {
         return $this->belongsTo(SetorAtividade::class, 'setor_id');
