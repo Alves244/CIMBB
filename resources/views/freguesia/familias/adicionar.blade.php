@@ -1,6 +1,5 @@
 @extends('layouts.user_type.auth')
 
-{{-- 1. Adicionar o CSS do Choices.js --}}
 @push('css')
     <link href="{{ asset('assets/css/plugins/choices.min.css') }}" rel="stylesheet" />
 @endpush
@@ -34,7 +33,6 @@
                                         {{-- Trocámos <input> por <select> e demos um ID --}}
                                         <select class="form-control" name="nacionalidade" id="nacionalidade-select" required>
                                             <option value="" disabled selected>-- Pesquise ou selecione --</option>
-                                            {{-- Preenchemos a lista com os dados do controller --}}
                                             @foreach ($nacionalidades as $nacionalidade)
                                                 <option value="{{ $nacionalidade }}" {{ old('nacionalidade') == $nacionalidade ? 'selected' : '' }}>
                                                     {{ $nacionalidade }}
@@ -70,7 +68,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="localizacao" class="form-control-label">Localização (Perg. 11-13) *</label>
+                                        <label for="localizacao" class="form-control-label">Localização*</label>
                                         <select class="form-control" name="localizacao" id="localizacao" required>
                                             <option value="" disabled {{ old('localizacao') ? '' : 'selected' }}>-- Selecione uma opção --</option>
                                             <option value="nucleo_urbano" {{ old('localizacao') == 'nucleo_urbano' ? 'selected' : '' }}>Núcleo Urbano (Sede Freguesia)</option>
@@ -110,7 +108,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="atividade_tipo" class="form-control-label">Tipo de Atividade (Perg. 16/18)</label>
+                                        <label for="atividade_tipo" class="form-control-label">Tipo de Atividade</label>
                                         <select class="form-control" name="atividade_tipo" id="atividade_tipo">
                                             <option value="">-- Nenhuma --</option>
                                             <option value="conta_propria" {{ old('atividade_tipo') == 'conta_propria' ? 'selected' : '' }}>Conta Própria</option>
@@ -120,7 +118,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="atividade_setor_id" class="form-control-label">Setor de Atividade (Perg. 17/19)</label>
+                                        <label for="atividade_setor_id" class="form-control-label">Setor de Atividade</label>
                                         <select class="form-control" name="atividade_setor_id" id="atividade_setor_id">
                                             <option value="">-- Nenhuma --</option>
                                             @foreach ($setores as $setor)
@@ -149,7 +147,6 @@
     </div>
 @endsection
 
-{{-- 3. Adicionar o JS do Choices.js --}}
 @push('js')
     <script src="{{ asset('assets/js/plugins/choices.min.js') }}"></script>
     <script>

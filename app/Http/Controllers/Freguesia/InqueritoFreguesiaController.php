@@ -79,7 +79,7 @@ class InqueritoFreguesiaController extends Controller
         $preenchido['total_propria'] = $familiasDaFreguesia->where('tipologia_propriedade', 'propria')->count();
         $preenchido['total_arrendada'] = $familiasDaFreguesia->where('tipologia_propriedade', 'arrendada')->count();
 
-        // 6. Perguntas 16-19 (Sectores) [cite: 440-459]
+        // 6. Perguntas 16-19 (Sectores) 
         // (Contando o número de ATIVIDADES, não de indivíduos, por simplicidade)
         $atividadesPropria = $atividadesDaFreguesia->where('tipo', 'conta_propria');
         $atividadesOutrem = $atividadesDaFreguesia->where('tipo', 'conta_outrem');
@@ -115,7 +115,7 @@ class InqueritoFreguesiaController extends Controller
             'total_criancas' => 'required|integer|min:0',
             'total_propria' => 'required|integer|min:0',
             'total_arrendada' => 'required|integer|min:0',
-            'total_por_setor_propria' => 'required|array', // Valida que é um array
+            'total_por_setor_propria' => 'required|array',
             'total_por_setor_outrem' => 'required|array',
             
             // Qualitativos (Perg. 20-24)
@@ -148,7 +148,7 @@ class InqueritoFreguesiaController extends Controller
 
     /**
      * Mostra os detalhes de um inquérito preenchido.
-     * (Atualizado para mostrar os novos campos)
+     *
      */
     public function show(InqueritoFreguesia $inquerito)
     {
@@ -156,7 +156,7 @@ class InqueritoFreguesiaController extends Controller
             abort(403, 'Acesso não autorizado.');
         }
 
-        // Carrega a relação 'freguesia' para o título (apesar de já termos o ID)
+        // Carrega a relação 'freguesia' para o título 
         $inquerito->load('freguesia');
 
         return view('freguesia.inqueritos.show', compact('inquerito'));

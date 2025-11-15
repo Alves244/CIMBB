@@ -1,6 +1,5 @@
 @extends('layouts.user_type.auth')
 
-{{-- 1. Adicionar o CSS do Choices.js --}}
 @push('css')
     <link href="{{ asset('assets/css/plugins/choices.min.css') }}" rel="stylesheet" />
 @endpush
@@ -10,7 +9,7 @@
     <div class="container-fluid py-4">
         <div class="row">
             <div class="col-12 col-lg-8 mx-auto">
-                {{-- CARD 1: FORMULÁRIO PRINCIPAL DA FAMÍLIA (ATUALIZADO) --}}
+                {{-- CARD 1: FORMULÁRIO PRINCIPAL DA FAMÍLIA --}}
                 <div class="card">
                     <div class="card-header pb-0">
                         <h6>Editar Família</h6>
@@ -39,7 +38,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        {{-- 2. CAMPO DE NACIONALIDADE ALTERADO --}}
+                                        {{-- 2. CAMPO DE NACIONALIDADE --}}
                                         <label for="nacionalidade-select" class="form-control-label">Nacionalidade *</label>
                                         <select class="form-control" name="nacionalidade" id="nacionalidade-select" required>
                                             <option value="" disabled>-- Pesquise ou selecione --</option>
@@ -74,7 +73,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="localizacao" class="form-control-label">Localização (Perg. 11-13) *</label>
+                                        <label for="localizacao" class="form-control-label">Localização*</label>
                                         <select class="form-control" name="localizacao" id="localizacao" required>
                                             <option value="nucleo_urbano" {{ old('localizacao', $familia->localizacao) == 'nucleo_urbano' ? 'selected' : '' }}>Núcleo Urbano (Sede Freguesia)</option>
                                             <option value="aldeia_anexa" {{ old('localizacao', $familia->localizacao) == 'aldeia_anexa' ? 'selected' : '' }}>Aldeia Anexa</option>
@@ -85,7 +84,7 @@
                             </div>
                             
                             <hr class="horizontal dark mt-4">
-                            <p class="text-sm font-weight-bold">Agregado Familiar (Perg. 14)</p>
+                            <p class="text-sm font-weight-bold">Agregado Familiar</p>
                             @php $agregado = $familia->agregadoFamiliar; @endphp
                             <div class="row">
                                 <div class="col-md-4">
@@ -114,12 +113,11 @@
                             </div>
                         </form>
                     </div>
-                </div> {{-- Fim do Card 1 --}}
-
-                {{-- CARD 2: ATIVIDADES ECONÓMICAS (Mantém-se igual) --}}
+                </div>
+                {{-- ATIVIDADES ECONÓMICAS (Mantém-se igual) --}}
                 <div class="card mt-4">
                     <div class="card-header pb-0 d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0">Atividades Económicas (Perg. 16-19)</h6>
+                        <h6 class="mb-0">Atividades Económicas</h6>
                         <a href="{{ route('freguesia.familias.atividades.create', $familia->id) }}" class="btn bg-gradient-success btn-sm mb-0">
                             <i class="fas fa-plus me-1"></i> Adicionar Atividade
                         </a>
@@ -172,7 +170,7 @@
                             </table>
                         </div>
                     </div>
-                </div> {{-- Fim do Card 2 --}}
+                </div> 
             </div>
         </div>
     </div>
@@ -180,7 +178,6 @@
 @endsection
 
 @push('js')
-    {{-- 3. Adicionar o JS do Choices.js --}}
     <script src="{{ asset('assets/js/plugins/choices.min.js') }}"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function(event) {

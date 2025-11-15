@@ -4,14 +4,13 @@
 
     <div class="container-fluid py-4">
         <div class="row">
-            <div class="col-12 col-lg-8 mx-auto"> {{-- Centraliza o formulário --}}
+            <div class="col-12 col-lg-8 mx-auto"> 
                 <div class="card">
                     <div class="card-header pb-0">
                         <h6>Abrir Novo Ticket de Suporte</h6>
                         <p class="text-sm">Descreva a sua dúvida, sugestão ou erro.</p>
                     </div>
                     <div class="card-body">
-                        {{-- Formulário com upload de ficheiro (enctype) --}}
                         <form action="{{ route('freguesia.suporte.store') }}" method="POST" role="form text-left" enctype="multipart/form-data">
                             @csrf 
 

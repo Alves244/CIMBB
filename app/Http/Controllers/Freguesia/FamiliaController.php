@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Freguesia;
 use App\Http\Controllers\Controller;
 use App\Models\Familia;
 use App\Models\AgregadoFamiliar;
-use App\Models\SetorAtividade; // Importar Setores
+use App\Models\SetorAtividade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule; // Importar a regra de validação
+use Illuminate\Validation\Rule;
 
 class FamiliaController extends Controller
 {
@@ -32,7 +32,7 @@ class FamiliaController extends Controller
 
     /**
      * Mostra o formulário para criar uma nova família.
-     * (ATUALIZADO: Carrega setores E nacionalidades)
+     * 
      */
     public function create()
     {
@@ -46,7 +46,7 @@ class FamiliaController extends Controller
 
     /**
      * Guarda a nova família na base de dados.
-     * (ATUALIZADO: Validação da nacionalidade)
+     * 
      */
     public function store(Request $request)
     {
@@ -160,7 +160,7 @@ class FamiliaController extends Controller
 
     /**
      * Mostra o formulário para editar a Família
-     * (ATUALIZADO: Carrega as nacionalidades)
+     * 
      */
     public function edit(Familia $familia)
     {
@@ -178,7 +178,7 @@ class FamiliaController extends Controller
 
     /**
      * Atualiza a Família e o seu Agregado Familiar
-     * (ATUALIZADO: Validação da nacionalidade)
+     * 
      */
     public function update(Request $request, Familia $familia)
     {
@@ -221,7 +221,6 @@ class FamiliaController extends Controller
             return back()->withInput()->with('error', 'Erro ao guardar as alterações: '.$e->getMessage());
         }
 
-        // 4. Redirecionar de volta
         return redirect()->route('freguesia.familias.edit', $familia->id)
                          ->with('success', 'Família atualizada com sucesso.');
     }
