@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Hash;
 
 class InfoUserController extends Controller
 {
@@ -14,43 +13,60 @@ class InfoUserController extends Controller
      */
     public function create()
     {
+        if (view()->exists('profile')) {
+            return view('profile');
+        }
+        // Fallback para o nome de template antigo
         return view('laravel-examples.user-profile');
     }
 
     /**
      * Atualiza a informação do utilizador.
+     * (Apenas para o telemóvel)
      */
     public function store(Request $request)
     {
-        // Validação dos dados recebidos do formulário
+        // 1. Validar apenas o telemóvel
         $validatedData = $request->validate([
-            
-            // ALTERAÇÃO AQUI: max:255 mudou para max:15
-            'nome' => 'required|string|max:25',
-            
-            'email' => [
-                'required',
-                'email',
-                'max:255',
-                Rule::unique('users')->ignore(Auth::id()),
-            ],
-
-            // ALTERAÇÃO AQUI: max:20 mudou para digits:9
-            // 'digits:9' força a que tenha exatamente 9 caracteres E que sejam todos numéricos.
             'telemovel' => 'nullable|digits:9', 
         ]);
 
-        /** @var \App\Models\User $user */
+        /** @var \App\Models\User $user */ 
         $user = Auth::user();
 
-        // Atualizar o utilizador autenticado com os novos dados
+        // 2. Atualizar apenas o telemóvel
         $user->update([
-            'nome' => $validatedData['nome'],
-            'email' => $validatedData['email'],
             'telemovel' => $validatedData['telemovel'],
         ]);
 
-        // Redirecionar para trás com uma mensagem de sucesso
-        return back()->with('success', 'Perfil atualizado com sucesso!');
+        return back()->with('success', 'Telemóvel atualizado com sucesso!');
+    }
+
+
+    /**
+     * Atualiza a palavra-passe do utilizador.
+     */
+    public function updatePassword(Request $request)
+    {
+        // 1. Validar os dados
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        // 2. Verificar se a password atual está correta
+        if (!Hash::check($request->current_password, auth()->user()->password)) {
+            return back()->withErrors(['current_password' => 'A palavra-passe atual está incorreta.']);
+        }
+
+        /** @var \App\Models\User $user */ 
+        $user = auth()->user();
+
+        // 3. Atualizar a password
+        $user->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+
+        return back()->with('success_password', 'Palavra-passe alterada com sucesso!');
     }
 }

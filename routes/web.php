@@ -20,10 +20,13 @@ use App\Http\Controllers\Freguesia\TicketSuporteController;
 |--------------------------------------------------------------------------
 */
 Route::group(['middleware' => 'guest'], function () {
-    Route::get('/register', [RegisterController::class, 'create'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store']);
+    // --- ROTAS DE REGISTO DESATIVADAS (COMO PEDISTE) ---
+    // Route::get('/register', [RegisterController::class, 'create'])->name('register');
+    // Route::post('/register', [RegisterController::class, 'store']);
+    
     Route::get('/login', [SessionsController::class, 'create'])->name('login');
-    Route::post('/session', [SessionsController::class, 'store']);
+    // (A tua rota original 'session' está correta para o teu formulário)
+    Route::post('/session', [SessionsController::class, 'store']); 
     Route::get('/login/forgot-password', [ResetController::class, 'create'])->name('password.request');
     Route::post('/forgot-password', [ResetController::class, 'sendEmail'])->name('password.email');
     Route::get('/reset-password/{token}', [ResetController::class, 'resetPass'])->name('password.reset');
@@ -40,10 +43,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/', [HomeController::class, 'home'])->name('home');
     Route::get('dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
 
-    // Rotas de Perfil
+    // --- Rotas de Perfil ATUALIZADAS (PARA O TEU PEDIDO) ---
+    // Esta rota mostra a view 'profile.blade.php'
     Route::get('profile', function () { return view('profile'); })->name('profile');
+    // Esta rota (do template antigo) agora também aponta para o InfoUserController
     Route::get('/user-profile', [InfoUserController::class, 'create']);
+    // Esta rota guarda o TELEMÓVEL
     Route::post('/user-profile', [InfoUserController::class, 'store']);
+    // Esta rota guarda a PASSWORD
+    Route::post('/user-profile/password', [InfoUserController::class, 'updatePassword'])->name('user-profile.password');
+    
     Route::get('/logout', [SessionsController::class, 'destroy'])->name('logout');
 
     /*

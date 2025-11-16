@@ -49,16 +49,12 @@
             <div class="col-md-6">
               <div class="oblique position-absolute top-0 h-100 d-md-block d-none me-n8">
                 
-                {{-- ***** ALTERAÇÃO AQUI ***** --}}
-                {{-- 1. Removi a classe 'bg-cover' (que esticava a imagem) --}}
-                {{-- 2. Adicionei 'style' para centrar, não repetir, e definir um tamanho (ex: '60%') --}}
                 <div class="oblique-image position-absolute fixed-top ms-auto h-100 z-index-0 ms-n6" 
                      style="background-image:url('{{ asset('assets/img/cimbb/logo/Logotipo_CIM_Beira_Baixa.png') }}');
-                            background-size: 50%; /* Ou podes tentar '60%' ou '500px' */
+                            background-size: 50%;
                             background-repeat: no-repeat;
                             background-position:  20% center;">
                 </div>
-                {{-- ***** FIM DA ALTERAÇÃO ***** --}}
 
               </div>
             </div>
