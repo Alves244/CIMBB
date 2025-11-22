@@ -6,7 +6,7 @@
     
     {{-- ***** LINHA DE 4 CARTÕES DE ESTATÍSTICA ***** --}}
     <div class="row">
-      <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="col-xl-6 col-sm-12 mb-4">
         <div class="card">
           <div class="card-body p-3">
             <div class="row">
@@ -27,63 +27,21 @@
           </div>
         </div>
       </div>
-      <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="col-xl-6 col-sm-12 mb-4">
         <div class="card">
           <div class="card-body p-3">
             <div class="row">
               <div class="col-8">
                 <div class="numbers">
-                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Membros</p>
+                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Tickets por responder</p>
                   <h5 class="font-weight-bolder mb-0">
-                    {{ $totalMembros }}
+                    {{ $ticketsPendentes }}
                   </h5>
                 </div>
               </div>
               <div class="col-4 text-end">
-                <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
-                  <i class="fas fa-user-friends text-lg opacity-10" aria-hidden="true"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-        <div class="card">
-          <div class="card-body p-3">
-            <div class="row">
-              <div class="col-8">
-                <div class="numbers">
-                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Adultos</p>
-                  <h5 class="font-weight-bolder mb-0">
-                    {{ $totalAdultos }}
-                  </h5>
-                </div>
-              </div>
-              <div class="col-4 text-end">
-                <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
-                  <i class="fas fa-user text-lg opacity-10" aria-hidden="true"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-sm-6">
-        <div class="card">
-          <div class="card-body p-3">
-            <div class="row">
-              <div class="col-8">
-                <div class="numbers">
-                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Crianças</p>
-                  <h5 class="font-weight-bolder mb-0">
-                    {{ $totalCriancas }}
-                  </h5>
-                </div>
-              </div>
-              <div class="col-4 text-end">
-                <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
-                  <i class="fas fa-child text-lg opacity-10" aria-hidden="true"></i>
+                <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md">
+                  <i class="fas fa-headset text-lg opacity-10" aria-hidden="true"></i>
                 </div>
               </div>
             </div>

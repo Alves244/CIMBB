@@ -6,6 +6,8 @@
     <div class="row">
       <div class="col-12">
         <div class="card mb-4">
+          
+          {{-- CABEÇALHO DA TABELA --}}
           <div class="card-header pb-0 d-flex justify-content-between align-items-center">
             <div>
               <h6 class="mb-0">Famílias Registadas</h6>
@@ -15,6 +17,8 @@
               <i class="fas fa-plus me-1"></i> Adicionar Família
             </a>
           </div>
+
+          {{-- CORPO DA TABELA --}}
           <div class="card-body px-0 pt-0 pb-2">
             <div class="table-responsive p-0">
               <table class="table align-items-center mb-0">
@@ -32,41 +36,59 @@
                 <tbody>
                   @forelse ($familias as $familia)
                     <tr>
+                      {{-- CÓDIGO --}}
                       <td>
                         <div class="d-flex px-3 py-1">
                           <h6 class="mb-0 text-sm">{{ $familia->codigo }}</h6>
                         </div>
                       </td>
+                      
+                      {{-- ANO DE INSTALAÇÃO --}}
                       <td class="align-middle text-center text-sm">
                         <span class="badge badge-sm bg-gradient-secondary">{{ $familia->ano_instalacao }}</span>
                       </td>
+                      
+                      {{-- NACIONALIDADE --}}
                       <td>
                         <p class="text-xs font-weight-bold mb-0">{{ $familia->nacionalidade }}</p>
                       </td>
+                      
+                      {{-- MEMBROS --}}
                       <td class="align-middle text-center text-sm">
                         <span class="text-secondary text-xs font-weight-bold">{{ $familia->agregadoFamiliar?->total_membros ?? 'N/A' }}</span>
                       </td>
+                      
+                      {{-- HABITAÇÃO --}}
                       <td>
                         <p class="text-xs font-weight-bold mb-0">{{ ucfirst($familia->tipologia_habitacao) }}</p>
                       </td>
+                      
+                      {{-- PROPRIEDADE --}}
                       <td>
                         <p class="text-xs font-weight-bold mb-0">{{ ucfirst($familia->tipologia_propriedade) }}</p>
                       </td>
+                      
+                      {{-- AÇÕES (BOTÕES CORRIGIDOS) --}}
                       <td class="align-middle">
                         
-                        <a href="{{ route('freguesia.familias.edit', $familia->id) }}" class="btn btn-link text-success text-gradient px-1 mb-0" data-bs-toggle="tooltip" data-bs-original-title="Editar Família">
-                            <i class="fas fa-pencil-alt text-sm"></i>
+                        {{-- Botão Editar --}}
+                        <a href="{{ route('freguesia.familias.edit', $familia->id) }}" class="btn btn-link text-dark px-3 mb-0" data-bs-toggle="tooltip" data-bs-original-title="Editar Família">
+                            <i class="fas fa-pencil-alt text-dark me-2" aria-hidden="true"></i>
+                            Editar
                         </a>
                         
+                        {{-- Botão Apagar --}}
                         <form action="{{ route('freguesia.familias.destroy', $familia->id) }}" method="POST" class="d-inline">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-link text-danger text-gradient px-1 mb-0"
+                            <button type="submit" class="btn btn-link text-danger text-gradient px-3 mb-0"
                                     onclick="return confirm('Tem a certeza que deseja apagar esta família (Código: {{ $familia->codigo }})? Esta ação não pode ser revertida.')"
                                     data-bs-toggle="tooltip" data-bs-original-title="Apagar Família">
-                                <i class="fas fa-trash text-sm"></i>
+                                <i class="far fa-trash-alt me-2" aria-hidden="true"></i>
+                                Apagar
                             </button>
                         </form>
+
                       </td>
                     </tr>
                   @empty
@@ -78,6 +100,8 @@
               </table>
             </div>
           </div>
+          
+          {{-- PAGINAÇÃO --}}
           @if ($familias->hasPages())
             <div class="card-footer px-3 border-0 d-flex align-items-center justify-content-between">
               {{ $familias->links() }}

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Familia;
 use App\Models\AgregadoFamiliar; // 1. IMPORTAR AgregadoFamiliar
 use App\Models\User;
+use App\Models\TicketSuporte;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -18,7 +19,7 @@ class HomeController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth')->only('dashboard');
     }
 
     /**
@@ -28,7 +29,7 @@ class HomeController extends Controller
      */
     public function home()
     {
-        // Redireciona a rota '/' (home) para o 'dashboard'
+        // Mantido por compatibilidade; rota '/' redireciona direto para login
         return redirect()->route('dashboard');
     }
 
@@ -81,6 +82,8 @@ class HomeController extends Controller
         $totalAdultos = $agregadoQuery->sum('adultos_laboral') + $agregadoQuery->sum('adultos_65_mais');
         $totalCriancas = $agregadoQuery->sum('criancas');
 
+        $ticketsPendentes = TicketSuporte::where('estado', 'em_processamento')->count();
+
         // --- 4. Preparar dados para o Chart.js ---
         $chartLabels = $nacionalidadesData->pluck('nacionalidade');
         $chartValues = $nacionalidadesData->pluck('total');
@@ -96,6 +99,7 @@ class HomeController extends Controller
             'totalMembros' => $totalMembros,
             'totalAdultos' => $totalAdultos,
             'totalCriancas' => $totalCriancas,
+            'ticketsPendentes' => $ticketsPendentes,
             
             // Os dados do gráfico
             'chartLabels' => $chartLabels,

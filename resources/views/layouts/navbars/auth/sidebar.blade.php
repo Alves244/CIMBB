@@ -24,10 +24,11 @@
         <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">A Minha Conta</h6>
       </li>
       <li class="nav-item">
-        <a class="nav-link {{ (Request::routeIs('profile') || Request::routeIs('user-profile')) ? 'active' : '' }}" href="{{ route('profile') }}">
-          <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ (Request::routeIs('profile') || Request::routeIs('user-profile')) ? '' : 'bg-white' }}"
-               style="{{ (Request::routeIs('profile') || Request::routeIs('user-profile')) ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
-             <i class="fas fa-user ps-2 pe-2 text-center {{ (Request::routeIs('profile') || Request::routeIs('user-profile')) ? 'text-white' : 'text-dark' }}"></i>
+        {{-- CORREÇÃO AQUI: Mudado de route('profile') para route('user-profile') --}}
+        <a class="nav-link {{ (Request::routeIs('user-profile') || Request::routeIs('profile')) ? 'active' : '' }}" href="{{ route('user-profile') }}">
+          <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ (Request::routeIs('user-profile') || Request::routeIs('profile')) ? '' : 'bg-white' }}"
+               style="{{ (Request::routeIs('user-profile') || Request::routeIs('profile')) ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
+             <i class="fas fa-user ps-2 pe-2 text-center {{ (Request::routeIs('user-profile') || Request::routeIs('profile')) ? 'text-white' : 'text-dark' }}"></i>
           </div>
           <span class="nav-link-text ms-1">Meu Perfil</span>
         </a>
@@ -40,6 +41,8 @@
         <li class="nav-item mt-3">
           <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Gestão Freguesia</h6>
         </li>
+        
+        {{-- 1. Gerir Famílias --}}
         <li class="nav-item">
           <a class="nav-link {{ Request::routeIs('freguesia.familias.*') ? 'active' : '' }}" href="{{ route('freguesia.familias.index') }}">
             <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('freguesia.familias.*') ? '' : 'bg-white' }}"
@@ -49,16 +52,31 @@
             <span class="nav-link-text ms-1">Gerir Famílias</span>
           </a>
         </li>
+
+        {{-- 2. Inquérito Anual --}}
         <li class="nav-item">
           <a class="nav-link {{ Request::routeIs('freguesia.inqueritos.*') ? 'active' : '' }}" href="{{ route('freguesia.inqueritos.index') }}">
-            <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('freguesia.inqueritos.*') ? '' : 'bg-white' }}" style="{{ Request::routeIs('freguesia.inqueritos.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
+            <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('freguesia.inqueritos.*') ? '' : 'bg-white' }}" 
+                 style="{{ Request::routeIs('freguesia.inqueritos.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
               <i class="fas fa-poll ps-2 pe-2 text-center {{ Request::routeIs('freguesia.inqueritos.*') ? 'text-white' : 'text-dark' }}"></i>
             </div>
               <span class="nav-link-text ms-1">Inquérito Anual</span>
           </a>
         </li>
-         <li class="nav-item">
-            {{-- ***** NOVO LINK DE SUPORTE ADICIONADO ***** --}}
+        
+        {{-- 3. Análise de Dados (Gráficos) --}}
+        <li class="nav-item">
+          <a class="nav-link {{ Request::routeIs('freguesia.graficos.*') ? 'active' : '' }}" href="{{ route('freguesia.graficos.index') }}">
+            <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('freguesia.graficos.*') ? '' : 'bg-white' }}"
+                 style="{{ Request::routeIs('freguesia.graficos.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
+              <i class="fas fa-chart-bar ps-2 pe-2 text-center {{ Request::routeIs('freguesia.graficos.*') ? 'text-white' : 'text-dark' }}"></i>
+            </div>
+            <span class="nav-link-text ms-1">Análise de Dados</span>
+          </a>
+        </li>
+        
+        {{-- 4. Suporte --}}
+        <li class="nav-item">
             <a class="nav-link {{ Request::routeIs('freguesia.suporte.*') ? 'active' : '' }}" href="{{ route('freguesia.suporte.index') }}">
               <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('freguesia.suporte.*') ? '' : 'bg-white' }}"
                    style="{{ Request::routeIs('freguesia.suporte.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
@@ -94,7 +112,7 @@
               <span class="nav-link-text ms-1">Relatórios</span>
             </a>
         </li>
-         <li class="nav-item">
+        <li class="nav-item">
             <a class="nav-link {{ Request::routeIs('funcionario.exportar.*') ? 'active' : '' }}" href="#">
               <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('funcionario.exportar.*') ? '' : 'bg-white' }}"
                    style="{{ Request::routeIs('funcionario.exportar.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
@@ -113,16 +131,16 @@
           <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Administração</h6>
         </li>
         <li class="nav-item">
-          <a class="nav-link {{ Request::routeIs('admin.user-management') ? 'active' : '' }}" href="{{ route('admin.user-management') }}">
-            <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.user-management') ? '' : 'bg-white' }}"
-                 style="{{ Request::routeIs('admin.user-management') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
-              <i class="fas fa-users-cog ps-2 pe-2 text-center {{ Request::routeIs('admin.user-management') ? 'text-white' : 'text-dark' }}"></i>
+          <a class="nav-link {{ Request::routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+            <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.users.*') ? '' : 'bg-white' }}"
+                 style="{{ Request::routeIs('admin.users.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
+              <i class="fas fa-users-cog ps-2 pe-2 text-center {{ Request::routeIs('admin.users.*') ? 'text-white' : 'text-dark' }}"></i>
             </div>
             <span class="nav-link-text ms-1">Gerir Utilizadores</span>
           </a>
         </li>
-         <li class="nav-item">
-          <a class="nav-link {{ Request::routeIs('admin.concelhos.*') ? 'active' : '' }}" href="#">
+        <li class="nav-item">
+          <a class="nav-link {{ Request::routeIs('admin.concelhos.*') ? 'active' : '' }}" href="{{ route('admin.concelhos.index') }}">
             <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.concelhos.*') ? '' : 'bg-white' }}"
                  style="{{ Request::routeIs('admin.concelhos.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
               <i class="fas fa-map-marker-alt ps-2 pe-2 text-center {{ Request::routeIs('admin.concelhos.*') ? 'text-white' : 'text-dark' }}"></i>
@@ -131,7 +149,7 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {{ Request::routeIs('admin.freguesias.*') ? 'active' : '' }}" href="#">
+          <a class="nav-link {{ Request::routeIs('admin.freguesias.*') ? 'active' : '' }}" href="{{ route('admin.freguesias.index') }}">
             <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.freguesias.*') ? '' : 'bg-white' }}"
                  style="{{ Request::routeIs('admin.freguesias.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
               <i class="fas fa-map-pin ps-2 pe-2 text-center {{ Request::routeIs('admin.freguesias.*') ? 'text-white' : 'text-dark' }}"></i>
@@ -139,8 +157,8 @@
             <span class="nav-link-text ms-1">Gerir Freguesias</span>
           </a>
         </li>
-         <li class="nav-item">
-            <a class="nav-link {{ Request::routeIs('admin.tickets.*') ? 'active' : '' }}" href="#">
+        <li class="nav-item">
+            <a class="nav-link {{ Request::routeIs('admin.tickets.*') ? 'active' : '' }}" href="{{ route('admin.tickets.index') }}">
               <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.tickets.*') ? '' : 'bg-white' }}"
                    style="{{ Request::routeIs('admin.tickets.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
                 <i class="fas fa-headset ps-2 pe-2 text-center {{ Request::routeIs('admin.tickets.*') ? 'text-white' : 'text-dark' }}"></i>
@@ -148,8 +166,8 @@
               <span class="nav-link-text ms-1">Gerir Suporte</span>
             </a>
         </li>
-         <li class="nav-item">
-            <a class="nav-link {{ Request::routeIs('admin.logs.*') ? 'active' : '' }}" href="#">
+        <li class="nav-item">
+          <a class="nav-link {{ Request::routeIs('admin.logs.*') ? 'active' : '' }}" href="{{ route('admin.logs.index') }}">
               <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.logs.*') ? '' : 'bg-white' }}"
                    style="{{ Request::routeIs('admin.logs.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
                 <i class="fas fa-clipboard-list ps-2 pe-2 text-center {{ Request::routeIs('admin.logs.*') ? 'text-white' : 'text-dark' }}"></i>
@@ -157,7 +175,7 @@
               <span class="nav-link-text ms-1">Logs do Sistema</span>
             </a>
         </li>
-         <li class="nav-item">
+        <li class="nav-item">
             <a class="nav-link {{ Request::routeIs('admin.parametros.*') ? 'active' : '' }}" href="#">
               <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.parametros.*') ? '' : 'bg-white' }}"
                    style="{{ Request::routeIs('admin.parametros.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">

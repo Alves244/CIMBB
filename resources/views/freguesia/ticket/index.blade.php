@@ -6,14 +6,27 @@
     <div class="row">
       <div class="col-12">
         <div class="card mb-4">
-          <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+          <div class="card-header pb-0 d-flex flex-column flex-lg-row gap-3 align-items-lg-center justify-content-lg-between">
             <div>
               <h6 class="mb-0">Meus Pedidos de Suporte</h6>
               <p class="text-sm">Freguesia: {{ Auth::user()->freguesia->nome ?? 'N/A' }}</p>
             </div>
-            <a href="{{ route('freguesia.suporte.create') }}" class="btn bg-gradient-success btn-sm mb-0">
-              <i class="fas fa-plus me-1"></i> Abrir Novo Ticket
-            </a>
+            <div class="d-flex flex-wrap gap-2">
+              <form method="GET" action="{{ route('freguesia.suporte.index') }}" class="d-flex gap-2">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-white">Estado</span>
+                  <select name="estado" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="em_processamento" {{ request('estado') == 'em_processamento' ? 'selected' : '' }}>Por responder</option>
+                    <option value="respondido" {{ request('estado') == 'respondido' ? 'selected' : '' }}>Respondidos</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-sm bg-gradient-secondary">Filtrar</button>
+              </form>
+              <a href="{{ route('freguesia.suporte.create') }}" class="btn bg-gradient-success btn-sm mb-0">
+                <i class="fas fa-plus me-1"></i> Abrir Novo Ticket
+              </a>
+            </div>
           </div>
           <div class="card-body px-0 pt-0 pb-2">
             <div class="table-responsive p-0">
@@ -47,13 +60,15 @@
                       </td>
                       <td class="align-middle text-center text-sm">
                         @if($ticket->estado == 'aberto')
-                            <span class="badge badge-sm bg-gradient-warning">Aberto</span>
+                          <span class="badge badge-sm bg-gradient-warning">Aberto</span>
                         @elseif($ticket->estado == 'em_processamento')
-                            <span class="badge badge-sm bg-gradient-info">Em Processamento</span>
+                          <span class="badge badge-sm bg-gradient-info">Em Processamento</span>
+                        @elseif($ticket->estado == 'respondido')
+                          <span class="badge badge-sm bg-gradient-primary">Respondido</span>
                         @elseif($ticket->estado == 'resolvido')
-                            <span class="badge badge-sm bg-gradient-success">Resolvido</span>
+                          <span class="badge badge-sm bg-gradient-success">Resolvido</span>
                         @else
-                            <span class="badge badge-sm bg-gradient-light">{{ $ticket->estado }}</span>
+                          <span class="badge badge-sm bg-gradient-light">{{ ucfirst(str_replace('_',' ', $ticket->estado)) }}</span>
                         @endif
                       </td>
                       <td class="align-middle">

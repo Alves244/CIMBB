@@ -21,45 +21,40 @@
 
                             {{-- Pergunta 11 --}}
                             <div class="form-group mt-4">
-                                {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
                                 <label for="total_nucleo_urbano" class="form-control-label h6 text-dark">1. Agregados familiares que residem no núcleo urbano da sede da freguesia</label>
                                 <input class="form-control" type="number" name="total_nucleo_urbano" id="total_nucleo_urbano" value="{{ old('total_nucleo_urbano', $preenchido['total_nucleo_urbano']) }}" min="0" required>
                             </div>
                             
                             {{-- Pergunta 12 --}}
                             <div class="form-group">
-                                {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
                                 <label for="total_aldeia_anexa" class="form-control-label h6 text-dark">2. Agregados familiares que residem em aldeias anexas</label>
                                 <input class="form-control" type="number" name="total_aldeia_anexa" id="total_aldeia_anexa" value="{{ old('total_aldeia_anexa', $preenchido['total_aldeia_anexa']) }}" min="0" required>
                             </div>
 
                             {{-- Pergunta 13 --}}
                             <div class="form-group">
-                                {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
                                 <label for="total_agroflorestal" class="form-control-label h6 text-dark">3. Agregados familiares que residem em quintas ou propriedades no espaço agroflorestal</label>
                                 <input class="form-control" type="number" name="total_agroflorestal" id="total_agroflorestal" value="{{ old('total_agroflorestal', $preenchido['total_agroflorestal']) }}" min="0" required>
                             </div>
                             
-                            {{-- Pergunta 14 --}}
-                            {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
+                            {{-- Pergunta 14 (Restaurado) --}}
                             <h6 class="mt-4 text-dark">4. Número total de indivíduos</h6>
                              <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="total_adultos" class="form-control-label">Total de Adultos</label>
-                                        <input class="form-control" type="number" name="total_adultos" id="total_adultos" value="{{ old('total_adultos', $preenchido['total_adultos']) }}" min="0" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="total_criancas" class="form-control-label">Total de Crianças/Jovens</label>
-                                        <input class="form-control" type="number" name="total_criancas" id="total_criancas" value="{{ old('total_criancas', $preenchido['total_criancas']) }}" min="0" required>
-                                    </div>
-                                </div>
+                                 <div class="col-md-6">
+                                     <div class="form-group">
+                                         <label for="total_adultos" class="form-control-label">Total de Adultos</label>
+                                         <input class="form-control" type="number" name="total_adultos" id="total_adultos" value="{{ old('total_adultos', $preenchido['total_adultos']) }}" min="0" required>
+                                     </div>
+                                 </div>
+                                 <div class="col-md-6">
+                                     <div class="form-group">
+                                         <label for="total_criancas" class="form-control-label">Total de Crianças/Jovens</label>
+                                         <input class="form-control" type="number" name="total_criancas" id="total_criancas" value="{{ old('total_criancas', $preenchido['total_criancas']) }}" min="0" required>
+                                     </div>
+                                 </div>
                             </div>
                             
-                            {{-- Pergunta 15 --}}
-                            {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
+                            {{-- Pergunta 15 (Restaurado) --}}
                             <h6 class="mt-4 text-dark">5. Agregados familiares que vivem em casa ou propriedade adquiridas</h6>
                             <div class="row">
                                 <div class="col-md-6">
@@ -76,8 +71,7 @@
                                 </div>
                             </div>
                             
-                            {{-- Perguntas 16-19 --}}
-                            {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
+                            {{-- Perguntas 16-19 (Restaurado) --}}
                             <h6 class="mt-4 text-dark">6. Nº de atividades por Conta Própria</h6>
                             <div class="row">
                                 @foreach($setores as $setor)
@@ -92,7 +86,6 @@
                                 @endforeach
                             </div>
                             
-                            {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
                             <h6 class="mt-4 text-dark">7. Nº de atividades por Conta de Outrem</h6>
                             <div class="row">
                                 @foreach($setores as $setor)
@@ -106,6 +99,7 @@
                                 </div>
                                 @endforeach
                             </div>
+
                         </div>
                     </div> {{-- Fim do Card 1 --}}
 
@@ -118,7 +112,6 @@
 
                             {{-- Pergunta 20 --}}
                             <div class="form-group mt-4">
-                                {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
                                 <label for="escala_integracao" class="form-control-label h6 text-dark">8. Escala de integração *</label>
                                 <p class="text-xs">Como classifica o nível de integração geral dos novos residentes na comunidade?</p>
                                 <select class="form-control" name="escala_integracao" id="escala_integracao" required>
@@ -133,21 +126,18 @@
 
                             {{-- Pergunta 21 --}}
                             <div class="form-group">
-                                {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
                                 <label for="aspectos_positivos" class="form-control-label h6 text-dark">9. Aspectos positivos da/na integração</label>
                                 <textarea class="form-control" name="aspectos_positivos" id="aspectos_positivos" rows="4" placeholder="Descreva os pontos positivos observados...">{{ old('aspectos_positivos') }}</textarea>
                             </div>
                             
                             {{-- Pergunta 22 --}}
                             <div class="form-group">
-                                {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
                                 <label for="aspectos_negativos" class="form-control-label h6 text-dark">10. Aspectos negativos/dificuldades na integração</label>
                                 <textarea class="form-control" name="aspectos_negativos" id="aspectos_negativos" rows="4" placeholder="Descreva as principais dificuldades ou pontos negativos...">{{ old('aspectos_negativos') }}</textarea>
                             </div>
 
                             {{-- Pergunta 23 --}}
                             <div class="form-group">
-                                {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
                                 <label for="satisfacao_global" class="form-control-label h6 text-dark">11. Nível de satisfação global com a integração/impacte dos novos residentes *</label>
                                 <p class="text-xs">Como classifica o impacto geral (social, económico) dos novos residentes na freguesia?</p>
                                 <select class="form-control" name="satisfacao_global" id="satisfacao_global" required>
@@ -162,7 +152,6 @@
                             
                             {{-- Pergunta 24 --}}
                             <div class="form-group">
-                                {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
                                 <label for="sugestoes" class="form-control-label h6 text-dark">12. Apresente as suas sugestões relativamente a medidas ou intervenções necessárias</label>
                                 <textarea class="form-control" name="sugestoes" id="sugestoes" rows="4" placeholder="Que medidas ou intervenções poderiam melhorar a integração?">{{ old('sugestoes') }}</textarea>
                             </div>

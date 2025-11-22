@@ -4,42 +4,47 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use App\Models\User;
+use App\Services\AuditLogger;
 
 class SessionsController extends Controller
 {
+    /**
+     * Mostra o formulário de login.
+     */
     public function create()
     {
         return view('session.login-session');
     }
 
+    /**
+     * Processa o login.
+     */
     public function store()
     {
         $attributes = request()->validate([
-            'email'=>'required|email',
-            'password'=>'required' 
+            'email' => 'required|email',
+            'password' => 'required'
         ]);
 
-        if(Auth::attempt($attributes))
-        {
+        if (Auth::attempt($attributes)) {
             session()->regenerate();
-            // MENSAGEM 1 TRADUZIDA:
-            return redirect('dashboard')->with(['success'=>'Iniciou sessão com sucesso.']);
+            AuditLogger::log('login', 'Sessão iniciada.');
+            
+            return redirect('dashboard')->with(['success' => 'Sessão iniciada com sucesso.']);
         }
-        else{
-            // MENSAGEM 2 TRADUZIDA:
-            // Nota: Se criaste o ficheiro lang/pt/auth.php, podias usar:
-            // return back()->withErrors(['email'=> trans('auth.failed')]);
-            return back()->withErrors(['email'=>'Email ou password inválidos.']);
-        }
+        
+        return back()->withErrors(['email' => 'Email ou password incorretos.']);
     }
-    
+
+    /**
+     * Faz o logout (Terminar Sessão).
+     */
     public function destroy()
     {
-
+        AuditLogger::log('logout', 'Sessão terminada.');
         Auth::logout();
 
-        // MENSAGEM 3 TRADUZIDA (A que procuravas):
-        return redirect('/login')->with(['success'=>'Terminou a sessão com sucesso.']);
+        return redirect('/login')->with(['success' => 'Sessão terminada.']);
     }
 }

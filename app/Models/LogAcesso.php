@@ -16,6 +16,18 @@ class LogAcesso extends Model
     // Indica que não há timestamps created_at/updated_at (tem data_hora)
     public $timestamps = false;
 
+    protected $fillable = [
+        'utilizador_id',
+        'acao',
+        'data_hora',
+        'ip',
+        'descricao',
+    ];
+
+    protected $casts = [
+        'data_hora' => 'datetime',
+    ];
+
     /**
      * Define a relação inversa: Um Log de Acesso pertence a um Utilizador (User).
      * (Relação K no ER [cite: 528])

@@ -1,7 +1,35 @@
 @extends('layouts.user_type.auth')
 
 @push('css')
-    <link href="{{ asset('assets/css/plugins/choices.min.css') }}" rel="stylesheet" />
+    {{-- Usar CDN para garantir que o estilo carrega corretamente --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+    
+    <style>
+        /* CSS EXTRA para meter o Choices.js bonito e igual ao tema Soft UI */
+        .choices__inner {
+            background-color: #fff !important;
+            border: 1px solid #d2d6da !important; /* Cor da borda do tema */
+            border-radius: 0.5rem !important;      /* Arredondamento */
+            padding: 0.5rem 0.75rem !important;
+            min-height: 40px !important;
+        }
+        
+        .choices__input {
+            background-color: transparent !important;
+            margin-bottom: 0 !important;
+        }
+
+        .choices__list--dropdown {
+            border: 1px solid #d2d6da !important;
+            border-radius: 0.5rem !important;
+            margin-top: 5px !important;
+        }
+        
+        /* Esconder o select original para não haver duplicados */
+        .choices[data-type*="select-one"] .choices__input {
+            border-bottom: none !important;
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -28,11 +56,10 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        {{-- 2. CAMPO DE NACIONALIDADE ALTERADO --}}
                                         <label for="nacionalidade-select" class="form-control-label">Nacionalidade *</label>
-                                        {{-- Trocámos <input> por <select> e demos um ID --}}
+                                        {{-- Removi a class form-control para não conflitar com o plugin --}}
                                         <select class="form-control" name="nacionalidade" id="nacionalidade-select" required>
-                                            <option value="" disabled selected>-- Pesquise ou selecione --</option>
+                                            <option value="">Selecione uma nacionalidade</option>
                                             @foreach ($nacionalidades as $nacionalidade)
                                                 <option value="{{ $nacionalidade }}" {{ old('nacionalidade') == $nacionalidade ? 'selected' : '' }}>
                                                     {{ $nacionalidade }}
@@ -42,6 +69,7 @@
                                     </div>
                                 </div>
                             </div>
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
@@ -65,6 +93,7 @@
                                     </div>
                                 </div>
                             </div>
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
@@ -148,16 +177,19 @@
 @endsection
 
 @push('js')
-    <script src="{{ asset('assets/js/plugins/choices.min.js') }}"></script>
+    {{-- Usar CDN JS para garantir compatibilidade --}}
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    
     <script>
         document.addEventListener("DOMContentLoaded", function(event) {
             if (document.getElementById('nacionalidade-select')) {
                 var element = document.getElementById('nacionalidade-select');
-                new Choices(element, {
+                const choices = new Choices(element, {
                     searchEnabled: true,
-                    searchPlaceholderValue: 'Pesquisar...',
-                    itemSelectText: 'Clicas para selecionar',
-                    noResultsText: 'Nacionalidade não encontrada',
+                    searchPlaceholderValue: 'Pesquisar nacionalidade...',
+                    itemSelectText: '',
+                    noResultsText: 'Nenhuma nacionalidade encontrada',
+                    shouldSort: false, // Mantém a ordem alfabética que vem do backend
                 });
             }
         });

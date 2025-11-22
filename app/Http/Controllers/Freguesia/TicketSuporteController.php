@@ -3,21 +3,31 @@
 namespace App\Http\Controllers\Freguesia;
 
 use App\Http\Controllers\Controller;
+use App\Models\TicketMensagem;
 use App\Models\TicketSuporte; // O nosso Model
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str; // Para gerar o código do ticket
+use App\Services\AuditLogger;
 
 class TicketSuporteController extends Controller
 {
     /**
      * Mostra a lista de tickets submetidos pelo utilizador.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $meusTickets = TicketSuporte::where('utilizador_id', Auth::id())
-                                    ->orderBy('created_at', 'desc')
-                                    ->paginate(10); // Paginação
+        $ticketsQuery = TicketSuporte::where('utilizador_id', Auth::id());
+
+        if ($request->filled('estado')) {
+            $estadoFiltro = $request->estado === 'respondido' ? 'respondido' : 'em_processamento';
+            $ticketsQuery->where('estado', $estadoFiltro);
+        }
+
+        $meusTickets = $ticketsQuery
+            ->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->appends(['estado' => $request->estado]);
 
         // Aponta para a sua nova pasta 'ticket'
         return view('freguesia.ticket.index', compact('meusTickets'));
@@ -57,15 +67,23 @@ class TicketSuporteController extends Controller
 
         // 4. Criar o ticket na BD
         try {
-            TicketSuporte::create([
+            $ticket = TicketSuporte::create([
                 'utilizador_id' => Auth::id(),
                 'codigo' => $codigoTicket,
                 'assunto' => $dadosValidados['assunto'],
                 'categoria' => $dadosValidados['categoria'],
                 'descricao' => $dadosValidados['descricao'],
                 'anexo' => $caminhoAnexo,
-                'estado' => 'aberto', // O estado inicial é sempre 'aberto'
+                'estado' => 'em_processamento',
             ]);
+            
+            TicketMensagem::create([
+                'ticket_id' => $ticket->id,
+                'autor_id' => Auth::id(),
+                'mensagem' => $dadosValidados['descricao'],
+            ]);
+
+            AuditLogger::log('ticket_create', 'Criou o ticket '.$ticket->codigo.'.');
             
             // Redireciona para a nova rota 'freguesia.suporte.index'
             return redirect()->route('freguesia.suporte.index')
@@ -87,9 +105,43 @@ class TicketSuporteController extends Controller
         }
 
         // 2. Carregar a relação 'administrador' (para vermos o nome de quem respondeu)
-        $ticket->load('administrador');
+        $ticket->load(['administrador', 'mensagens.autor']);
 
         // 3. Aponta para a sua nova pasta 'ticket'
-        return view('freguesia.ticket.show', compact('ticket'));
+        $podeResponder = $ticket->estado !== 'fechado';
+
+        return view('freguesia.ticket.show', compact('ticket', 'podeResponder'));
+    }
+
+    /**
+     * Guarda uma nova mensagem no ticket de suporte.
+     */
+    public function storeMessage(Request $request, TicketSuporte $ticket)
+    {
+        if ($ticket->utilizador_id !== Auth::id()) {
+            abort(403, 'Acesso não autorizado.');
+        }
+
+        $dados = $request->validate([
+            'mensagem' => 'required|string|max:4000',
+        ]);
+
+        TicketMensagem::create([
+            'ticket_id' => $ticket->id,
+            'autor_id' => Auth::id(),
+            'mensagem' => $dados['mensagem'],
+        ]);
+
+        $ticket->update([
+            'estado' => 'em_processamento',
+            'resposta_admin' => null,
+            'administrador_id' => null,
+            'data_resposta' => null,
+        ]);
+
+        AuditLogger::log('ticket_message', 'Enviou mensagem no ticket '.$ticket->codigo.'.');
+
+        return redirect()->route('freguesia.suporte.show', $ticket)
+                         ->with('success', 'Mensagem enviada para o suporte.');
     }
 }

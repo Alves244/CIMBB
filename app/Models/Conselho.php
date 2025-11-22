@@ -10,6 +10,11 @@ class Conselho extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'nome',
+        'codigo',
+    ];
+
 
     public function freguesias(): HasMany
     {

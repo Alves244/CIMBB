@@ -2,39 +2,29 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
-     * The table associated with the model.
-     * @var string
-     */
-    protected $table = 'users';
-
-    /**
-     * The attributes that are mass assignable.
-     * @var array<int, string>
+     * Os atributos que podem ser preenchidos em massa.
      */
     protected $fillable = [
-        'nome', // Ajustado de 'name'
+        'nome',
         'email',
         'password',
-        'perfil',
-        'freguesia_id',
+        'perfil',        // 'admin', 'freguesia', 'cimbb'
+        'freguesia_id',  // Pode ser null se for Admin/CIMBB
         'telemovel',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     * @var array<int, string>
+     * Os atributos que devem ser ocultados.
      */
     protected $hidden = [
         'password',
@@ -42,94 +32,45 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
-     * @return array<string, string>
+     * Os atributos que devem ser convertidos.
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'data_criacao' => 'datetime',
+    ];
 
-    /**
-     * Define a relação inversa: Um Utilizador pertence a uma Freguesia (pode ser nulo).
-     * (Relação B no ER [cite: 519])
-     */
-    public function freguesia(): BelongsTo
+    /*
+    |--------------------------------------------------------------------------
+    | RELAÇÕES
+    |--------------------------------------------------------------------------
+    */
+
+    // Um utilizador pode pertencer a uma Freguesia
+    public function freguesia()
     {
         return $this->belongsTo(Freguesia::class);
     }
 
-    /**
-     * Define a relação: Um Utilizador (registante) pode registar muitas Famílias.
-     * (Relação D no ER [cite: 521])
-     */
-    public function familiasRegistadas(): HasMany
-    {
-        // Especifica a chave estrangeira na tabela 'familias'
-        return $this->hasMany(Familia::class, 'utilizador_registo_id');
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | MÉTODOS AUXILIARES (Helpers)
+    |--------------------------------------------------------------------------
+    | Estes métodos são usados no blade e controladores para verificar permissões.
+    */
 
-    /**
-     * Define a relação: Um Utilizador (requerente) pode criar muitos Tickets.
-     * (Relação I no ER [cite: 526])
-     */
-    public function ticketsCriados(): HasMany
-    {
-        // Especifica a chave estrangeira na tabela 'ticket_suportes'
-        return $this->hasMany(TicketSuporte::class, 'utilizador_id');
-    }
-
-    /**
-     * Define a relação: Um Utilizador (admin) pode responder a muitos Tickets.
-     * (Relação I no ER [cite: 526])
-     */
-    public function ticketsRespondidos(): HasMany
-    {
-        // Especifica a chave estrangeira na tabela 'ticket_suportes'
-        return $this->hasMany(TicketSuporte::class, 'administrador_id');
-    }
-
-     /**
-      * Define a relação: Um Utilizador pode ter muitos Logs de Acesso.
-      * (Relação K no ER [cite: 528])
-      */
-    public function logsAcesso(): HasMany
-    {
-        // Especifica a chave estrangeira na tabela 'log_acessos'
-        return $this->hasMany(LogAcesso::class, 'utilizador_id');
-    }
-
-    public function isAdmin(): bool
+    public function isAdmin()
     {
         return $this->perfil === 'admin';
     }
 
-    public function isFuncionario(): bool
-    {
-        return $this->perfil === 'funcionario';
-    }
-
-    public function isFreguesia(): bool
+    public function isFreguesia()
     {
         return $this->perfil === 'freguesia';
     }
 
-    /**
-     * Verifica se o utilizador tem pelo menos um dos perfis especificados
-     */
-    public function hasAnyPerfil(array $perfis): bool
+    public function isFuncionario()
     {
-        return in_array($this->perfil, $perfis);
-    }
-
-    /**
-     * Verifica se o utilizador tem todos os perfis especificados
-     */
-    public function hasAllPerfis(array $perfis): bool
-    {
-        return empty(array_diff($perfis, [$this->perfil]));
+        // Pode ser 'cimbb' ou outro nome que tenhas definido para funcionário CIMBB
+        return $this->perfil === 'cimbb'; 
     }
 }

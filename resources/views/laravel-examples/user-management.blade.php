@@ -2,6 +2,10 @@
 
 @section('content')
 
+@php
+    $createPerfil = old('perfil', 'freguesia');
+@endphp
+
 <div>
     <div class="row">
         <div class="col-12">
@@ -11,8 +15,9 @@
                         <div>
                             <h5 class="mb-0">Gestão de Utilizadores</h5>
                         </div>
-                        {{-- TODO: Adicionar a funcionalidade de Criar Utilizador (requer mais lógica) --}}
-                        <a href="#" class="btn bg-gradient-success btn-sm mb-0" type="button" disabled>+&nbsp; Novo Utilizador</a>
+                        <button class="btn bg-gradient-success btn-sm mb-0" type="button" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                            +&nbsp; Novo Utilizador
+                        </button>
                     </div>
                 </div>
                 <div class="card-body px-0 pt-0 pb-2">
@@ -57,22 +62,24 @@
                                         <span class="text-secondary text-xs font-weight-bold">{{ $user->created_at->format('d/m/Y') }}</span>
                                     </td>
                                     <td class="text-center">
-                                        {{-- Botão Editar (abre o modal) --}}
-                                        <a href="#" class="mx-3" data-bs-toggle="modal" data-bs-target="#editUserModal-{{ $user->id }}" data-bs-original-title="Editar Utilizador">
-                                            <i class="fas fa-user-edit text-success text-gradient"></i>
+                                        <a href="#" class="btn btn-link text-dark px-3 mb-0" data-bs-toggle="modal" data-bs-target="#editUserModal-{{ $user->id }}" data-bs-original-title="Editar Utilizador">
+                                            <i class="fas fa-user-edit me-2"></i>Editar
                                         </a>
-                                        
-                                        {{-- Botão Apagar (só mostra se NÃO for o user atual) --}}
+
+                                        <a href="#" class="btn btn-link text-warning px-3 mb-0" data-bs-toggle="modal" data-bs-target="#resetPasswordModal-{{ $user->id }}" data-bs-original-title="Atualizar Password">
+                                            <i class="fas fa-key me-2"></i>Password
+                                        </a>
+
                                         @if(Auth::id() != $user->id)
-                                        <form action="{{ route('admin.user-management.destroy', $user->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-link text-danger text-gradient px-1 mb-0"
-                                                    onclick="return confirm('Tem a certeza que deseja apagar o utilizador {{ $user->nome }}?')"
-                                                    data-bs-toggle="tooltip" data-bs-original-title="Apagar Utilizador">
-                                                <i class="fas fa-trash text-sm"></i>
-                                            </button>
-                                        </form>
+                                            <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-link text-danger text-gradient px-3 mb-0"
+                                                        onclick="return confirm('Tem a certeza que deseja apagar o utilizador {{ $user->nome }}?')"
+                                                        data-bs-toggle="tooltip" data-bs-original-title="Apagar Utilizador">
+                                                    <i class="fas fa-trash me-2"></i>Apagar
+                                                </button>
+                                            </form>
                                         @endif
                                     </td>
                                 </tr>
@@ -96,6 +103,86 @@
     </div>
 </div>
 
+{{-- MODAL: Criar Utilizador --}}
+<div class="modal fade" id="createUserModal" tabindex="-1" role="dialog" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createUserModalLabel">Novo Utilizador</h5>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ route('admin.users.store') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="create-nome" class="form-control-label">Nome *</label>
+                        <input type="text" class="form-control" id="create-nome" name="nome" value="{{ old('nome') }}" required>
+                        @error('nome', 'createUser')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+                    <div class="form-group">
+                        <label for="create-email" class="form-control-label">Email *</label>
+                        <input type="email" class="form-control" id="create-email" name="email" value="{{ old('email') }}" required>
+                        @error('email', 'createUser')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+                    <div class="form-group">
+                        <label for="create-telemovel" class="form-control-label">Telemóvel</label>
+                        <input type="text" class="form-control" id="create-telemovel" name="telemovel" value="{{ old('telemovel') }}" maxlength="20">
+                        @error('telemovel', 'createUser')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+                    <div class="form-group">
+                        <label for="create-perfil" class="form-control-label">Perfil *</label>
+                        <select class="form-control" name="perfil" id="create-perfil" data-wrapper="create-freguesia-wrapper" onchange="toggleFreguesia(this)" required>
+                            <option value="freguesia" {{ $createPerfil == 'freguesia' ? 'selected' : '' }}>Freguesia</option>
+                            <option value="cimbb" {{ $createPerfil == 'cimbb' ? 'selected' : '' }}>Funcionário CIMBB</option>
+                            <option value="admin" {{ $createPerfil == 'admin' ? 'selected' : '' }}>Administrador</option>
+                        </select>
+                        @error('perfil', 'createUser')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+                    <div class="form-group" id="create-freguesia-wrapper" style="{{ $createPerfil == 'freguesia' ? '' : 'display:none;' }}">
+                        <label for="create-freguesia" class="form-control-label">Freguesia *</label>
+                        <select class="form-control" name="freguesia_id" id="create-freguesia">
+                            <option value="">-- Selecione uma Freguesia --</option>
+                            @foreach ($freguesias as $freguesia)
+                                <option value="{{ $freguesia->id }}" {{ old('freguesia_id') == $freguesia->id ? 'selected' : '' }}>
+                                    {{ $freguesia->nome }} ({{ $freguesia->conselho->nome ?? 'N/A' }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('freguesia_id', 'createUser')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+                    <div class="form-group">
+                        <label for="create-password" class="form-control-label">Password *</label>
+                        <input type="password" class="form-control" id="create-password" name="password" required>
+                        @error('password', 'createUser')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+                    <div class="form-group">
+                        <label for="create-password-confirmation" class="form-control-label">Confirmar Password *</label>
+                        <input type="password" class="form-control" id="create-password-confirmation" name="password_confirmation" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn bg-gradient-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn bg-gradient-success">Criar Utilizador</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {{-- MODAIS DE EDIÇÃO (Um para cada utilizador) --}}
 @foreach ($users as $user)
 <div class="modal fade" id="editUserModal-{{ $user->id }}" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel-{{ $user->id }}" aria-hidden="true">
@@ -107,13 +194,25 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="{{ route('admin.user-management.update', $user->id) }}" method="POST">
+            <form action="{{ route('admin.users.update', $user->id) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="modal-body">
                     <div class="form-group">
+                        <label for="nome-{{ $user->id }}" class="form-control-label">Nome *</label>
+                        <input type="text" class="form-control" id="nome-{{ $user->id }}" name="nome" value="{{ $user->nome }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email-{{ $user->id }}" class="form-control-label">Email *</label>
+                        <input type="email" class="form-control" id="email-{{ $user->id }}" name="email" value="{{ $user->email }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="telemovel-{{ $user->id }}" class="form-control-label">Telemóvel</label>
+                        <input type="text" class="form-control" id="telemovel-{{ $user->id }}" name="telemovel" value="{{ $user->telemovel }}" maxlength="20">
+                    </div>
+                    <div class="form-group">
                         <label for="perfil" class="form-control-label">Perfil *</label>
-                        <select class="form-control" name="perfil" id="perfil-{{ $user->id }}" required onchange="toggleFreguesia(this)">
+                        <select class="form-control" name="perfil" id="perfil-{{ $user->id }}" data-wrapper="freguesia-wrapper-{{ $user->id }}" required onchange="toggleFreguesia(this)">
                             <option value="freguesia" {{ $user->perfil == 'freguesia' ? 'selected' : '' }}>Freguesia</option>
                             <option value="cimbb" {{ $user->perfil == 'cimbb' ? 'selected' : '' }}>Funcionário CIMBB</option>
                             <option value="admin" {{ $user->perfil == 'admin' ? 'selected' : '' }}>Administrador</option>
@@ -141,6 +240,41 @@
         </div>
     </div>
 </div>
+
+    {{-- ModaIS: Reset Password --}}
+    <div class="modal fade" id="resetPasswordModal-{{ $user->id }}" tabindex="-1" role="dialog" aria-labelledby="resetPasswordModalLabel-{{ $user->id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resetPasswordModalLabel-{{ $user->id }}">Atualizar Password: {{ $user->nome }}</h5>
+                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{{ route('admin.users.password', $user->id) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="password-{{ $user->id }}" class="form-control-label">Nova Password *</label>
+                            <input type="password" class="form-control" id="password-{{ $user->id }}" name="password" required>
+                            @error('password', 'passwordUser')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
+                        <div class="form-group">
+                            <label for="password-confirmation-{{ $user->id }}" class="form-control-label">Confirmar Password *</label>
+                            <input type="password" class="form-control" id="password-confirmation-{{ $user->id }}" name="password_confirmation" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn bg-gradient-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn bg-gradient-success">Guardar Nova Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endforeach
 
 @endsection
@@ -148,14 +282,28 @@
 @push('js')
 <script>
     function toggleFreguesia(selectElement) {
-        var userId = selectElement.id.split('-')[1];
-        var wrapper = document.getElementById('freguesia-wrapper-' + userId);
-        
-        if (selectElement.value == 'freguesia') {
+        var wrapperId = selectElement.getAttribute('data-wrapper');
+        if (!wrapperId) {
+            return;
+        }
+
+        var wrapper = document.getElementById(wrapperId);
+        if (!wrapper) {
+            return;
+        }
+
+        if (selectElement.value === 'freguesia') {
             wrapper.style.display = 'block';
         } else {
             wrapper.style.display = 'none';
         }
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
 </script>
 @endpush

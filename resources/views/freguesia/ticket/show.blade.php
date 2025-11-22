@@ -25,10 +25,12 @@
                                     <span class="badge badge-sm bg-gradient-warning ms-1">Aberto</span>
                                 @elseif($ticket->estado == 'em_processamento')
                                     <span class="badge badge-sm bg-gradient-info ms-1">Em Processamento</span>
+                                @elseif($ticket->estado == 'respondido')
+                                    <span class="badge badge-sm bg-gradient-primary ms-1">Respondido</span>
                                 @elseif($ticket->estado == 'resolvido')
                                     <span class="badge badge-sm bg-gradient-success ms-1">Resolvido</span>
                                 @else
-                                    <span class="badge badge-sm bg-gradient-light ms-1">{{ $ticket->estado }}</span>
+                                    <span class="badge badge-sm bg-gradient-light ms-1">{{ ucfirst(str_replace('_',' ', $ticket->estado)) }}</span>
                                 @endif
                             </div>
                             <div class="col-md-4">
@@ -43,34 +45,53 @@
 
                         <hr class="horizontal dark mt-4">
 
-                        {{-- Card: A Minha Mensagem --}}
-                        <div class="card card-body border card-plain border-radius-lg mb-3">
-                            <label class="form-control-label">A Minha Mensagem</label>
-                            <p class="text-sm">{{ $ticket->descricao }}</p>
-                            @if($ticket->anexo)
-                                <a href="{{ Storage::url($ticket->anexo) }}" target="_blank" class="btn btn-outline-secondary btn-sm mt-2" style="max-width: 150px;">
-                                    <i class="fas fa-paperclip me-1"></i> Ver Anexo
-                                </a>
-                            @endif
+                        @if($ticket->anexo)
+                            <div class="alert alert-light border text-sm d-flex align-items-center gap-2">
+                                <i class="fas fa-paperclip text-secondary"></i>
+                                <a href="{{ Storage::url($ticket->anexo) }}" target="_blank" class="text-decoration-underline">Ver anexo enviado</a>
+                            </div>
+                        @endif
+
+                        <h6 class="mt-4 mb-3 text-uppercase text-xs text-secondary">Historico de Mensagens</h6>
+                        <div class="d-flex flex-column gap-3">
+                            @forelse ($ticket->mensagens as $mensagem)
+                                <div class="card card-body border border-radius-lg {{ $mensagem->autor && $mensagem->autor->isAdmin() ? 'bg-gray-100' : '' }}">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <span class="text-sm font-weight-bold">{{ $mensagem->autor->nome ?? 'Utilizador' }}</span>
+                                            @if($mensagem->autor)
+                                                <span class="badge badge-sm {{ $mensagem->autor->isAdmin() ? 'bg-gradient-dark' : 'bg-gradient-success' }} ms-2">
+                                                    {{ $mensagem->autor->isAdmin() ? 'Suporte CIMBB' : 'Freguesia' }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <span class="text-xs text-secondary">{{ $mensagem->created_at->format('d/m/Y H:i') }}</span>
+                                    </div>
+                                    <p class="text-sm mb-0" style="white-space: pre-line;">{{ $mensagem->mensagem }}</p>
+                                </div>
+                            @empty
+                                <p class="text-sm text-muted">Ainda não existem mensagens associadas a este ticket.</p>
+                            @endforelse
                         </div>
 
-                        {{-- Card: Resposta do Admin --}}
-                        <div class="card card-body border card-plain border-radius-lg" 
-                             style="background-color: #f8f9fa;"> {{-- Fundo cinza claro --}}
-                            
-                            <label class="form-control-label">Resposta do Suporte</label>
-
-                            @if($ticket->resposta_admin)
-                                <p class="text-sm mb-2">{{ $ticket->resposta_admin }}</p>
-                                <hr class="horizontal dark my-2">
-                                <span class="text-xs text-secondary">
-                                    Respondido por: {{ $ticket->administrador->nome ?? 'Admin' }} 
-                                    em {{ $ticket->data_resposta ? \Carbon\Carbon::parse($ticket->data_resposta)->format('d/m/Y H:i') : '' }}
-                                </span>
-                            @else
-                                <p class="text-sm text-muted fst-italic">O seu pedido ainda não foi respondido.</p>
-                            @endif
-                        </div>
+                        @if($podeResponder)
+                            <hr class="horizontal dark mt-4 mb-3">
+                            <form action="{{ route('freguesia.suporte.mensagens.store', $ticket->id) }}" method="POST">
+                                @csrf
+                                <div class="form-group">
+                                    <label for="mensagem" class="form-control-label">Enviar nova mensagem</label>
+                                    <textarea class="form-control" id="mensagem" name="mensagem" rows="4" required>{{ old('mensagem') }}</textarea>
+                                    @error('mensagem')
+                                        <small class="text-danger">{{ $message }}</small>
+                                    @enderror
+                                </div>
+                                <button type="submit" class="btn bg-gradient-success mt-3">Enviar para o Suporte</button>
+                            </form>
+                        @else
+                            <div class="alert alert-secondary mt-4 mb-0">
+                                Este ticket encontra-se fechado. Abra um novo ticket se precisar de mais assistência.
+                            </div>
+                        @endif
 
                     </div>
                 </div>

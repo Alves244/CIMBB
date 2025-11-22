@@ -25,6 +25,64 @@
   <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
   <link href="{{ asset('assets/css/nucleo-svg.css') }}" rel="stylesheet" />
   <link id="pagestyle" href="{{ asset('assets/css/soft-ui-dashboard.css?v=1.0.3') }}" rel="stylesheet" />
+
+
+{{-- ========================================================= --}}
+  {{--  CSS: BARRA LARGA, LOGO GRANDE, SEM SCROLL E SEM ESPAÇO   --}}
+  {{-- ========================================================= --}}
+  <style>
+      /* 1. Aumentar a largura da Sidebar */
+      .sidenav {
+          width: 300px !important;
+      }
+
+      /* 2. Configuração do CABEÇALHO (LOGO) */
+      .sidenav-header {
+          /* Diminuí de 130px para 100px para tirar o espaço em branco */
+          height: 100px !important; 
+          margin-bottom: 0px !important; /* Removi a margem de baixo */
+      }
+
+      /* Aumentar a imagem do logo */
+      .sidenav .navbar-brand-img {
+          max-height: 90px !important; /* O logo ocupa quase a altura toda do cabeçalho */
+          width: auto !important;
+      }
+
+      /* 3. Configuração da ÁREA DE MENUS */
+      .sidenav .navbar-collapse {
+          /* Ajuste do cálculo: 100vh - 100px (altura do cabeçalho) */
+          height: calc(100vh - 100px) !important; 
+          
+          max-height: none !important;
+          overflow: hidden !important; /* Sem scroll */
+      }
+      
+      /* Remover padding extra no topo da lista se existir */
+      .navbar-nav {
+          margin-top: 0 !important;
+          padding-top: 0 !important;
+      }
+
+      /* 4. Ajustar o conteúdo principal (Direita) */
+      @media (min-width: 1200px) {
+          .g-sidenav-show .main-content {
+              margin-left: 315px !important;
+          }
+          .g-sidenav-show .navbar.fixed-top {
+              left: 315px !important;
+              width: calc(100% - 315px) !important;
+          }
+      }
+
+      /* 5. Esconder scrollbars */
+      .ps__rail-y, .ps__rail-x, .ps__thumb-y, .ps__thumb-x {
+          display: none !important;
+          opacity: 0 !important;
+          width: 0 !important;
+      }
+  </style>
+
   @stack('css')
 
 </head>

@@ -14,6 +14,12 @@ class Freguesia extends Model
     // Garante que o Laravel usa a tabela 'freguesias'
     protected $table = 'freguesias';
 
+    protected $fillable = [
+        'nome',
+        'conselho_id',
+        'codigo',
+    ];
+
     /**
      * Define a relação inversa: Uma Freguesia pertence a um Conselho.
      * (Relação A no ER [cite: 518])

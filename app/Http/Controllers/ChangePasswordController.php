@@ -2,40 +2,40 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
+use App\Models\User; // Importar o Model User
+use App\Services\AuditLogger;
 
 class ChangePasswordController extends Controller
 {
     public function changePassword(Request $request)
     {
-        
+        // 1. Validação dos campos
         $request->validate([
-            'token' => 'required',
-            'email' => 'required|email',
-            'password' => 'required|min:8|confirmed',
+            'current_password' => 'required',
+            'password' => 'required|min:6|confirmed', // O campo de confirmação deve chamar-se 'password_confirmation' no HTML
         ]);
-    
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password)
-                ])->setRememberToken(Str::random(60));
-    
-                $user->save();
-    
-                event(new PasswordReset($user));
-            }
-        );
-    
-        return $status === Password::PASSWORD_RESET
-                    ? redirect('/login')->with('success', __($status))
-                    : back()->withErrors(['email' => [__($status)]]);
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        // 2. Verificar se a password atual está correta
+        if (!Hash::check($request->get('current_password'), $user->password)) {
+            return back()->withErrors(['current_password' => 'A password atual não está correta.']);
+        }
+
+        // 3. Atualizar para a nova password
+        // NOTA: Se na tua base de dados a coluna se chamar 'password_hash' (como no diagrama), 
+        // muda 'password' para 'password_hash' na linha abaixo. 
+        // Se usaste o padrão do Laravel, mantém 'password'.
+        $user->update([
+            'password' => Hash::make($request->get('password'))
+        ]);
+
+        AuditLogger::log('profile_password', 'Alterou a password através da página de perfil.');
+
+        return back()->with('success', 'Password alterada com sucesso!');
     }
 }

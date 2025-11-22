@@ -10,30 +10,34 @@ class InqueritoFreguesia extends Model
 {
     use HasFactory;
 
-    // Garante que o Laravel usa a tabela 'inquerito_freguesias'
     protected $table = 'inquerito_freguesias';
 
     /**
      * Os atributos que podem ser preenchidos em massa.
-     * (ATUALIZADO com todos os campos da tabela)
+     * (VERSÃO DETALHADA RESTAURADA)
      */
     protected $fillable = [
         'freguesia_id',
         'utilizador_id',
         'ano',
+        
         // Perguntas 11-13
         'total_nucleo_urbano',
         'total_aldeia_anexa',
         'total_agroflorestal',
-        // Pergunta 14
+        
+        // Pergunta 14 (Restaurado)
         'total_adultos',
         'total_criancas',
-        // Pergunta 15
+        
+        // Pergunta 15 (Restaurado)
         'total_propria',
         'total_arrendada',
-        // Perguntas 16-19 (JSON)
+        
+        // Perguntas 16-19 (JSON - Restaurado)
         'total_por_setor_propria',
         'total_por_setor_outrem',
+
         // Perguntas 20-24
         'escala_integracao',
         'aspectos_positivos',
@@ -44,7 +48,7 @@ class InqueritoFreguesia extends Model
 
     /**
      * Define os "casts" para que o Laravel trate o JSON
-     * como um array automaticamente.
+     * como um array automaticamente. (Restaurado)
      */
     protected $casts = [
         'total_por_setor_propria' => 'array',

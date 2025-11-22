@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Services\AuditLogger;
 
 class InfoUserController extends Controller
 {
@@ -39,6 +40,8 @@ class InfoUserController extends Controller
             'telemovel' => $validatedData['telemovel'],
         ]);
 
+        AuditLogger::log('profile_update', 'Atualizou o telemóvel no perfil.');
+
         return back()->with('success', 'Telemóvel atualizado com sucesso!');
     }
 
@@ -66,6 +69,8 @@ class InfoUserController extends Controller
         $user->update([
             'password' => Hash::make($request->new_password)
         ]);
+
+        AuditLogger::log('profile_password', 'Alterou a palavra-passe através do perfil.');
 
         return back()->with('success_password', 'Palavra-passe alterada com sucesso!');
     }
