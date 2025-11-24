@@ -9,7 +9,6 @@ use App\Models\SetorAtividade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class FamiliaController extends Controller
@@ -84,12 +83,11 @@ class FamiliaController extends Controller
             $conselho = $freguesia->conselho;
             if (!$conselho) { throw new \Exception("Não foi possível encontrar o concelho associado."); }
 
-            $iniciaisFreguesia = $this->gerarIniciais($freguesia->nome);
-            $iniciaisConselho = $this->gerarIniciais($conselho->nome);
-            $iniciaisCompletas = $iniciaisFreguesia;
-            if ($iniciaisFreguesia != $iniciaisConselho) { $iniciaisCompletas .= $iniciaisConselho; }
-            $ano = date('Y');
-            $prefixo = 'FM'.$iniciaisCompletas.$ano.'-';
+            if (empty($freguesia->codigo)) {
+                throw new \Exception('Freguesia sem código oficial associado.');
+            }
+
+            $prefixo = 'FM-'.$freguesia->codigo.'-';
             
             $ultimoCodigo = Familia::where('codigo', 'like', $prefixo.'%')->orderBy('codigo', 'desc')->first();
             $novoNumero = $ultimoCodigo ? ((int) substr($ultimoCodigo->codigo, -4)) + 1 : 1;
@@ -137,25 +135,6 @@ class FamiliaController extends Controller
         } catch (\Exception $e) {
             return back()->withInput()->with('error', 'Erro ao guardar a família: '.$e->getMessage());
         }
-    }
-
-    /**
-     * Função privada para gerar iniciais
-     */
-    private function gerarIniciais($nome)
-    {
-        $nomeLimpo = str_replace('-', ' ', $nome);
-        $palavras = explode(' ', $nomeLimpo);
-        $iniciais = '';
-        foreach ($palavras as $palavra) {
-            if (strlen($palavra) > 0 && !in_array(strtolower($palavra), ['e', 'da', 'do', 'de', 'das', 'dos'])) {
-                $iniciais .= Str::upper(substr($palavra, 0, 1));
-            }
-        }
-        if (empty($iniciais) && strlen($nome) > 0) {
-            return Str::upper(substr($nome, 0, 1));
-        }
-        return $iniciais;
     }
 
     /**

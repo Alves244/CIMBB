@@ -3,22 +3,20 @@
 @section('content') {{-- Usa a secção 'content' correta --}}
 
   <div class="container-fluid py-4">
+    @php $authUser = Auth::user(); @endphp
     
-    {{-- ***** LINHA DE 4 CARTÕES DE ESTATÍSTICA ***** --}}
-    <div class="row">
-      <div class="col-xl-6 col-sm-12 mb-4">
-        <div class="card">
-          <div class="card-body p-3">
-            <div class="row">
-              <div class="col-8">
+    {{-- ***** CARTÕES RESUMO ***** --}}
+    @if($authUser->isFreguesia())
+      <div class="row">
+        <div class="col-xl-4 col-md-6 mb-4">
+          <div class="card h-100">
+            <div class="card-body p-3">
+              <div class="d-flex justify-content-between align-items-start">
                 <div class="numbers">
-                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Famílias</p>
-                  <h5 class="font-weight-bolder mb-0">
-                    {{ $totalFamilias }}
-                  </h5>
+                  <p class="text-sm mb-1 text-capitalize font-weight-bold">Famílias registadas</p>
+                  <h5 class="font-weight-bolder mb-0">{{ $totalFamilias }}</h5>
+                  <p class="text-xs text-secondary mb-0">Dados apenas da tua freguesia.</p>
                 </div>
-              </div>
-              <div class="col-4 text-end">
                 <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
                   <i class="fas fa-users text-lg opacity-10" aria-hidden="true"></i>
                 </div>
@@ -26,29 +24,98 @@
             </div>
           </div>
         </div>
-      </div>
-      <div class="col-xl-6 col-sm-12 mb-4">
-        <div class="card">
-          <div class="card-body p-3">
-            <div class="row">
-              <div class="col-8">
+        <div class="col-xl-4 col-md-6 mb-4">
+          <div class="card h-100">
+            <div class="card-body p-3 d-flex flex-column">
+              <div class="d-flex justify-content-between align-items-start">
                 <div class="numbers">
-                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Tickets por responder</p>
-                  <h5 class="font-weight-bolder mb-0">
-                    {{ $ticketsPendentes }}
-                  </h5>
+                  <p class="text-sm mb-1 text-capitalize font-weight-bold">Tickets respondidos</p>
+                  <h5 class="font-weight-bolder mb-0">{{ $ticketsRespondidos }}</h5>
+                  <p class="text-xs text-secondary mb-2">
+                    @if($ticketsRespondidos > 0)
+                      Existem respostas da CIMBB a aguardar acompanhamento.
+                    @else
+                      Sem novas respostas.
+                    @endif
+                  </p>
                 </div>
-              </div>
-              <div class="col-4 text-end">
                 <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md">
                   <i class="fas fa-headset text-lg opacity-10" aria-hidden="true"></i>
+                </div>
+              </div>
+              <a href="{{ route('freguesia.suporte.index') }}" class="btn btn-sm bg-gradient-secondary mt-auto align-self-start">Abrir suporte</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-4 col-md-12 mb-4">
+          <div class="card h-100">
+            <div class="card-body p-3 d-flex flex-column">
+              <div class="numbers">
+                <p class="text-sm mb-1 text-capitalize font-weight-bold">Inquérito {{ $inqueritoAnoAtual }}</p>
+                @if($inqueritoDisponivel)
+                  <h6 class="text-success mb-1">Disponível até {{ optional($inqueritoPrazo)->format('d/m/Y') }}</h6>
+                  <p class="text-xs text-secondary mb-3">Submete o questionário anual para atualizar os dados da freguesia.</p>
+                  <a href="{{ route('freguesia.inqueritos.create') }}" class="btn btn-sm bg-gradient-success">Preencher agora</a>
+                @elseif($jaPreencheuInquerito)
+                  <h6 class="text-success mb-1">Inquérito submetido</h6>
+                  <p class="text-xs text-secondary mb-3">Obrigado! Podes rever ou atualizar até {{ optional($inqueritoPrazo)->format('d/m/Y') }}.</p>
+                  <a href="{{ route('freguesia.inqueritos.index') }}" class="btn btn-sm bg-gradient-secondary">Ver histórico</a>
+                @else
+                  <h6 class="text-danger mb-1">Prazo expirado</h6>
+                  <p class="text-xs text-secondary mb-3">Contacta a CIMBB para regularizar o inquérito deste ano.</p>
+                  <a href="{{ route('freguesia.inqueritos.index') }}" class="btn btn-sm bg-gradient-secondary">Mais detalhes</a>
+                @endif
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    @else
+      <div class="row">
+        <div class="col-xl-6 col-sm-12 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Famílias</p>
+                    <h5 class="font-weight-bolder mb-0">
+                      {{ $totalFamilias }}
+                    </h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
+                    <i class="fas fa-users text-lg opacity-10" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-6 col-sm-12 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Tickets por responder</p>
+                    <h5 class="font-weight-bolder mb-0">
+                      {{ $ticketsPendentes }}
+                    </h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md">
+                    <i class="fas fa-headset text-lg opacity-10" aria-hidden="true"></i>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    @endif
     {{-- ***** FIM DA LINHA DE CARTÕES ***** --}}
 
 

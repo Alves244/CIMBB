@@ -7,6 +7,8 @@ use App\Models\Familia;
 use App\Models\AgregadoFamiliar; // 1. IMPORTAR AgregadoFamiliar
 use App\Models\User;
 use App\Models\TicketSuporte;
+use App\Models\InqueritoFreguesia;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -50,6 +52,12 @@ class HomeController extends Controller
         $tituloDashboard = "Dashboard Regional (Todo o Território)";
         $nomeLocalidade = "Beira Baixa (Todos os Concelhos)";
 
+        $anoInquerito = (int) date('Y');
+        $ticketsRespondidos = 0;
+        $jaPreencheuInquerito = false;
+        $inqueritoDisponivel = false;
+        $inqueritoPrazo = Carbon::create($anoInquerito, 12, 31, 23, 59, 59);
+
         if ($user->isFreguesia()) { //
             $freguesiaId = $user->freguesia_id;
             
@@ -63,6 +71,16 @@ class HomeController extends Controller
             
             $tituloDashboard = "Dashboard da Freguesia";
             $nomeLocalidade = $user->freguesia->nome ?? 'N/A';
+
+            $ticketsRespondidos = TicketSuporte::where('utilizador_id', $user->id)
+                ->where('estado', 'respondido')
+                ->count();
+
+            $jaPreencheuInquerito = InqueritoFreguesia::where('freguesia_id', $freguesiaId)
+                ->where('ano', $anoInquerito)
+                ->exists();
+
+            $inqueritoDisponivel = !$jaPreencheuInquerito && now()->lessThanOrEqualTo($inqueritoPrazo);
         }
         // Se for 'cimbb' ou 'admin', as consultas ($familiaQuery, $agregadoQuery) não levam filtro.
 
@@ -100,6 +118,11 @@ class HomeController extends Controller
             'totalAdultos' => $totalAdultos,
             'totalCriancas' => $totalCriancas,
             'ticketsPendentes' => $ticketsPendentes,
+            'ticketsRespondidos' => $ticketsRespondidos,
+            'jaPreencheuInquerito' => $jaPreencheuInquerito,
+            'inqueritoDisponivel' => $inqueritoDisponivel,
+            'inqueritoAnoAtual' => $anoInquerito,
+            'inqueritoPrazo' => $inqueritoPrazo,
             
             // Os dados do gráfico
             'chartLabels' => $chartLabels,
