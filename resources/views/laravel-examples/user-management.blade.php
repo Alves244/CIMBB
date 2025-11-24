@@ -93,11 +93,7 @@
                     </div>
                 </div>
                 {{-- Paginação --}}
-                @if ($users->hasPages())
-                    <div class="card-footer px-3 border-0 d-flex align-items-center justify-content-between">
-                        {{ $users->links() }}
-                    </div>
-                @endif
+                <x-admin.pagination :paginator="$users" />
             </div>
         </div>
     </div>

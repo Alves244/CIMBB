@@ -12,17 +12,19 @@
               <p class="text-sm">Freguesia: {{ Auth::user()->freguesia->nome ?? 'N/A' }}</p>
             </div>
             <div class="d-flex flex-wrap gap-2">
-              <form method="GET" action="{{ route('freguesia.suporte.index') }}" class="d-flex gap-2">
-                <div class="input-group input-group-sm">
-                  <span class="input-group-text bg-white">Estado</span>
+              <x-admin.filter-modal modalId="myTicketsFilterModal"
+                                    :action="route('freguesia.suporte.index')"
+                                    :clear-url="route('freguesia.suporte.index')"
+                                    title="Filtrar pedidos de suporte">
+                <div class="col-12">
+                  <label class="form-label text-xs text-uppercase text-secondary mb-1">Estado</label>
                   <select name="estado" class="form-select">
                     <option value="">Todos</option>
                     <option value="em_processamento" {{ request('estado') == 'em_processamento' ? 'selected' : '' }}>Por responder</option>
                     <option value="respondido" {{ request('estado') == 'respondido' ? 'selected' : '' }}>Respondidos</option>
                   </select>
                 </div>
-                <button type="submit" class="btn btn-sm bg-gradient-secondary">Filtrar</button>
-              </form>
+              </x-admin.filter-modal>
               <a href="{{ route('freguesia.suporte.create') }}" class="btn bg-gradient-success btn-sm mb-0">
                 <i class="fas fa-plus me-1"></i> Abrir Novo Ticket
               </a>

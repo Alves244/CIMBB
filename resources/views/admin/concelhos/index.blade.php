@@ -69,11 +69,7 @@
             </table>
           </div>
         </div>
-        @if ($conselhos->hasPages())
-          <div class="card-footer px-3 border-0 d-flex justify-content-center">
-            {{ $conselhos->links() }}
-          </div>
-        @endif
+        <x-admin.pagination :paginator="$conselhos" />
       </div>
     </div>
   </div>

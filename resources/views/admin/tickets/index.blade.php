@@ -13,37 +13,23 @@
       <div class="card mb-4">
 
         <div class="card-header pb-0 d-flex flex-column flex-xl-row gap-3 align-items-xl-center justify-content-xl-between">
-
           <div>
-
             <h6>Gestão de Suporte (Todos os Tickets)</h6>
-
             <p class="text-sm">Lista de pedidos de suporte de todas as freguesias.</p>
-
           </div>
-
-          <form method="GET" action="{{ route('admin.tickets.index') }}" class="d-flex flex-wrap gap-2">
-
-            <div class="input-group input-group-sm">
-
-              <span class="input-group-text bg-white">Estado</span>
-
+          <x-admin.filter-modal modalId="ticketsFilterModal"
+                                :action="route('admin.tickets.index')"
+                                :clear-url="route('admin.tickets.index')"
+                                title="Filtrar tickets de suporte">
+            <div class="col-12">
+              <label class="form-label text-xs text-uppercase text-secondary mb-1">Estado</label>
               <select name="estado" class="form-select">
-
                 <option value="">Todos</option>
-
                 <option value="em_processamento" {{ request('estado') == 'em_processamento' ? 'selected' : '' }}>Por responder</option>
-
                 <option value="respondido" {{ request('estado') == 'respondido' ? 'selected' : '' }}>Respondidos</option>
-
               </select>
-
             </div>
-
-            <button type="submit" class="btn btn-sm bg-gradient-secondary">Filtrar</button>
-
-          </form>
-
+          </x-admin.filter-modal>
         </div>
 
         <div class="card-body px-0 pt-0 pb-2">
@@ -172,15 +158,7 @@
 
         </div>
 
-        @if ($tickets->hasPages())
-
-            <div class="card-footer px-3 border-0 d-flex justify-content-center">
-
-                {{ $tickets->links() }}
-
-            </div>
-
-        @endif
+        <x-admin.pagination :paginator="$tickets" />
 
       </div>
 

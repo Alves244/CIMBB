@@ -10,9 +10,12 @@
             <h6>Logs do Sistema</h6>
             <p class="text-sm mb-0">Registo cronológico das ações executadas pelos utilizadores autenticados.</p>
           </div>
-          <form method="GET" action="{{ route('admin.logs.index') }}" class="d-flex flex-column flex-lg-row gap-2">
-            <div class="input-group input-group-sm">
-              <span class="input-group-text bg-white">Ação</span>
+          <x-admin.filter-modal modalId="logsFilterModal"
+                                :action="route('admin.logs.index')"
+                                :clear-url="route('admin.logs.index')"
+                                title="Filtrar logs do sistema">
+            <div class="col-12 col-md-6">
+              <label class="form-label text-xs text-uppercase text-secondary mb-1">Ação</label>
               <select name="acao" class="form-select">
                 <option value="">Todas</option>
                 @foreach($acoesDisponiveis as $acaoDisponivel)
@@ -22,23 +25,19 @@
                 @endforeach
               </select>
             </div>
-            <div class="input-group input-group-sm">
-              <span class="input-group-text bg-white">Pesquisa</span>
+            <div class="col-12 col-md-6">
+              <label class="form-label text-xs text-uppercase text-secondary mb-1">Pesquisa</label>
               <input type="text" name="pesquisa" class="form-control" placeholder="Utilizador ou descrição" value="{{ $filtros['pesquisa'] ?? '' }}">
             </div>
-            <div class="input-group input-group-sm">
-              <span class="input-group-text bg-white">Início</span>
+            <div class="col-12 col-md-6">
+              <label class="form-label text-xs text-uppercase text-secondary mb-1">Início</label>
               <input type="date" name="inicio" class="form-control" value="{{ $filtros['inicio'] ?? '' }}">
             </div>
-            <div class="input-group input-group-sm">
-              <span class="input-group-text bg-white">Fim</span>
+            <div class="col-12 col-md-6">
+              <label class="form-label text-xs text-uppercase text-secondary mb-1">Fim</label>
               <input type="date" name="fim" class="form-control" value="{{ $filtros['fim'] ?? '' }}">
             </div>
-            <div class="d-flex gap-2">
-              <button type="submit" class="btn btn-sm bg-gradient-secondary">Filtrar</button>
-              <a href="{{ route('admin.logs.index') }}" class="btn btn-sm btn-link text-secondary">Limpar</a>
-            </div>
-          </form>
+          </x-admin.filter-modal>
         </div>
         <div class="card-body px-0 pt-0 pb-2">
           <div class="table-responsive p-0">
@@ -81,11 +80,7 @@
             </table>
           </div>
         </div>
-        @if ($logs->hasPages())
-          <div class="card-footer px-3 border-0 d-flex justify-content-center">
-            {{ $logs->links() }}
-          </div>
-        @endif
+        <x-admin.pagination :paginator="$logs" />
       </div>
     </div>
   </div>

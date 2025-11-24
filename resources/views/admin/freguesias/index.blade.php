@@ -11,18 +11,22 @@
             <p class="text-sm mb-0">Associe cada freguesia ao respetivo concelho e mantenha os dados atualizados.</p>
           </div>
           <div class="d-flex flex-column flex-lg-row gap-2 align-items-lg-center">
-            <form method="GET" action="{{ route('admin.freguesias.index') }}" class="d-flex gap-2">
-              <select name="conselho_id" class="form-select form-select-sm">
-                <option value="">Todos os concelhos</option>
-                @foreach($conselhos as $conselho)
-                  <option value="{{ $conselho->id }}" {{ (string) $conselhoSelecionado === (string) $conselho->id ? 'selected' : '' }}>
-                    {{ $conselho->nome }}
-                  </option>
-                @endforeach
-              </select>
-              <button type="submit" class="btn btn-sm bg-gradient-secondary">Filtrar</button>
-              <a href="{{ route('admin.freguesias.index') }}" class="btn btn-sm btn-link text-secondary">Limpar</a>
-            </form>
+            <x-admin.filter-modal modalId="freguesiasFilterModal"
+                                  :action="route('admin.freguesias.index')"
+                                  :clear-url="route('admin.freguesias.index')"
+                                  title="Filtrar freguesias">
+              <div class="col-12">
+                <label class="form-label text-xs text-uppercase text-secondary mb-1">Concelho</label>
+                <select name="conselho_id" class="form-select">
+                  <option value="">Todos os concelhos</option>
+                  @foreach($conselhos as $conselho)
+                    <option value="{{ $conselho->id }}" {{ (string) $conselhoSelecionado === (string) $conselho->id ? 'selected' : '' }}>
+                      {{ $conselho->nome }}
+                    </option>
+                  @endforeach
+                </select>
+              </div>
+            </x-admin.filter-modal>
             <button class="btn bg-gradient-success btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#createFreguesiaModal">
               <i class="fas fa-plus me-1"></i> Nova Freguesia
             </button>
@@ -87,11 +91,7 @@
             </table>
           </div>
         </div>
-        @if ($freguesias->hasPages())
-          <div class="card-footer px-3 border-0 d-flex justify-content-center">
-            {{ $freguesias->links() }}
-          </div>
-        @endif
+        <x-admin.pagination :paginator="$freguesias" />
       </div>
     </div>
   </div>
