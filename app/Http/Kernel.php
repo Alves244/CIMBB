@@ -67,5 +67,6 @@ class Kernel extends HttpKernel
         // --- OS TEUS MIDDLEWARES PERSONALIZADOS ESTÃO AQUI ---
         'check_freguesia' => \App\Http\Middleware\CheckFreguesia::class,
         'check_admin' => \App\Http\Middleware\CheckAdmin::class,
+        'check_funcionario' => \App\Http\Middleware\CheckFuncionario::class,
     ];
 }

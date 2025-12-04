@@ -16,6 +16,9 @@ use App\Http\Controllers\Admin\AdminTicketController;
 use App\Http\Controllers\Admin\AdminLogController;
 use App\Http\Controllers\Admin\AdminConselhoController;
 use App\Http\Controllers\Admin\AdminFreguesiaController;
+use App\Http\Controllers\Funcionario\DashboardController as FuncionarioDashboardController;
+use App\Http\Controllers\Funcionario\RelatorioController;
+use App\Http\Controllers\Funcionario\ExportarDadosController;
 
 /*
 |--------------------------------------------------------------------------
@@ -110,4 +113,19 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'c
 
     // Logs do Sistema
     Route::get('/logs', [AdminLogController::class, 'index'])->name('logs.index');
+});
+
+// --- GRUPO ROTAS FUNCIONÁRIO CIMBB ---
+Route::group([
+    'prefix' => 'funcionario',
+    'as' => 'funcionario.',
+    'middleware' => ['auth', 'check_funcionario'],
+], function () {
+    Route::get('/dashboard', [FuncionarioDashboardController::class, 'index'])->name('dashboard.index');
+    Route::get('/relatorios', [RelatorioController::class, 'index'])->name('relatorios.index');
+    Route::get('/relatorios/exportar', [RelatorioController::class, 'export'])->name('relatorios.export');
+    Route::get('/exportar-dados', [ExportarDadosController::class, 'index'])->name('exportar.index');
+    Route::post('/exportar-dados/csv', [ExportarDadosController::class, 'exportCsv'])->name('exportar.csv');
+    Route::post('/exportar-dados/pdf-inqueritos', [ExportarDadosController::class, 'exportInqueritosPdf'])->name('exportar.inqueritos.pdf');
+    Route::post('/exportar-dados/pdf-estatisticas', [ExportarDadosController::class, 'exportEstatisticasPdf'])->name('exportar.estatisticas.pdf');
 });

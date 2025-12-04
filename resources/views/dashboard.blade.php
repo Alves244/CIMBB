@@ -3,7 +3,16 @@
 @section('content') {{-- Usa a secção 'content' correta --}}
 
   <div class="container-fluid py-4">
-    @php $authUser = Auth::user(); @endphp
+    @php
+      $authUser = Auth::user();
+      $mostrarDashboardRegional = $mostrarDashboardRegional ?? false;
+      $concelhosResumo = $concelhosResumo ?? collect();
+      $dashboardProgress = $dashboardProgress ?? [
+        'totalConcelhos' => 0,
+        'concelhosComInquerito' => 0,
+        'percentual' => 0,
+      ];
+    @endphp
     
     {{-- ***** CARTÕES RESUMO ***** --}}
     @if($authUser->isFreguesia())
@@ -70,6 +79,149 @@
           </div>
         </div>
       </div>
+    @elseif($mostrarDashboardRegional)
+      <div class="row">
+        <div class="col-xl-3 col-sm-6 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Famílias</p>
+                    <h5 class="font-weight-bolder mb-0">{{ $totalFamilias }}</h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
+                    <i class="fas fa-users text-lg opacity-10" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-3 col-sm-6 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Membros</p>
+                    <h5 class="font-weight-bolder mb-0">{{ $totalMembros }}</h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                    <i class="fas fa-user-friends text-lg opacity-10" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-3 col-sm-6 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Tickets por responder</p>
+                    <h5 class="font-weight-bolder mb-0">{{ $ticketsPendentes }}</h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md">
+                    <i class="fas fa-headset text-lg opacity-10" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-3 col-sm-6 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Concelhos com inquérito</p>
+                  <h5 class="font-weight-bolder mb-0">
+                    {{ $dashboardProgress['concelhosComInquerito'] }} / {{ $dashboardProgress['totalConcelhos'] }}
+                  </h5>
+                </div>
+                <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
+                  <i class="fas fa-clipboard-check text-lg opacity-10" aria-hidden="true"></i>
+                </div>
+              </div>
+              <div class="mt-3">
+                <div class="progress">
+                  <div class="progress-bar bg-gradient-info" role="progressbar" style="width: {{ $dashboardProgress['percentual'] }}%;" aria-valuenow="{{ $dashboardProgress['percentual'] }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <small class="text-muted">{{ $dashboardProgress['percentual'] }}% do território com inquérito submetido.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="mb-0">Progresso por Concelho</h6>
+                <p class="text-sm mb-0 text-secondary">Famílias, membros e estado dos inquéritos por concelho.</p>
+              </div>
+            </div>
+            <div class="card-body px-3 pb-3">
+              @if($concelhosResumo->isNotEmpty())
+                <div class="table-responsive">
+                  <table class="table align-items-center mb-0">
+                    <thead>
+                      <tr>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Concelho</th>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Famílias</th>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Membros</th>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Tickets pendentes</th>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Inquérito</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @foreach($concelhosResumo as $concelho)
+                        <tr>
+                          <td>
+                            <div class="d-flex flex-column">
+                              <span class="text-sm font-weight-bold">{{ $concelho['nome'] }}</span>
+                              <small class="text-xs text-secondary">{{ $concelho['codigo'] ?? '—' }}</small>
+                            </div>
+                          </td>
+                          <td class="text-sm">{{ $concelho['total_familias'] }}</td>
+                          <td class="text-sm">{{ $concelho['total_membros'] }}</td>
+                          <td class="text-sm">{{ $concelho['tickets_pendentes'] }}</td>
+                          <td>
+                            <div class="d-flex flex-column">
+                              <small class="text-xs text-secondary mb-1">
+                                {{ $concelho['freguesias_com_inquerito'] }} / {{ $concelho['total_freguesias'] }} freguesias
+                              </small>
+                              <div class="progress">
+                                <div class="progress-bar bg-gradient-success" role="progressbar" style="width: {{ $concelho['percentual_inquerito'] }}%;" aria-valuenow="{{ $concelho['percentual_inquerito'] }}" aria-valuemin="0" aria-valuemax="100"></div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      @endforeach
+                    </tbody>
+                  </table>
+                </div>
+              @else
+                <p class="text-sm text-secondary mb-0">Ainda não existem dados para apresentar o progresso regional.</p>
+              @endif
+            </div>
+          </div>
+        </div>
+      </div>
     @else
       <div class="row">
         <div class="col-xl-6 col-sm-12 mb-4">
@@ -79,9 +231,7 @@
                 <div class="col-8">
                   <div class="numbers">
                     <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Famílias</p>
-                    <h5 class="font-weight-bolder mb-0">
-                      {{ $totalFamilias }}
-                    </h5>
+                    <h5 class="font-weight-bolder mb-0">{{ $totalFamilias }}</h5>
                   </div>
                 </div>
                 <div class="col-4 text-end">
@@ -100,9 +250,7 @@
                 <div class="col-8">
                   <div class="numbers">
                     <p class="text-sm mb-0 text-capitalize font-weight-bold">Tickets por responder</p>
-                    <h5 class="font-weight-bolder mb-0">
-                      {{ $ticketsPendentes }}
-                    </h5>
+                    <h5 class="font-weight-bolder mb-0">{{ $ticketsPendentes }}</h5>
                   </div>
                 </div>
                 <div class="col-4 text-end">

@@ -95,7 +95,7 @@
           <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Análise CIMBB</h6>
         </li>
         <li class="nav-item">
-          <a class="nav-link {{ Request::routeIs('funcionario.dashboard.*') ? 'active' : '' }}" href="#">
+          <a class="nav-link {{ Request::routeIs('funcionario.dashboard.*') ? 'active' : '' }}" href="{{ route('funcionario.dashboard.index') }}">
             <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('funcionario.dashboard.*') ? '' : 'bg-white' }}"
                  style="{{ Request::routeIs('funcionario.dashboard.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
               <i class="fas fa-chart-line ps-2 pe-2 text-center {{ Request::routeIs('funcionario.dashboard.*') ? 'text-white' : 'text-dark' }}"></i>
@@ -104,7 +104,7 @@
           </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{ Request::routeIs('funcionario.relatorios.*') ? 'active' : '' }}" href="#">
+            <a class="nav-link {{ Request::routeIs('funcionario.relatorios.*') ? 'active' : '' }}" href="{{ route('funcionario.relatorios.index') }}">
               <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('funcionario.relatorios.*') ? '' : 'bg-white' }}"
                    style="{{ Request::routeIs('funcionario.relatorios.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
                 <i class="fas fa-file-alt ps-2 pe-2 text-center {{ Request::routeIs('funcionario.relatorios.*') ? 'text-white' : 'text-dark' }}"></i>
@@ -113,7 +113,7 @@
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{ Request::routeIs('funcionario.exportar.*') ? 'active' : '' }}" href="#">
+            <a class="nav-link {{ Request::routeIs('funcionario.exportar.*') ? 'active' : '' }}" href="{{ route('funcionario.exportar.index') }}">
               <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('funcionario.exportar.*') ? '' : 'bg-white' }}"
                    style="{{ Request::routeIs('funcionario.exportar.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
                 <i class="fas fa-file-export ps-2 pe-2 text-center {{ Request::routeIs('funcionario.exportar.*') ? 'text-white' : 'text-dark' }}"></i>
