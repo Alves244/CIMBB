@@ -4,6 +4,9 @@
 
   <div class="container-fluid py-4">
     @php
+      $anosSelect = $anosDisponiveis ?? collect(range(date('Y'), date('Y') - 5));
+    @endphp
+    @php
       $authUser = Auth::user();
       $mostrarDashboardRegional = $mostrarDashboardRegional ?? false;
       $concelhosResumo = $concelhosResumo ?? collect();
@@ -11,6 +14,13 @@
         'totalConcelhos' => 0,
         'concelhosComInquerito' => 0,
         'percentual' => 0,
+      ];
+      $regionalHighlights = $regionalHighlights ?? [
+        'totalPendentes' => 0,
+        'concelhosComPendencias' => 0,
+        'concelhosConcluidos' => 0,
+        'familiasMonitorizadas' => 0,
+        'ticketsPendentes' => 0,
       ];
     @endphp
     
@@ -80,87 +90,85 @@
         </div>
       </div>
     @elseif($mostrarDashboardRegional)
-      <div class="row">
-        <div class="col-xl-3 col-sm-6 mb-4">
-          <div class="card">
-            <div class="card-body p-3">
-              <div class="row">
-                <div class="col-8">
-                  <div class="numbers">
-                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Famílias</p>
-                    <h5 class="font-weight-bolder mb-0">{{ $totalFamilias }}</h5>
-                  </div>
+      <div class="row mb-4">
+        <div class="col-xl-8">
+          <div class="card h-100">
+            <div class="card-body d-flex flex-column flex-lg-row justify-content-between gap-4">
+              <div>
+                <p class="text-xs text-uppercase text-secondary mb-1">Visão regional</p>
+                <h4 class="mb-2">Estado global do território CIMBB</h4>
+                <p class="text-sm text-secondary mb-3">
+                  Monitorização em tempo real das freguesias e dos inquéritos para o ano {{ $inqueritoAnoAtual }}.
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                  <a href="{{ route('funcionario.relatorios.index') }}" class="btn btn-sm bg-gradient-success">Ver relatórios</a>
+                  <a href="{{ route('funcionario.exportar.index') }}" class="btn btn-sm bg-gradient-primary">Exportar dados</a>
                 </div>
-                <div class="col-4 text-end">
-                  <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
-                    <i class="fas fa-users text-lg opacity-10" aria-hidden="true"></i>
-                  </div>
-                </div>
+              </div>
+              <div class="text-lg-end">
+                <span class="text-xs text-secondary">Ano em análise</span>
+                <h2 class="font-weight-bolder mb-0">{{ $inqueritoAnoAtual }}</h2>
+                <form method="GET" action="{{ route('dashboard') }}" class="d-flex flex-wrap justify-content-center align-items-center gap-2 mt-3">
+                  <select name="ano" class="form-select form-select-sm w-auto text-center border-success">
+                    @foreach($anosSelect as $ano)
+                      <option value="{{ $ano }}" {{ (int) $ano === (int) $inqueritoAnoAtual ? 'selected' : '' }}>{{ $ano }}</option>
+                    @endforeach
+                  </select>
+                  @foreach(request()->query() as $param => $value)
+                    @continue($param === 'ano')
+                    <input type="hidden" name="{{ $param }}" value="{{ $value }}">
+                  @endforeach
+                  <button class="btn btn-sm btn-success px-4" type="submit">Alterar</button>
+                </form>
               </div>
             </div>
           </div>
         </div>
-
-        <div class="col-xl-3 col-sm-6 mb-4">
-          <div class="card">
-            <div class="card-body p-3">
-              <div class="row">
-                <div class="col-8">
-                  <div class="numbers">
-                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Membros</p>
-                    <h5 class="font-weight-bolder mb-0">{{ $totalMembros }}</h5>
-                  </div>
-                </div>
-                <div class="col-4 text-end">
-                  <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
-                    <i class="fas fa-user-friends text-lg opacity-10" aria-hidden="true"></i>
-                  </div>
-                </div>
+        <div class="col-xl-4 mt-4 mt-xl-0">
+          <div class="card h-100">
+            <div class="card-body">
+              <h6 class="text-uppercase text-secondary text-xxs font-weight-bolder mb-1">Progresso global</h6>
+              <h3 class="font-weight-bolder mb-0">{{ $dashboardProgress['concelhosComInquerito'] }} / {{ $dashboardProgress['totalConcelhos'] }}</h3>
+              <p class="text-sm text-secondary mb-3">Concelhos com todas as freguesias concluídas.</p>
+              <div class="progress mb-2">
+                <div class="progress-bar bg-gradient-info" role="progressbar" style="width: {{ $dashboardProgress['percentual'] }}%;" aria-valuenow="{{ $dashboardProgress['percentual'] }}" aria-valuemin="0" aria-valuemax="100"></div>
               </div>
+              <small class="text-muted">{{ $dashboardProgress['percentual'] }}% do território concluído.</small>
             </div>
           </div>
         </div>
+      </div>
 
+      <div class="row mb-4">
         <div class="col-xl-3 col-sm-6 mb-4">
-          <div class="card">
-            <div class="card-body p-3">
-              <div class="row">
-                <div class="col-8">
-                  <div class="numbers">
-                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Tickets por responder</p>
-                    <h5 class="font-weight-bolder mb-0">{{ $ticketsPendentes }}</h5>
-                  </div>
-                </div>
-                <div class="col-4 text-end">
-                  <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md">
-                    <i class="fas fa-headset text-lg opacity-10" aria-hidden="true"></i>
-                  </div>
-                </div>
-              </div>
+          <div class="card h-100">
+            <div class="card-body">
+              <p class="text-xs text-uppercase text-secondary mb-1">Concelhos concluídos</p>
+              <h4 class="font-weight-bolder mb-0">{{ $regionalHighlights['concelhosConcluidos'] }}</h4>
             </div>
           </div>
         </div>
-
         <div class="col-xl-3 col-sm-6 mb-4">
-          <div class="card">
-            <div class="card-body p-3">
-              <div class="d-flex justify-content-between">
-                <div>
-                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Concelhos com inquérito</p>
-                  <h5 class="font-weight-bolder mb-0">
-                    {{ $dashboardProgress['concelhosComInquerito'] }} / {{ $dashboardProgress['totalConcelhos'] }}
-                  </h5>
-                </div>
-                <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
-                  <i class="fas fa-clipboard-check text-lg opacity-10" aria-hidden="true"></i>
-                </div>
-              </div>
-              <div class="mt-3">
-                <div class="progress">
-                  <div class="progress-bar bg-gradient-info" role="progressbar" style="width: {{ $dashboardProgress['percentual'] }}%;" aria-valuenow="{{ $dashboardProgress['percentual'] }}" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-                <small class="text-muted">{{ $dashboardProgress['percentual'] }}% do território com inquérito submetido.</small>
-              </div>
+          <div class="card h-100">
+            <div class="card-body">
+              <p class="text-xs text-uppercase text-secondary mb-1">Concelhos com pendências</p>
+              <h4 class="font-weight-bolder mb-0">{{ $regionalHighlights['concelhosComPendencias'] }}</h4>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 mb-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <p class="text-xs text-uppercase text-secondary mb-1">Freguesias em falta</p>
+              <h4 class="font-weight-bolder mb-0">{{ $regionalHighlights['totalPendentes'] }}</h4>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 mb-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <p class="text-xs text-uppercase text-secondary mb-1">Tickets por responder</p>
+              <h4 class="font-weight-bolder mb-0">{{ $regionalHighlights['ticketsPendentes'] }}</h4>
             </div>
           </div>
         </div>
@@ -171,8 +179,8 @@
           <div class="card">
             <div class="card-header pb-0 d-flex justify-content-between align-items-center">
               <div>
-                <h6 class="mb-0">Progresso por Concelho</h6>
-                <p class="text-sm mb-0 text-secondary">Famílias, membros e estado dos inquéritos por concelho.</p>
+                <h6 class="mb-0">Mapa de pendências por concelho</h6>
+                <p class="text-sm mb-0 text-secondary">Detalha famílias, membros e inquéritos submetidos por concelho.</p>
               </div>
             </div>
             <div class="card-body px-3 pb-3">
@@ -186,6 +194,7 @@
                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Membros</th>
                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Tickets pendentes</th>
                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Inquérito</th>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-end">Pendentes</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -201,6 +210,14 @@
                           <td class="text-sm">{{ $concelho['total_membros'] }}</td>
                           <td class="text-sm">{{ $concelho['tickets_pendentes'] }}</td>
                           <td>
+                            @php
+                              $freguesiasPendentes = collect($concelho['freguesias_pendentes'] ?? []);
+                              $freguesiasConcluidas = collect($concelho['freguesias_concluidas'] ?? []);
+                              $freguesiasPayload = htmlspecialchars(json_encode([
+                                'pendentes' => $freguesiasPendentes->values(),
+                                'concluidas' => $freguesiasConcluidas->values(),
+                              ], JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8');
+                            @endphp
                             <div class="d-flex flex-column">
                               <small class="text-xs text-secondary mb-1">
                                 {{ $concelho['freguesias_com_inquerito'] }} / {{ $concelho['total_freguesias'] }} freguesias
@@ -208,7 +225,26 @@
                               <div class="progress">
                                 <div class="progress-bar bg-gradient-success" role="progressbar" style="width: {{ $concelho['percentual_inquerito'] }}%;" aria-valuenow="{{ $concelho['percentual_inquerito'] }}" aria-valuemin="0" aria-valuemax="100"></div>
                               </div>
+                              @if($freguesiasPendentes->isNotEmpty())
+                                <small class="text-xs text-danger mt-2">
+                                  {{ $freguesiasPendentes->count() }} freguesias pendentes
+                                </small>
+                              @else
+                                <small class="text-xs text-success mt-2">Todas as freguesias já submeteram.</small>
+                              @endif
                             </div>
+                          </td>
+                          <td class="text-end">
+                            @if($freguesiasPendentes->isNotEmpty())
+                              <button class="btn btn-sm bg-gradient-danger text-white ver-pendentes-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#pendentesModal"
+                                data-concelho="{{ $concelho['nome'] }}"
+                                data-total="{{ $freguesiasPendentes->count() }}"
+                                data-freguesias="{!! $freguesiasPayload !!}">
+                                Pendentes
+                              </button>
+                            @endif
                           </td>
                         </tr>
                       @endforeach
@@ -265,67 +301,222 @@
       </div>
     @endif
     {{-- ***** FIM DA LINHA DE CARTÕES ***** --}}
-
-
-    <div class="row mt-4">
-      
-      {{-- Coluna da Esquerda: Caixa de Boas-Vindas (JÁ TINHA) --}}
-      <div class="col-lg-7 mb-lg-0 mb-4">
-        <div class="card h-100">
-          <div class="card-body p-4">
-            <div class="row">
-              <div class="col-12">
-                <div class="d-flex flex-column h-100">
-                  <h5 class="font-weight-bolder">Bem-vindo, {{ Auth::user()->nome }}!</h5>
-                  <p class="mb-4">
-                    Este é o Sistema de Monitorização da Integração de Residentes Estrangeiros (SMRE) 
-                    da Comunidade Intermunicipal da Beira Baixa (CIMBB).
-                  </p>
-                  {{-- Mostra a localidade que está a ver --}}
-                  <p class="mb-0">
-                    <i class="fa fa-map-marker-alt text-success me-1"></i>
-                    A visualizar dados de: <span class="font-weight-bold">{{ $nomeLocalidade }}</span>
-                  </p>
+    
+    @if(!$mostrarDashboardRegional)
+      <div class="row mt-4">
+        
+        {{-- Coluna da Esquerda: Caixa de Boas-Vindas (JÁ TINHA) --}}
+        <div class="col-lg-7 mb-lg-0 mb-4">
+          <div class="card h-100">
+            <div class="card-body p-4">
+              <div class="row">
+                <div class="col-12">
+                  <div class="d-flex flex-column h-100">
+                    <h5 class="font-weight-bolder">Bem-vindo, {{ Auth::user()->nome }}!</h5>
+                    <p class="mb-4">
+                      Este é o Sistema de Monitorização da Integração de Residentes Estrangeiros (SMRE) 
+                      da Comunidade Intermunicipal da Beira Baixa (CIMBB).
+                    </p>
+                    {{-- Mostra a localidade que está a ver --}}
+                    <p class="mb-0">
+                      <i class="fa fa-map-marker-alt text-success me-1"></i>
+                      A visualizar dados de: <span class="font-weight-bold">{{ $nomeLocalidade }}</span>
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {{-- Coluna da Direita: Gráfico de Nacionalidades (JÁ TINHA) --}}
-      <div class="col-lg-5">
-        <div class="card h-100">
-          <div class="card-header pb-0">
-            <h6>Nacionalidades (Top 10)</h6>
-            <p class="text-sm">
-                <span class="font-weight-bold">{{ $tituloDashboard }}</span>
-            </p>
+        {{-- Coluna da Direita: Gráfico de Nacionalidades (JÁ TINHA) --}}
+        <div class="col-lg-5">
+          <div class="card h-100">
+            <div class="card-header pb-0">
+              <h6>Nacionalidades (Top 10)</h6>
+              <p class="text-sm">
+                  <span class="font-weight-bold">{{ $tituloDashboard }}</span>
+              </p>
+            </div>
+            <div class="card-body p-3 d-flex align-items-center justify-content-center">
+              @if($chartValues->count() > 0)
+                {{-- O Canvas onde o gráfico será desenhado --}}
+                <div class="chart w-100">
+                  <canvas id="nacionalidadeChart" class="chart-canvas" height="300"></canvas>
+                </div>
+              @else
+                {{-- Mensagem se não houver dados --}}
+                <p class="text-sm w-100 text-center">Ainda não existem dados de famílias para mostrar.</p>
+              @endif
+            </div>
           </div>
-          <div class="card-body p-3 d-flex align-items-center justify-content-center">
-            @if($chartValues->count() > 0)
-              {{-- O Canvas onde o gráfico será desenhado --}}
-              <div class="chart w-100">
-                <canvas id="nacionalidadeChart" class="chart-canvas" height="300"></canvas>
+        </div>
+
+      </div>
+    @endif
+  </div>
+
+  {{-- Modal para listar freguesias pendentes do inquérito --}}
+  <div class="modal fade" id="pendentesModal" tabindex="-1" aria-labelledby="pendentesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="pendentesModalLabel">Freguesias pendentes</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-sm text-secondary mb-3" id="pendentesModalSubtitle"></p>
+          <div id="pendentesListWrapper" class="pendentes-scroll">
+            <div id="pendentesSection" class="mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="text-xs text-uppercase text-secondary mb-0">Freguesias pendentes</h6>
+                <span class="badge bg-danger" id="pendentesCount">0</span>
               </div>
-            @else
-              {{-- Mensagem se não houver dados --}}
-              <p class="text-sm w-100 text-center">Ainda não existem dados de famílias para mostrar.</p>
-            @endif
+              <div id="pendentesEmptyMessage" class="text-success text-sm mb-2 d-none">Todas as freguesias deste concelho já submeteram.</div>
+              <ul class="list-group d-none" id="pendentesList"></ul>
+            </div>
+            <div id="concluidasSection">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="text-xs text-uppercase text-secondary mb-0">Freguesias concluídas</h6>
+                <span class="badge bg-success" id="concluidasCount">0</span>
+              </div>
+              <div id="concluidasEmptyMessage" class="text-muted text-sm mb-2">Nenhuma freguesia submeteu o inquérito neste concelho.</div>
+              <ul class="list-group d-none" id="concluidasList"></ul>
+            </div>
           </div>
         </div>
       </div>
-
     </div>
   </div>
 
 @endsection
 
 {{-- Adicionar o Script do Chart.js no final da página --}}
+@push('css')
+  <style>
+    .pendentes-scroll {
+      max-height: 320px;
+      overflow-y: auto;
+      padding-right: 0.25rem;
+      scrollbar-width: thin;
+      scrollbar-color: #82d616 rgba(130, 214, 22, 0.15);
+    }
+
+    .pendentes-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .pendentes-scroll::-webkit-scrollbar-track {
+      background: rgba(130, 214, 22, 0.1);
+      border-radius: 100px;
+    }
+
+    .pendentes-scroll::-webkit-scrollbar-thumb {
+      background: #82d616;
+      border-radius: 100px;
+    }
+  </style>
+@endpush
+
 @push('js')
   {{-- O 'chartjs.min.js' já é carregado pelo seu app.blade.php --}}
   <script>
-    document.addEventListener("DOMContentLoaded", (event) => {
+    document.addEventListener("DOMContentLoaded", () => {
+      var pendentesModal = document.getElementById("pendentesModal");
+      if (pendentesModal) {
+        var scrollableArea = pendentesModal.querySelector('.pendentes-scroll');
+
+        function bloquearScrollExterior(evento) {
+          if (!scrollableArea || !pendentesModal.classList.contains('show')) {
+            return;
+          }
+
+          if (!scrollableArea.contains(evento.target)) {
+            evento.preventDefault();
+          }
+        }
+
+        function preencherSecao(itens, listElement, emptyMessage, countBadge, badgeClass) {
+          if (!listElement || !emptyMessage || !countBadge) {
+            return;
+          }
+
+          countBadge.textContent = itens.length;
+          listElement.innerHTML = '';
+
+          if (!itens.length) {
+            emptyMessage.classList.remove('d-none');
+            listElement.classList.add('d-none');
+            return;
+          }
+
+          emptyMessage.classList.add('d-none');
+          listElement.classList.remove('d-none');
+
+          itens.forEach(function (item) {
+            var li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            var nome = item.nome || 'Freguesia sem nome';
+            var codigo = item.codigo || '—';
+            li.innerHTML = '<span>' + nome + '</span><span class="' + badgeClass + '">' + codigo + '</span>';
+            listElement.appendChild(li);
+          });
+        }
+
+        pendentesModal.addEventListener('wheel', bloquearScrollExterior, { passive: false });
+
+        pendentesModal.addEventListener('show.bs.modal', function (event) {
+          var button = event.relatedTarget;
+          if (!button) {
+            return;
+          }
+
+          var concelhoNome = button.getAttribute('data-concelho') || 'Concelho';
+          var totalPendentes = button.getAttribute('data-total') || '0';
+          var freguesiasRaw = button.getAttribute('data-freguesias') || '{}';
+          var pendentesList = [];
+          var concluidasList = [];
+
+          try {
+            var parsedPayload = JSON.parse(freguesiasRaw);
+            pendentesList = parsedPayload.pendentes || [];
+            concluidasList = parsedPayload.concluidas || [];
+          } catch (error) {
+            pendentesList = [];
+            concluidasList = [];
+          }
+
+          var modalTitle = pendentesModal.querySelector('#pendentesModalLabel');
+          var subtitle = pendentesModal.querySelector('#pendentesModalSubtitle');
+          var emptyMessage = pendentesModal.querySelector('#pendentesEmptyMessage');
+          var pendentesListElement = pendentesModal.querySelector('#pendentesList');
+          var concluidasListElement = pendentesModal.querySelector('#concluidasList');
+          var concluidasEmptyMessage = pendentesModal.querySelector('#concluidasEmptyMessage');
+          var pendentesCount = pendentesModal.querySelector('#pendentesCount');
+          var concluidasCount = pendentesModal.querySelector('#concluidasCount');
+
+          if (modalTitle) {
+            modalTitle.textContent = 'Freguesias pendentes - ' + concelhoNome;
+          }
+
+          if (subtitle) {
+            subtitle.textContent = totalPendentes > 0
+              ? totalPendentes + ' freguesias ainda não submeteram o inquérito anual.'
+              : 'Sem freguesias pendentes para este concelho.';
+          }
+
+          preencherSecao(pendentesList, pendentesListElement, emptyMessage, pendentesCount, 'badge bg-secondary');
+          preencherSecao(concluidasList, concluidasListElement, concluidasEmptyMessage, concluidasCount, 'badge bg-success');
+        });
+
+        pendentesModal.addEventListener('hidden.bs.modal', function () {
+          document.body.style.overflow = '';
+        });
+        pendentesModal.addEventListener('shown.bs.modal', function () {
+          document.body.style.overflow = 'hidden';
+        });
+      }
+
       var ctx = document.getElementById("nacionalidadeChart");
       if (ctx) {
         var chartCanvas = ctx.getContext("2d");

@@ -3,17 +3,21 @@
 namespace App\Http\Controllers\Funcionario;
 
 use App\Http\Controllers\Controller;
-use App\Models\Familia;
+use App\Models\Conselho;
+use App\Models\Freguesia;
 use App\Models\InqueritoFreguesia;
-use App\Models\TicketSuporte;
+use App\Services\EstatisticasService;
 use App\Services\RegionalDashboardService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ExportarDadosController extends Controller
 {
-    public function __construct(private RegionalDashboardService $dashboardService)
-    {
+    public function __construct(
+        private RegionalDashboardService $dashboardService,
+        private EstatisticasService $estatisticasService
+    ) {
         $this->middleware(['auth', 'check_funcionario']);
     }
 
@@ -24,80 +28,30 @@ class ExportarDadosController extends Controller
         return view('funcionario.exportar.index', [
             'title' => 'Exportar Dados',
             'anosDisponiveis' => $anos,
+            'concelhos' => Conselho::orderBy('nome')->get(['id', 'nome']),
+            'freguesias' => Freguesia::orderBy('nome')->get(['id', 'nome', 'conselho_id']),
         ]);
     }
 
-    public function exportCsv(Request $request)
+    public function exportEstatisticasConcelhoPdf(Request $request)
     {
-        $dataset = $request->input('dataset', 'familias');
-        $filename = sprintf('%s_%s.csv', $dataset, now()->format('Ymd_His'));
-
-        $callback = function () use ($dataset) {
-            $handle = fopen('php://output', 'w');
-
-            switch ($dataset) {
-                case 'inqueritos':
-                    fputcsv($handle, ['Concelho', 'Freguesia', 'Ano', 'Adultos', 'Crianças', 'Escala integração']);
-                    InqueritoFreguesia::with('freguesia.conselho')
-                        ->orderBy('ano', 'desc')
-                        ->chunk(200, function ($inqueritos) use ($handle) {
-                            foreach ($inqueritos as $inquerito) {
-                                fputcsv($handle, [
-                                    optional(optional($inquerito->freguesia)->conselho)->nome,
-                                    optional($inquerito->freguesia)->nome,
-                                    $inquerito->ano,
-                                    $inquerito->total_adultos,
-                                    $inquerito->total_criancas,
-                                    $inquerito->escala_integracao,
-                                ]);
-                            }
-                        });
-                    break;
-
-                case 'tickets':
-                    fputcsv($handle, ['Código', 'Assunto', 'Estado', 'Utilizador', 'Criado em', 'Respondido em']);
-                    TicketSuporte::with('utilizador')
-                        ->orderBy('created_at', 'desc')
-                        ->chunk(200, function ($tickets) use ($handle) {
-                            foreach ($tickets as $ticket) {
-                                fputcsv($handle, [
-                                    $ticket->codigo,
-                                    $ticket->assunto,
-                                    $ticket->estado,
-                                    optional($ticket->utilizador)->email,
-                                    optional($ticket->created_at)?->format('Y-m-d H:i'),
-                                    optional($ticket->data_resposta)?->format('Y-m-d H:i'),
-                                ]);
-                            }
-                        });
-                    break;
-
-                case 'familias':
-                default:
-                    fputcsv($handle, ['Código', 'Concelho', 'Freguesia', 'Nacionalidade', 'Membros', 'Criado em']);
-                    Familia::with(['freguesia.conselho', 'agregadoFamiliar'])
-                        ->orderBy('id')
-                        ->chunk(200, function ($familias) use ($handle) {
-                            foreach ($familias as $familia) {
-                                fputcsv($handle, [
-                                    $familia->codigo,
-                                    optional(optional($familia->freguesia)->conselho)->nome,
-                                    optional($familia->freguesia)->nome,
-                                    $familia->nacionalidade,
-                                    optional($familia->agregadoFamiliar)->total_membros,
-                                    optional($familia->created_at)?->format('Y-m-d'),
-                                ]);
-                            }
-                        });
-                    break;
-            }
-
-            fclose($handle);
-        };
-
-        return response()->streamDownload($callback, $filename, [
-            'Content-Type' => 'text/csv',
+        $dados = $request->validate([
+            'ano' => 'required|integer|min:2000|max:' . date('Y'),
+            'concelho_id' => 'required|exists:concelhos,id',
         ]);
+
+        return $this->estatisticasService->exportarPdf($dados);
+    }
+
+    public function exportEstatisticasFreguesiaPdf(Request $request)
+    {
+        $dados = $request->validate([
+            'ano' => 'required|integer|min:2000|max:' . date('Y'),
+            'concelho_id' => 'required|exists:concelhos,id',
+            'freguesia_id' => ['required', Rule::exists('freguesias', 'id')->where('conselho_id', $request->input('concelho_id'))],
+        ]);
+
+        return $this->estatisticasService->exportarPdf($dados);
     }
 
     public function exportInqueritosPdf(Request $request)

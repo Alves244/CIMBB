@@ -125,7 +125,8 @@ Route::group([
     Route::get('/relatorios', [RelatorioController::class, 'index'])->name('relatorios.index');
     Route::get('/relatorios/exportar', [RelatorioController::class, 'export'])->name('relatorios.export');
     Route::get('/exportar-dados', [ExportarDadosController::class, 'index'])->name('exportar.index');
-    Route::post('/exportar-dados/csv', [ExportarDadosController::class, 'exportCsv'])->name('exportar.csv');
+    Route::post('/exportar-dados/pdf-concelho', [ExportarDadosController::class, 'exportEstatisticasConcelhoPdf'])->name('exportar.concelho.pdf');
+    Route::post('/exportar-dados/pdf-freguesia', [ExportarDadosController::class, 'exportEstatisticasFreguesiaPdf'])->name('exportar.freguesia.pdf');
     Route::post('/exportar-dados/pdf-inqueritos', [ExportarDadosController::class, 'exportInqueritosPdf'])->name('exportar.inqueritos.pdf');
     Route::post('/exportar-dados/pdf-estatisticas', [ExportarDadosController::class, 'exportEstatisticasPdf'])->name('exportar.estatisticas.pdf');
 });

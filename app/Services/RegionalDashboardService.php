@@ -9,11 +9,12 @@ use App\Models\InqueritoFreguesia;
 use App\Models\TicketSuporte;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class RegionalDashboardService
 {
-    public function buildDashboardPayload(User $user): array
+    public function buildDashboardPayload(User $user, ?int $ano = null): array
     {
         $familiaQuery = Familia::query();
         $agregadoQuery = AgregadoFamiliar::query();
@@ -21,7 +22,8 @@ class RegionalDashboardService
         $tituloDashboard = 'Dashboard Regional (Todo o Território)';
         $nomeLocalidade = 'Beira Baixa (Todos os Concelhos)';
 
-        $anoInquerito = (int) date('Y');
+        $anoAtual = (int) date('Y');
+        $anoInquerito = ($ano && $ano >= 2000 && $ano <= $anoAtual) ? (int) $ano : $anoAtual;
         $ticketsRespondidos = 0;
         $jaPreencheuInquerito = false;
         $inqueritoDisponivel = false;
@@ -32,6 +34,13 @@ class RegionalDashboardService
             'totalConcelhos' => 0,
             'concelhosComInquerito' => 0,
             'percentual' => 0,
+        ];
+        $regionalHighlights = [
+            'totalPendentes' => 0,
+            'concelhosComPendencias' => 0,
+            'concelhosConcluidos' => 0,
+            'familiasMonitorizadas' => 0,
+            'ticketsPendentes' => 0,
         ];
 
         if ($user->isFreguesia()) {
@@ -58,6 +67,7 @@ class RegionalDashboardService
             $overview = $this->getRegionalOverview($anoInquerito);
             $concelhosResumo = $overview['concelhosResumo'];
             $dashboardProgress = $overview['dashboardProgress'];
+            $regionalHighlights = $overview['regionalHighlights'] ?? $regionalHighlights;
         }
 
         $nacionalidadesData = (clone $familiaQuery)
@@ -73,6 +83,7 @@ class RegionalDashboardService
         $totalCriancas = $agregadoQuery->sum('criancas');
 
         $ticketsPendentes = TicketSuporte::where('estado', 'em_processamento')->count();
+        $regionalHighlights['ticketsPendentes'] = $ticketsPendentes;
 
         return [
             'title' => 'Página Inicial',
@@ -92,12 +103,13 @@ class RegionalDashboardService
             'chartValues' => $nacionalidadesData->pluck('total'),
             'concelhosResumo' => $concelhosResumo,
             'dashboardProgress' => $dashboardProgress,
+            'regionalHighlights' => $regionalHighlights,
         ];
     }
 
     public function getRegionalOverview(int $anoInquerito): array
     {
-        $concelhos = Conselho::withCount('freguesias')->get();
+        $concelhos = Conselho::with(['freguesias:id,conselho_id,nome,codigo'])->withCount('freguesias')->get();
 
         $familiasPorConcelho = Familia::select('freguesias.conselho_id', DB::raw('count(familias.id) as total'))
             ->join('freguesias', 'familias.freguesia_id', '=', 'freguesias.id')
@@ -117,34 +129,71 @@ class RegionalDashboardService
             ->groupBy('freguesias.conselho_id')
             ->pluck('total', 'freguesias.conselho_id');
 
-        $inqueritosPorConcelho = InqueritoFreguesia::select('freguesias.conselho_id', DB::raw('count(distinct inquerito_freguesias.freguesia_id) as total'))
+        $freguesiasComInquerito = InqueritoFreguesia::select('inquerito_freguesias.freguesia_id', 'freguesias.conselho_id')
+            ->join('freguesias', 'inquerito_freguesias.freguesia_id', '=', 'freguesias.id')
+            ->where('inquerito_freguesias.ano', $anoInquerito)
+            ->get()
+            ->groupBy('conselho_id')
+            ->map(fn ($items) => $items->pluck('freguesia_id')->unique());
+
+        $ultimaSubmissaoPorConcelho = InqueritoFreguesia::select('freguesias.conselho_id', DB::raw('max(inquerito_freguesias.updated_at) as ultima'))
             ->join('freguesias', 'inquerito_freguesias.freguesia_id', '=', 'freguesias.id')
             ->where('inquerito_freguesias.ano', $anoInquerito)
             ->groupBy('freguesias.conselho_id')
-            ->pluck('total', 'freguesias.conselho_id');
+            ->pluck('ultima', 'freguesias.conselho_id');
 
         $concelhosResumo = $concelhos->map(function ($conselho) use (
             $familiasPorConcelho,
             $membrosPorConcelho,
             $ticketsPendentesPorConcelho,
-            $inqueritosPorConcelho
+            $freguesiasComInquerito,
+            $ultimaSubmissaoPorConcelho
         ) {
             $totalFreguesias = (int) ($conselho->freguesias_count ?? 0);
-            $freguesiasComInquerito = (int) ($inqueritosPorConcelho[$conselho->id] ?? 0);
+            $freguesiasComInqueritoIds = $freguesiasComInquerito[$conselho->id] ?? collect();
+            $totalFreguesiasComInquerito = $freguesiasComInqueritoIds instanceof Collection
+                ? $freguesiasComInqueritoIds->count()
+                : count($freguesiasComInqueritoIds);
             $percentual = $totalFreguesias > 0
-                ? round(($freguesiasComInquerito / $totalFreguesias) * 100)
+                ? round(($totalFreguesiasComInquerito / $totalFreguesias) * 100)
                 : 0;
+
+            $ultimaSubmissao = $ultimaSubmissaoPorConcelho[$conselho->id] ?? null;
+
+            $todasFreguesias = collect($conselho->freguesias ?? []);
+
+            $freguesiasPendentes = $todasFreguesias
+                ->reject(fn ($freguesia) => $freguesiasComInqueritoIds->contains($freguesia->id))
+                ->map(fn ($freguesia) => [
+                    'id' => $freguesia->id,
+                    'nome' => $freguesia->nome,
+                    'codigo' => $freguesia->codigo,
+                ])->values()->toArray();
+
+            $freguesiasConcluidas = $todasFreguesias
+                ->filter(fn ($freguesia) => $freguesiasComInqueritoIds->contains($freguesia->id))
+                ->map(fn ($freguesia) => [
+                    'id' => $freguesia->id,
+                    'nome' => $freguesia->nome,
+                    'codigo' => $freguesia->codigo,
+                ])->values()->toArray();
+
+            $totalPendentes = count($freguesiasPendentes);
 
             return [
                 'id' => $conselho->id,
                 'nome' => $conselho->nome,
                 'codigo' => $conselho->codigo,
                 'total_freguesias' => $totalFreguesias,
-                'freguesias_com_inquerito' => $freguesiasComInquerito,
+                'freguesias_com_inquerito' => $totalFreguesiasComInquerito,
                 'percentual_inquerito' => $percentual,
                 'total_familias' => (int) ($familiasPorConcelho[$conselho->id] ?? 0),
                 'total_membros' => (int) ($membrosPorConcelho[$conselho->id] ?? 0),
                 'tickets_pendentes' => (int) ($ticketsPendentesPorConcelho[$conselho->id] ?? 0),
+                'freguesias_pendentes' => $freguesiasPendentes,
+                'freguesias_concluidas' => $freguesiasConcluidas,
+                'total_pendentes' => $totalPendentes,
+                'ultima_submissao' => $ultimaSubmissao ? Carbon::parse($ultimaSubmissao) : null,
             ];
         })->sortBy('nome')->values();
 
@@ -160,9 +209,18 @@ class RegionalDashboardService
             ? round(($dashboardProgress['concelhosComInquerito'] / $dashboardProgress['totalConcelhos']) * 100)
             : 0;
 
+        $regionalHighlights = [
+            'totalPendentes' => $concelhosResumo->sum('total_pendentes'),
+            'concelhosComPendencias' => $concelhosResumo->where('total_pendentes', '>', 0)->count(),
+            'concelhosConcluidos' => $concelhosResumo->where('total_pendentes', '=', 0)->count(),
+            'familiasMonitorizadas' => $concelhosResumo->sum('total_familias'),
+            'ticketsPendentes' => $ticketsPendentesPorConcelho->sum() ?? 0,
+        ];
+
         return [
             'concelhosResumo' => $concelhosResumo,
             'dashboardProgress' => $dashboardProgress,
+            'regionalHighlights' => $regionalHighlights,
         ];
     }
 }
