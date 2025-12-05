@@ -1,5 +1,115 @@
 @extends('layouts.user_type.auth')
 
+@php
+  $labelGenero = [
+    'masculino' => 'Masculino',
+    'feminino' => 'Feminino',
+    'nao_declarado' => 'Não declarado',
+  ];
+
+  $labelFaixa = [
+    'criancas' => 'Crianças',
+    'adultos_laboral' => 'Adultos (laboral)',
+    'adultos_65' => '65+',
+  ];
+
+  $colorPalette = ['#17ad37', '#82d616', '#11cdef', '#2dce89', '#5e72e4', '#f5365c', '#fb6340', '#ffd600'];
+
+  $assignColors = function (array $labels) use ($colorPalette) {
+    $paletteSize = max(1, count($colorPalette));
+    return collect($labels)->values()->map(function ($label, $index) use ($colorPalette, $paletteSize) {
+      return $colorPalette[$index % $paletteSize];
+    })->toArray();
+  };
+
+  $buildChartConfig = function (array $labels, array $values, string $datasetLabel = 'Total') use ($assignColors) {
+    return [
+      'labels' => $labels,
+      'datasets' => [[
+        'label' => $datasetLabel,
+        'data' => $values,
+        'backgroundColor' => $assignColors($labels),
+      ]],
+      'defaultType' => 'bar',
+    ];
+  };
+
+  $chartGeneroData = collect($distribuicoes['genero'] ?? [])->mapWithKeys(function ($valor, $chave) use ($labelGenero) {
+    return [$labelGenero[$chave] ?? ucfirst($chave) => (int) $valor];
+  });
+
+  $chartFaixaData = collect($distribuicoes['faixa_etaria'] ?? [])->mapWithKeys(function ($valor, $chave) use ($labelFaixa) {
+    return [$labelFaixa[$chave] ?? ucfirst($chave) => (int) $valor];
+  });
+
+  $chartHabitacaoData = collect($distribuicoes['habitacao'] ?? [])->mapWithKeys(function ($valor, $chave) {
+    return [ucfirst($chave ?: 'Indefinido') => (int) $valor];
+  });
+
+  $chartPropriedadeData = collect($distribuicoes['propriedade'] ?? [])->mapWithKeys(function ($valor, $chave) {
+    return [ucfirst($chave ?: 'Indefinido') => (int) $valor];
+  });
+
+  $chartSetoresData = ($distribuicoes['setores'] ?? collect())->mapWithKeys(function ($item) {
+    return [$item->nome => (int) $item->total];
+  });
+
+  $chartNacionalidadesData = ($distribuicoes['nacionalidades'] ?? collect())->mapWithKeys(function ($item) {
+    return [$item->nacionalidade => (int) $item->total];
+  });
+
+  $chartConfigsPayload = [];
+
+  if ($chartGeneroData->isNotEmpty()) {
+    $chartConfigsPayload['chart-genero'] = $buildChartConfig(
+      $chartGeneroData->keys()->toArray(),
+      $chartGeneroData->values()->toArray(),
+      'Famílias'
+    );
+  }
+
+  if ($chartFaixaData->isNotEmpty()) {
+    $chartConfigsPayload['chart-faixa'] = $buildChartConfig(
+      $chartFaixaData->keys()->toArray(),
+      $chartFaixaData->values()->toArray(),
+      'Pessoas'
+    );
+  }
+
+  if ($chartHabitacaoData->isNotEmpty()) {
+    $chartConfigsPayload['chart-habitacao'] = $buildChartConfig(
+      $chartHabitacaoData->keys()->toArray(),
+      $chartHabitacaoData->values()->toArray(),
+      'Famílias'
+    );
+  }
+
+  if ($chartPropriedadeData->isNotEmpty()) {
+    $chartConfigsPayload['chart-propriedade'] = $buildChartConfig(
+      $chartPropriedadeData->keys()->toArray(),
+      $chartPropriedadeData->values()->toArray(),
+      'Famílias'
+    );
+  }
+
+  if ($chartSetoresData->isNotEmpty()) {
+    $chartConfigsPayload['chart-setores'] = $buildChartConfig(
+      $chartSetoresData->keys()->toArray(),
+      $chartSetoresData->values()->toArray(),
+      'Famílias'
+    );
+  }
+
+  if ($chartNacionalidadesData->isNotEmpty()) {
+    $chartConfigsPayload['chart-nacionalidades'] = $buildChartConfig(
+      $chartNacionalidadesData->keys()->toArray(),
+      $chartNacionalidadesData->values()->toArray(),
+      'Famílias'
+    );
+  }
+
+@endphp
+
 @section('content')
   <div class="container-fluid py-4">
     <div class="row mb-4">
@@ -34,12 +144,6 @@
 
     <div class="card mb-4">
       <div class="card-body">
-        @php
-          $periodoInicio = $filters['periodo_inicio'] ?? null;
-          $periodoFim = $filters['periodo_fim'] ?? null;
-          $periodoInicioValor = $periodoInicio instanceof \Carbon\Carbon ? $periodoInicio->format('Y-m-d') : ($periodoInicio ?? '');
-          $periodoFimValor = $periodoFim instanceof \Carbon\Carbon ? $periodoFim->format('Y-m-d') : ($periodoFim ?? '');
-        @endphp
         <form class="row g-3 align-items-end" method="GET" action="{{ route('funcionario.relatorios.index') }}">
           <div class="col-md-2">
             <label class="form-label text-xs text-secondary">Ano</label>
@@ -111,14 +215,6 @@
                 </option>
               @endforeach
             </select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label text-xs text-secondary">Período (início)</label>
-            <input type="date" name="periodo_inicio" class="form-control form-control-sm" value="{{ $periodoInicioValor }}">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label text-xs text-secondary">Período (fim)</label>
-            <input type="date" name="periodo_fim" class="form-control form-control-sm" value="{{ $periodoFimValor }}">
           </div>
           <div class="col-md-3 ms-auto">
             <div class="d-flex gap-2">
@@ -208,6 +304,154 @@
       </div>
     </div>
 
+    {{-- Visualizações dinâmicas --}}
+    <div class="row mb-4">
+      <div class="col-xl-6 mb-4">
+        <div class="card h-100">
+          <div class="card-header pb-0 d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+              <h6 class="mb-0">Visualização por género</h6>
+              <p class="text-xs text-secondary mb-0">Alterna entre barras e gráfico circular para comparar géneros.</p>
+            </div>
+            <div class="btn-group btn-group-sm" role="group">
+              <button type="button" class="btn btn-outline-success chart-toggle" data-chart="chart-genero" data-type="bar" {{ isset($chartConfigsPayload['chart-genero']) ? '' : 'disabled' }}>Barras</button>
+              <button type="button" class="btn btn-outline-success chart-toggle" data-chart="chart-genero" data-type="doughnut" {{ isset($chartConfigsPayload['chart-genero']) ? '' : 'disabled' }}>Circular</button>
+            </div>
+          </div>
+          <div class="card-body">
+            @if(isset($chartConfigsPayload['chart-genero']))
+              <div class="chart" style="height:300px">
+                <canvas id="chart-genero" height="300"></canvas>
+              </div>
+            @else
+              <p class="text-sm text-secondary mb-0">Sem dados para este gráfico.</p>
+            @endif
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-6 mb-4">
+        <div class="card h-100">
+          <div class="card-header pb-0 d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+              <h6 class="mb-0">Distribuição etária interativa</h6>
+              <p class="text-xs text-secondary mb-0">Visualiza a composição etária em barras ou em modo circular.</p>
+            </div>
+            <div class="btn-group btn-group-sm" role="group">
+              <button type="button" class="btn btn-outline-success chart-toggle" data-chart="chart-faixa" data-type="bar" {{ isset($chartConfigsPayload['chart-faixa']) ? '' : 'disabled' }}>Barras</button>
+              <button type="button" class="btn btn-outline-success chart-toggle" data-chart="chart-faixa" data-type="doughnut" {{ isset($chartConfigsPayload['chart-faixa']) ? '' : 'disabled' }}>Circular</button>
+            </div>
+          </div>
+          <div class="card-body">
+            @if(isset($chartConfigsPayload['chart-faixa']))
+              <div class="chart" style="height:300px">
+                <canvas id="chart-faixa" height="300"></canvas>
+              </div>
+            @else
+              <p class="text-sm text-secondary mb-0">Sem dados suficientes para mostrar o gráfico.</p>
+            @endif
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-xl-6 mb-4">
+        <div class="card h-100">
+          <div class="card-header pb-0 d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+              <h6 class="mb-0">Tipologia da habitação</h6>
+              <p class="text-xs text-secondary mb-0">Descobre onde vivem as famílias registadas.</p>
+            </div>
+            <div class="btn-group btn-group-sm" role="group">
+              <button type="button" class="btn btn-outline-success chart-toggle" data-chart="chart-habitacao" data-type="bar" {{ isset($chartConfigsPayload['chart-habitacao']) ? '' : 'disabled' }}>Barras</button>
+              <button type="button" class="btn btn-outline-success chart-toggle" data-chart="chart-habitacao" data-type="doughnut" {{ isset($chartConfigsPayload['chart-habitacao']) ? '' : 'disabled' }}>Circular</button>
+            </div>
+          </div>
+          <div class="card-body">
+            @if(isset($chartConfigsPayload['chart-habitacao']))
+              <div class="chart" style="height:300px">
+                <canvas id="chart-habitacao" height="300"></canvas>
+              </div>
+            @else
+              <p class="text-sm text-secondary mb-0">Sem dados para este gráfico.</p>
+            @endif
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-6 mb-4">
+        <div class="card h-100">
+          <div class="card-header pb-0 d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+              <h6 class="mb-0">Estado da residência</h6>
+              <p class="text-xs text-secondary mb-0">Compara propriedades próprias vs. arrendadas.</p>
+            </div>
+            <div class="btn-group btn-group-sm" role="group">
+              <button type="button" class="btn btn-outline-success chart-toggle" data-chart="chart-propriedade" data-type="bar" {{ isset($chartConfigsPayload['chart-propriedade']) ? '' : 'disabled' }}>Barras</button>
+              <button type="button" class="btn btn-outline-success chart-toggle" data-chart="chart-propriedade" data-type="doughnut" {{ isset($chartConfigsPayload['chart-propriedade']) ? '' : 'disabled' }}>Circular</button>
+            </div>
+          </div>
+          <div class="card-body">
+            @if(isset($chartConfigsPayload['chart-propriedade']))
+              <div class="chart" style="height:300px">
+                <canvas id="chart-propriedade" height="300"></canvas>
+              </div>
+            @else
+              <p class="text-sm text-secondary mb-0">Sem dados para este gráfico.</p>
+            @endif
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-xl-6 mb-4">
+        <div class="card h-100">
+          <div class="card-header pb-0 d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+              <h6 class="mb-0">Setores de atividade</h6>
+              <p class="text-xs text-secondary mb-0">Identifica as áreas económicas mais presentes.</p>
+            </div>
+            <div class="btn-group btn-group-sm" role="group">
+              <button type="button" class="btn btn-outline-success chart-toggle" data-chart="chart-setores" data-type="bar" {{ isset($chartConfigsPayload['chart-setores']) ? '' : 'disabled' }}>Barras</button>
+              <button type="button" class="btn btn-outline-success chart-toggle" data-chart="chart-setores" data-type="doughnut" {{ isset($chartConfigsPayload['chart-setores']) ? '' : 'disabled' }}>Circular</button>
+            </div>
+          </div>
+          <div class="card-body">
+            @if(isset($chartConfigsPayload['chart-setores']))
+              <div class="chart" style="height:300px">
+                <canvas id="chart-setores" height="300"></canvas>
+              </div>
+            @else
+              <p class="text-sm text-secondary mb-0">Sem registos de atividade económica para o filtro.</p>
+            @endif
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-6 mb-4">
+        <div class="card h-100">
+          <div class="card-header pb-0 d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+              <h6 class="mb-0">Top nacionalidades</h6>
+              <p class="text-xs text-secondary mb-0">Comparação visual das comunidades mais frequentes.</p>
+            </div>
+            <div class="btn-group btn-group-sm" role="group">
+              <button type="button" class="btn btn-outline-success chart-toggle" data-chart="chart-nacionalidades" data-type="bar" {{ isset($chartConfigsPayload['chart-nacionalidades']) ? '' : 'disabled' }}>Barras</button>
+              <button type="button" class="btn btn-outline-success chart-toggle" data-chart="chart-nacionalidades" data-type="doughnut" {{ isset($chartConfigsPayload['chart-nacionalidades']) ? '' : 'disabled' }}>Circular</button>
+            </div>
+          </div>
+          <div class="card-body">
+            @if(isset($chartConfigsPayload['chart-nacionalidades']))
+              <div class="chart" style="height:300px">
+                <canvas id="chart-nacionalidades" height="300"></canvas>
+              </div>
+            @else
+              <p class="text-sm text-secondary mb-0">Sem nacionalidades disponíveis para este filtro.</p>
+            @endif
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="row mb-4">
       <div class="col-xl-6 mb-3">
         <div class="card h-100">
@@ -269,14 +513,26 @@
       <div class="col-xl-8">
         <div class="card h-100">
           <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+            @php
+              $listaEhPaginator = $listaFamilias instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator;
+              $intervaloInicio = $listaEhPaginator ? ($listaFamilias->firstItem() ?? 0) : 0;
+              $intervaloFim = $listaEhPaginator ? ($listaFamilias->lastItem() ?? 0) : 0;
+              $totalFamiliasListadas = $listaEhPaginator ? $listaFamilias->total() : count($listaFamilias);
+            @endphp
             <div>
               <h6 class="mb-0">Famílias dentro do filtro</h6>
-              <p class="text-sm text-secondary mb-0">Amostra limitada às últimas {{ count($listaFamilias) }} famílias para consulta rápida.</p>
+              @if($listaEhPaginator)
+                <p class="text-sm text-secondary mb-0">
+                  Mostrando {{ $intervaloInicio }}-{{ $intervaloFim }} de {{ $totalFamiliasListadas }} famílias filtradas.
+                </p>
+              @else
+                <p class="text-sm text-secondary mb-0">Amostra limitada às últimas {{ $totalFamiliasListadas }} famílias para consulta rápida.</p>
+              @endif
             </div>
             <a href="{{ route('funcionario.relatorios.export', request()->query()) }}" class="btn btn-sm bg-gradient-success text-white">Exportar PDF</a>
           </div>
           <div class="card-body p-0">
-            @if(!empty($listaFamilias))
+            @if($listaEhPaginator ? $listaFamilias->isNotEmpty() : !empty($listaFamilias))
               <div class="table-responsive">
                 <table class="table align-items-center mb-0">
                   <thead>
@@ -321,6 +577,9 @@
               </div>
             @endif
           </div>
+          @if($listaEhPaginator && $listaFamilias->isNotEmpty())
+            <x-admin.pagination :paginator="$listaFamilias" />
+          @endif
         </div>
       </div>
       <div class="col-xl-4">
@@ -427,6 +686,70 @@
 @push('js')
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      const chartConfigs = @json($chartConfigsPayload);
+      const chartInstances = {};
+
+      const initChart = (chartId, chartConfig, forcedType = null) => {
+        if (typeof Chart === 'undefined') {
+          return;
+        }
+
+        const canvas = document.getElementById(chartId);
+        if (!canvas) {
+          return;
+        }
+
+        if (chartInstances[chartId]) {
+          chartInstances[chartId].destroy();
+        }
+
+        const chartType = forcedType || chartConfig.defaultType || 'bar';
+        chartInstances[chartId] = new Chart(canvas.getContext('2d'), {
+          type: chartType,
+          data: {
+            labels: chartConfig.labels,
+            datasets: chartConfig.datasets.map(dataset => ({
+              ...dataset,
+              borderWidth: dataset.borderWidth ?? 0,
+            })),
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            ...chartConfig.options,
+          },
+        });
+      };
+
+      Object.entries(chartConfigs).forEach(([chartId, cfg]) => {
+        initChart(chartId, cfg);
+        const defaultType = cfg.defaultType || 'bar';
+        const defaultButton = document.querySelector(`.chart-toggle[data-chart="${chartId}"][data-type="${defaultType}"]`);
+        if (defaultButton) {
+          defaultButton.classList.add('active');
+        }
+      });
+
+      const toggleButtons = document.querySelectorAll('.chart-toggle');
+      toggleButtons.forEach(button => {
+        button.addEventListener('click', event => {
+          const target = event.currentTarget;
+          const chartId = target.dataset.chart;
+          const type = target.dataset.type;
+          const config = chartConfigs[chartId];
+
+          if (!config) {
+            return;
+          }
+
+          initChart(chartId, config, type);
+
+          document.querySelectorAll(`.chart-toggle[data-chart="${chartId}"]`).forEach(btn => {
+            btn.classList.toggle('active', btn === target);
+          });
+        });
+      });
+
       const concelhoSelect = document.getElementById('concelho_id');
       const freguesiaSelect = document.getElementById('freguesia_id');
 

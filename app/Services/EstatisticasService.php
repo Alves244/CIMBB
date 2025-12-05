@@ -4,13 +4,14 @@ namespace App\Services;
 
 use App\Models\AgregadoFamiliar;
 use App\Models\AtividadeEconomica;
+use App\Models\Conselho;
 use App\Models\Familia;
 use App\Models\Freguesia;
 use App\Models\InqueritoFreguesia;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -29,12 +30,16 @@ class EstatisticasService
         $distribuicoes = $this->distribuicoes($familiaQuery, $filters);
         $freguesias = $this->resumoFreguesias($familiaQuery, $filters, $inqueritoContext);
         $listaFamilias = $this->listarFamilias($familiaQuery, $filters, $listLimit);
+        $timeline = $this->serieTemporalInqueritos($filters);
+        $heatmap = $this->mapaConcelhosPorSituacao($familiaQuery, $filters);
 
         return [
             'totais' => $totais,
             'distribuicoes' => $distribuicoes,
             'freguesias' => $freguesias,
             'listaFamilias' => $listaFamilias,
+            'timeline' => $timeline,
+            'heatmap' => $heatmap,
             'filtros' => $filters,
         ];
     }
@@ -340,19 +345,105 @@ class EstatisticasService
         ];
     }
 
-    private function listarFamilias(Builder $familiaQuery, array $filters, ?int $limit): array
+    private function serieTemporalInqueritos(array $filters): array
+    {
+        $ano = $filters['ano'];
+        $meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        $valores = array_fill(1, 12, 0);
+
+        $query = InqueritoFreguesia::query()->whereYear('updated_at', $ano);
+
+        if ($filters['freguesia_id']) {
+            $query->where('freguesia_id', $filters['freguesia_id']);
+        } elseif ($filters['concelho_id']) {
+            $query->whereHas('freguesia', function (Builder $sub) use ($filters) {
+                $sub->where('conselho_id', $filters['concelho_id']);
+            });
+        }
+
+        if ($filters['periodo_inicio']) {
+            $query->where('updated_at', '>=', $filters['periodo_inicio']);
+        }
+        if ($filters['periodo_fim']) {
+            $query->where('updated_at', '<=', $filters['periodo_fim']);
+        }
+
+        $registos = $query
+            ->selectRaw('MONTH(updated_at) as mes, COUNT(*) as total')
+            ->groupBy('mes')
+            ->orderBy('mes')
+            ->get();
+
+        foreach ($registos as $linha) {
+            $mes = (int) ($linha->mes ?? 0);
+            if ($mes >= 1 && $mes <= 12) {
+                $valores[$mes] = (int) $linha->total;
+            }
+        }
+
+        return [
+            'labels' => $meses,
+            'values' => array_values($valores),
+        ];
+    }
+
+    private function mapaConcelhosPorSituacao(Builder $familiaQuery, array $filters): array
+    {
+        $submetidas = ($filters['freguesias_submetidas'] ?? collect())->toArray();
+
+        $baseQuery = (clone $familiaQuery)
+            ->select('familias.freguesia_id', 'freguesias.conselho_id as conselho_id')
+            ->join('freguesias', 'familias.freguesia_id', '=', 'freguesias.id');
+
+        $conselhoIds = (clone $baseQuery)->pluck('conselho_id')->unique()->filter();
+        if ($conselhoIds->isEmpty()) {
+            return [];
+        }
+
+        $subQuery = (clone $baseQuery);
+        if (!empty($submetidas)) {
+            $subQuery->whereIn('familias.freguesia_id', $submetidas);
+        } else {
+            $subQuery->whereRaw('1 = 0');
+        }
+
+        $subCounts = $subQuery
+            ->select('conselho_id', DB::raw('count(*) as total'))
+            ->groupBy('conselho_id')
+            ->pluck('total', 'conselho_id');
+
+        $pendQuery = (clone $baseQuery);
+        if (!empty($submetidas)) {
+            $pendQuery->whereNotIn('familias.freguesia_id', $submetidas);
+        }
+
+        $pendCounts = $pendQuery
+            ->select('conselho_id', DB::raw('count(*) as total'))
+            ->groupBy('conselho_id')
+            ->pluck('total', 'conselho_id');
+
+        $conselhos = Conselho::whereIn('id', $conselhoIds)->orderBy('nome')->get();
+
+        return $conselhos->map(function (Conselho $conselho) use ($subCounts, $pendCounts) {
+            return [
+                'nome' => $conselho->nome,
+                'submetido' => (int) ($subCounts[$conselho->id] ?? 0),
+                'pendente' => (int) ($pendCounts[$conselho->id] ?? 0),
+            ];
+        })->filter(function ($item) {
+            return ($item['submetido'] ?? 0) > 0 || ($item['pendente'] ?? 0) > 0;
+        })->values()->toArray();
+    }
+
+    private function listarFamilias(Builder $familiaQuery, array $filters, ?int $limit)
     {
         $listaQuery = (clone $familiaQuery)
             ->with(['freguesia.conselho', 'agregadoFamiliar'])
-            ->orderByDesc('created_at');
-
-        if ($limit) {
-            $listaQuery->limit($limit);
-        }
+            ->orderBy('codigo');
 
         $submetidas = ($filters['freguesias_submetidas'] ?? collect())->toArray();
 
-        return $listaQuery->get()->map(function (Familia $familia) use ($submetidas) {
+        $mapFamilia = function (Familia $familia) use ($submetidas) {
             $agregado = $familia->agregadoFamiliar;
             $totalMembros = ($agregado->adultos_laboral_m ?? 0)
                 + ($agregado->adultos_laboral_f ?? 0)
@@ -374,6 +465,15 @@ class EstatisticasService
                 'total_membros' => (int) $totalMembros,
                 'situacao_inquerito' => in_array($familia->freguesia_id, $submetidas) ? 'Submetido' : 'Pendente',
             ];
-        })->toArray();
+        };
+
+        if ($limit === null) {
+            return $listaQuery->get()->map($mapFamilia);
+        }
+
+        $paginator = $listaQuery->paginate(max(1, $limit));
+        $paginator->getCollection()->transform($mapFamilia);
+
+        return $paginator;
     }
 }

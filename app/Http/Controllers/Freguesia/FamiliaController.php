@@ -23,9 +23,9 @@ class FamiliaController extends Controller
             return redirect()->route('dashboard')->with('error', 'Utilizador sem freguesia associada.');
         }
         $familias = Familia::with('agregadoFamiliar') 
-                            ->where('freguesia_id', $freguesiaId)
-                            ->orderBy('ano_instalacao', 'desc')
-                            ->paginate(15);
+                    ->where('freguesia_id', $freguesiaId)
+                    ->orderBy('ano_instalacao', 'desc')
+                    ->paginate(10);
         return view('freguesia.familias.listar', compact('familias'));
     }
 

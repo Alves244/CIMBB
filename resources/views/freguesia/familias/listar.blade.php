@@ -103,9 +103,7 @@
           
           {{-- PAGINAÇÃO --}}
           @if ($familias->hasPages())
-            <div class="card-footer px-3 border-0 d-flex align-items-center justify-content-between">
-              {{ $familias->links() }}
-            </div>
+            <x-admin.pagination :paginator="$familias" />
           @endif
         </div>
       </div>

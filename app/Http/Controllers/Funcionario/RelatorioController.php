@@ -8,6 +8,7 @@ use App\Models\Familia;
 use App\Models\Freguesia;
 use App\Models\SetorAtividade;
 use App\Services\EstatisticasService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 
 class RelatorioController extends Controller
@@ -20,8 +21,10 @@ class RelatorioController extends Controller
     public function index(Request $request)
     {
         $filtros = $request->all();
-        $resultado = $this->estatisticasService->gerar($filtros);
+        $perPage = max(1, (int) $request->get('familias_por_pagina', 10));
+        $resultado = $this->estatisticasService->gerar($filtros, $perPage);
         $filtrosNormalizados = $resultado['filtros'];
+        $listaFamilias = $resultado['listaFamilias'];
 
         return view('funcionario.relatorios.index', [
             'title' => 'Estatísticas & Exportações',
@@ -31,7 +34,10 @@ class RelatorioController extends Controller
             'totais' => $resultado['totais'],
             'distribuicoes' => $resultado['distribuicoes'],
             'freguesiasResumo' => $resultado['freguesias'],
-            'listaFamilias' => $resultado['listaFamilias'],
+            'listaFamilias' => $listaFamilias,
+            'familiasPerPage' => $perPage,
+            'chartTimeline' => $resultado['timeline'],
+            'chartHeatmap' => $resultado['heatmap'],
             'concelhos' => Conselho::with('freguesias:id,nome,conselho_id')->orderBy('nome')->get(),
             'freguesias' => Freguesia::orderBy('nome')->get(['id', 'nome', 'conselho_id']),
             'setores' => SetorAtividade::orderBy('nome')->get(['id', 'nome']),
