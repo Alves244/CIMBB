@@ -48,13 +48,13 @@
             <div class="card-body p-3 d-flex flex-column">
               <div class="d-flex justify-content-between align-items-start">
                 <div class="numbers">
-                  <p class="text-sm mb-1 text-capitalize font-weight-bold">Tickets respondidos</p>
+                  <p class="text-sm mb-1 text-capitalize font-weight-bold">Notificações do suporte</p>
                   <h5 class="font-weight-bolder mb-0">{{ $ticketsRespondidos }}</h5>
                   <p class="text-xs text-secondary mb-2">
                     @if($ticketsRespondidos > 0)
-                      Existem respostas da CIMBB a aguardar acompanhamento.
+                      Existem notificações do suporte a aguardar acompanhamento.
                     @else
-                      Sem novas respostas.
+                      Sem novas notificações do suporte.
                     @endif
                   </p>
                 </div>
@@ -62,7 +62,7 @@
                   <i class="fas fa-headset text-lg opacity-10" aria-hidden="true"></i>
                 </div>
               </div>
-              <a href="{{ route('freguesia.suporte.index') }}" class="btn btn-sm bg-gradient-secondary mt-auto align-self-start">Abrir suporte</a>
+              <a href="{{ route('freguesia.suporte.index') }}" class="btn btn-sm bg-gradient-secondary mt-auto align-self-start">Ver notificações do suporte</a>
             </div>
           </div>
         </div>
@@ -108,17 +108,19 @@
               <div class="text-lg-end">
                 <span class="text-xs text-secondary">Ano em análise</span>
                 <h2 class="font-weight-bolder mb-0">{{ $inqueritoAnoAtual }}</h2>
-                <form method="GET" action="{{ route('dashboard') }}" class="d-flex flex-wrap justify-content-center align-items-center gap-2 mt-3">
-                  <select name="ano" class="form-select form-select-sm w-auto text-center border-success">
-                    @foreach($anosSelect as $ano)
-                      <option value="{{ $ano }}" {{ (int) $ano === (int) $inqueritoAnoAtual ? 'selected' : '' }}>{{ $ano }}</option>
-                    @endforeach
-                  </select>
+                <form method="GET" action="{{ route('dashboard') }}" class="d-flex flex-wrap justify-content-center align-items-stretch gap-3 mt-3">
+                  <div class="year-control d-flex align-items-center">
+                    <select name="ano" class="form-select form-select-sm year-select text-center">
+                      @foreach($anosSelect as $ano)
+                        <option value="{{ $ano }}" {{ (int) $ano === (int) $inqueritoAnoAtual ? 'selected' : '' }}>{{ $ano }}</option>
+                      @endforeach
+                    </select>
+                  </div>
                   @foreach(request()->query() as $param => $value)
                     @continue($param === 'ano')
                     <input type="hidden" name="{{ $param }}" value="{{ $value }}">
                   @endforeach
-                  <button class="btn btn-sm btn-success px-4" type="submit">Alterar</button>
+                  <button class="btn btn-success px-4 year-control align-self-stretch d-flex align-items-center justify-content-center" type="submit">Alterar</button>
                 </form>
               </div>
             </div>
@@ -167,8 +169,8 @@
         <div class="col-xl-3 col-sm-6 mb-4">
           <div class="card h-100">
             <div class="card-body">
-              <p class="text-xs text-uppercase text-secondary mb-1">Tickets por responder</p>
-              <h4 class="font-weight-bolder mb-0">{{ $regionalHighlights['ticketsPendentes'] }}</h4>
+              <p class="text-xs text-uppercase text-secondary mb-1">Famílias monitorizadas</p>
+              <h4 class="font-weight-bolder mb-0">{{ $regionalHighlights['familiasMonitorizadas'] }}</h4>
             </div>
           </div>
         </div>
@@ -414,6 +416,37 @@
     .pendentes-scroll::-webkit-scrollbar-thumb {
       background: #82d616;
       border-radius: 100px;
+    }
+
+    .year-control {
+      min-width: 150px;
+    }
+
+    .year-control .year-select,
+    .year-control.btn-success {
+      height: 44px;
+      width: 100%;
+    }
+
+    .year-control.btn-success {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .year-select {
+      border: 1px solid #cad1d7 !important;
+      color: #344767;
+      font-weight: 600;
+      border-radius: 0.85rem;
+      text-align: center;
+      padding-right: 2.5rem;
+      background-position: right 0.9rem center;
+    }
+
+    .year-select:focus {
+      border-color: #82d616 !important;
+      box-shadow: 0 0 0 0.2rem rgba(130, 214, 22, 0.25);
     }
   </style>
 @endpush

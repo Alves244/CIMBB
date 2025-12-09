@@ -20,7 +20,23 @@ class RelatorioController extends Controller
 
     public function index(Request $request)
     {
+        $anosDisponiveis = Familia::query()
+            ->select('ano_instalacao')
+            ->distinct()
+            ->orderByDesc('ano_instalacao')
+            ->pluck('ano_instalacao');
+
+        if ($anosDisponiveis->isEmpty()) {
+            $anosDisponiveis = collect([date('Y')]);
+        }
+
+        $anoSelecionado = (int) ($request->get('ano') ?? $anosDisponiveis->first());
+        if (!$anosDisponiveis->contains($anoSelecionado)) {
+            $anoSelecionado = (int) $anosDisponiveis->first();
+        }
+
         $filtros = $request->all();
+        $filtros['ano'] = $anoSelecionado;
         $perPage = max(1, (int) $request->get('familias_por_pagina', 10));
         $resultado = $this->estatisticasService->gerar($filtros, $perPage);
         $filtrosNormalizados = $resultado['filtros'];
@@ -29,7 +45,7 @@ class RelatorioController extends Controller
         return view('funcionario.relatorios.index', [
             'title' => 'Estatísticas & Exportações',
             'anoSelecionado' => $filtrosNormalizados['ano'],
-            'anosDisponiveis' => collect(range(date('Y'), date('Y') - 5)),
+            'anosDisponiveis' => $anosDisponiveis,
             'filters' => $filtrosNormalizados,
             'totais' => $resultado['totais'],
             'distribuicoes' => $resultado['distribuicoes'],
@@ -48,5 +64,15 @@ class RelatorioController extends Controller
     public function export(Request $request)
     {
         return $this->estatisticasService->exportarPdf($request->all());
+    }
+
+    public function customChart(Request $request)
+    {
+        $resultado = $this->estatisticasService->contarFamilias($request->all());
+
+        return response()->json([
+            'totalFamilias' => $resultado['totalFamilias'],
+            'filters' => $resultado['filters'],
+        ]);
     }
 }

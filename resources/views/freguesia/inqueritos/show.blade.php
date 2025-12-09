@@ -22,7 +22,7 @@
                         <h6 class="font-weight-bolder text-success">Parte 1: Dados Quantitativos (Snapshot do Ano)</h6>
                         
                         {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                        <h6 class="mt-4 text-dark">Perguntas 11-13. Localização dos Agregados</h6>
+                        <h6 class="mt-4 text-dark">Localização dos agregados</h6>
                         <ul class="list-group">
                             <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">Núcleo Urbano (Sede):</strong> {{ $inquerito->total_nucleo_urbano }}</li>
                             <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">Aldeias Anexas:</strong> {{ $inquerito->total_aldeia_anexa }}</li>
@@ -30,21 +30,21 @@
                         </ul>
                         
                         {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                        <h6 class="mt-4 text-dark">Pergunta 14. Total de Indivíduos</h6>
+                        <h6 class="mt-4 text-dark">Total de indivíduos</h6>
                         <ul class="list-group">
                             <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">Total de Adultos:</strong> {{ $inquerito->total_adultos }}</li>
                             <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">Total de Crianças/Jovens:</strong> {{ $inquerito->total_criancas }}</li>
                         </ul>
                         
                         {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                        <h6 class="mt-4 text-dark">Pergunta 15. Tipologia de Propriedade</h6>
+                        <h6 class="mt-4 text-dark">Tipologia de propriedade</h6>
                         <ul class="list-group">
                             <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">Propriedade Própria:</strong> {{ $inquerito->total_propria }}</li>
                             <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">Propriedade Arrendada:</strong> {{ $inquerito->total_arrendada }}</li>
                         </ul>
                         
                         {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                        <h6 class="mt-4 text-dark">Perguntas 16-19. Nº de Atividades por Setor</h6>
+                        <h6 class="mt-4 text-dark">Número de atividades por setor</h6>
                         <div class="row">
                             <div class="col-md-6">
                                 <strong class="text-dark">Conta Própria:</strong>
@@ -72,27 +72,27 @@
                         
                         <div class="form-group">
                             {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                            <label class="form-control-label h6 text-dark">20. Escala de integração (1-5)</label>
+                            <label class="form-control-label h6 text-dark">Escala de integração (1-5)</label>
                             <input class="form-control" type="text" value="{{ $inquerito->escala_integracao }}" disabled readonly>
                         </div>
                         <div class="form-group">
                             {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                            <label class="form-control-label h6 text-dark">21. Aspectos positivos da/na integração</label>
+                            <label class="form-control-label h6 text-dark">Aspectos positivos da/na integração</label>
                             <textarea class="form-control" rows="4" disabled readonly>{{ $inquerito->aspectos_positivos ?? '(Não preenchido)' }}</textarea>
                         </div>
                         <div class="form-group">
                             {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                            <label class="form-control-label h6 text-dark">22. Aspectos negativos/dificuldades na integração</label>
+                            <label class="form-control-label h6 text-dark">Aspectos negativos/dificuldades na integração</label>
                             <textarea class="form-control" rows="4" disabled readonly>{{ $inquerito->aspectos_negativos ?? '(Não preenchido)' }}</textarea>
                         </div>
                         <div class="form-group">
                             {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                            <label class="form-control-label h6 text-dark">23. Nível de satisfação global (1-5)</label>
+                            <label class="form-control-label h6 text-dark">Nível de satisfação global (1-5)</label>
                             <input class="form-control" type="text" value="{{ $inquerito->satisfacao_global }}" disabled readonly>
                         </div>
                         <div class="form-group">
                             {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                            <label class="form-control-label h6 text-dark">24. Sugestões</label>
+                            <label class="form-control-label h6 text-dark">Sugestões</label>
                             <textarea class="form-control" rows="4" disabled readonly>{{ $inquerito->sugestoes ?? '(Não preenchido)' }}</textarea>
                         </div>
 

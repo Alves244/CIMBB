@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Funcionario;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conselho;
+use App\Models\Familia;
 use App\Models\Freguesia;
 use App\Models\InqueritoFreguesia;
 use App\Services\EstatisticasService;
@@ -23,7 +24,15 @@ class ExportarDadosController extends Controller
 
     public function index()
     {
-        $anos = collect(range(date('Y'), date('Y') - 5));
+        $anos = Familia::query()
+            ->select('ano_instalacao')
+            ->distinct()
+            ->orderByDesc('ano_instalacao')
+            ->pluck('ano_instalacao');
+
+        if ($anos->isEmpty()) {
+            $anos = collect([date('Y')]);
+        }
 
         return view('funcionario.exportar.index', [
             'title' => 'Exportar Dados',
@@ -35,21 +44,17 @@ class ExportarDadosController extends Controller
 
     public function exportEstatisticasConcelhoPdf(Request $request)
     {
-        $dados = $request->validate([
-            'ano' => 'required|integer|min:2000|max:' . date('Y'),
-            'concelho_id' => 'required|exists:concelhos,id',
-        ]);
-
+        $dados = $this->sanitizeExportFilters($request->all());
         return $this->estatisticasService->exportarPdf($dados);
     }
 
     public function exportEstatisticasFreguesiaPdf(Request $request)
     {
-        $dados = $request->validate([
-            'ano' => 'required|integer|min:2000|max:' . date('Y'),
-            'concelho_id' => 'required|exists:concelhos,id',
-            'freguesia_id' => ['required', Rule::exists('freguesias', 'id')->where('conselho_id', $request->input('concelho_id'))],
-        ]);
+        $dados = $this->sanitizeExportFilters($request->all());
+
+        if (!$dados['concelho_id'] || !$dados['freguesia_id']) {
+            abort(422, 'Seleciona um concelho e uma freguesia válidos.');
+        }
 
         return $this->estatisticasService->exportarPdf($dados);
     }
@@ -82,5 +87,25 @@ class ExportarDadosController extends Controller
         ])->setPaper('a4', 'landscape');
 
         return $pdf->download(sprintf('estatisticas_%d.pdf', $ano));
+    }
+
+    private function sanitizeExportFilters(array $inputs): array
+    {
+        $anosValidos = Familia::query()
+            ->select('ano_instalacao')
+            ->distinct()
+            ->orderByDesc('ano_instalacao')
+            ->pluck('ano_instalacao');
+
+        $ano = (int) ($inputs['ano'] ?? $anosValidos->first());
+        if (!$anosValidos->contains($ano)) {
+            $ano = (int) $anosValidos->first();
+        }
+
+        return [
+            'ano' => $ano,
+            'concelho_id' => $inputs['concelho_id'] ?? null,
+            'freguesia_id' => $inputs['freguesia_id'] ?? null,
+        ];
     }
 }

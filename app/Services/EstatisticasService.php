@@ -43,6 +43,21 @@ class EstatisticasService
         ];
     }
 
+    public function contarFamilias(array $inputs): array
+    {
+        $filters = $this->sanitizeFilters($inputs);
+        $inqueritoContext = $this->obterContextoInquerito($filters);
+        $filters['freguesias_submetidas'] = $inqueritoContext['submetidas'];
+
+        $familiaQuery = Familia::query();
+        $this->aplicarFiltrosFamilia($familiaQuery, $filters);
+
+        return [
+            'totalFamilias' => (clone $familiaQuery)->count(),
+            'filters' => $filters,
+        ];
+    }
+
     public function exportarPdf(array $inputs)
     {
         $resultado = $this->gerar($inputs, null);

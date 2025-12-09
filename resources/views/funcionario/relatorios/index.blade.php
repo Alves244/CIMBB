@@ -104,7 +104,7 @@
   };
 
   $activeFilters = collect($filters ?? [])
-    ->reject(fn ($value, $key) => $key === 'ano' || $value === null || $value === '' || $value === 'all')
+    ->reject(fn ($value, $key) => in_array($key, ['ano', 'freguesias_submetidas'], true) || $value === null || $value === '' || $value === 'all')
     ->mapWithKeys(function ($value, $key) use ($filterFieldLabels, $filterValueResolver) {
       return [$filterFieldLabels[$key] ?? ucfirst($key) => $filterValueResolver($key, $value)];
     })
@@ -237,17 +237,19 @@
             <div class="text-lg-end">
               <span class="text-xs text-secondary">Ano em análise</span>
               <h2 class="font-weight-bolder text-success mb-1">{{ $anoSelecionado }}</h2>
-              <form method="GET" action="{{ route('funcionario.relatorios.index') }}" class="d-flex flex-wrap justify-content-center align-items-center gap-2 mt-3">
-                <select name="ano" class="form-select form-select-sm w-auto text-center border-success">
-                  @foreach($anosDisponiveis as $ano)
-                    <option value="{{ $ano }}" {{ (int) $anoSelecionado === (int) $ano ? 'selected' : '' }}>{{ $ano }}</option>
-                  @endforeach
-                </select>
+              <form method="GET" action="{{ route('funcionario.relatorios.index') }}" class="d-flex align-items-stretch gap-3 mt-3">
+                <div class="year-control d-flex align-items-center">
+                  <select name="ano" class="form-select year-select w-100">
+                    @foreach($anosDisponiveis as $ano)
+                      <option value="{{ $ano }}" {{ (int) $anoSelecionado === (int) $ano ? 'selected' : '' }}>{{ $ano }}</option>
+                    @endforeach
+                  </select>
+                </div>
                 @foreach(request()->query() as $param => $value)
                   @continue($param === 'ano')
                   <input type="hidden" name="{{ $param }}" value="{{ $value }}">
                 @endforeach
-                <button type="submit" class="btn btn-sm btn-success px-4">Alterar</button>
+                <button type="submit" class="btn btn-success px-4 year-control align-self-stretch d-flex align-items-center justify-content-center">Alterar</button>
               </form>
             </div>
           </div>
@@ -257,14 +259,23 @@
 
     <div class="card mb-4">
       <div class="card-body">
+        <div class="alert border d-flex flex-column flex-lg-row align-items-start gap-3 mb-4" style="background-color:#f5fbff;">
+          <div>
+            <span class="badge bg-success-subtle text-success text-uppercase mb-2">Como funciona</span>
+            <p class="text-secondary fw-semibold fs-6 mb-0">
+              Define o ano de referência, aplica os filtros desejados e clica em <strong>Aplicar filtros</strong> para atualizar todos os cartões de estatísticas.
+              Quando quiseres ver apenas o total filtrado num gráfico rápido, usa o botão <strong>Gerar gráfico</strong> sem sair desta página.
+            </p>
+          </div>
+        </div>
         <form class="filter-stats-form" method="GET" action="{{ route('funcionario.relatorios.index') }}">
           <div class="row g-3">
             <div class="col-12 col-xl-3">
-              <div class="border rounded-4 h-100 p-3 bg-light">
-                <small class="text-uppercase text-success fw-bold">Janela temporal</small>
+              <div class="border rounded-4 h-100 p-3">
+                <small class="text-uppercase text-secondary fw-bold">Janela temporal</small>
                 <p class="text-xs text-secondary mb-3">Escolhe o ano de referência antes de aplicar os restantes filtros.</p>
                 <label class="form-label text-xs text-secondary mb-1">Ano</label>
-                <select name="ano" class="form-select form-select-sm">
+                <select name="ano" class="form-select form-select-sm year-select">
                   @foreach($anosDisponiveis as $ano)
                     <option value="{{ $ano }}" {{ (int) $filters['ano'] === (int) $ano ? 'selected' : '' }}>{{ $ano }}</option>
                   @endforeach
@@ -273,7 +284,7 @@
             </div>
             <div class="col-12 col-xl-5">
               <div class="border rounded-4 h-100 p-3">
-                <small class="text-uppercase text-secondary">Perfil sociodemográfico</small>
+                <small class="text-uppercase text-secondary fw-bold">Perfil sociodemográfico</small>
                 <div class="row g-3 mt-2">
                   <div class="col-md-6">
                     <label class="form-label text-xs text-secondary">Género</label>
@@ -298,7 +309,7 @@
             </div>
             <div class="col-12 col-xl-4">
               <div class="border rounded-4 h-100 p-3">
-                <small class="text-uppercase text-secondary">Processo do inquérito</small>
+                <small class="text-uppercase text-secondary fw-bold">Processo do inquérito</small>
                 <p class="text-xs text-secondary mb-2">Filtra por estado de submissão das fichas.</p>
                 <label class="form-label text-xs text-secondary">Situação inquérito</label>
                 <select name="situacao_inquerito" class="form-select form-select-sm">
@@ -310,7 +321,7 @@
             </div>
             <div class="col-12 col-xl-5">
               <div class="border rounded-4 h-100 p-3">
-                <small class="text-uppercase text-secondary">Habitação</small>
+                <small class="text-uppercase text-secondary fw-bold">Habitação</small>
                 <div class="row g-3 mt-2">
                   <div class="col-md-6">
                     <label class="form-label text-xs text-secondary">Tipologia</label>
@@ -335,7 +346,7 @@
             </div>
             <div class="col-12 col-xl-7">
               <div class="border rounded-4 h-100 p-3">
-                <small class="text-uppercase text-secondary">Território</small>
+                <small class="text-uppercase text-secondary fw-bold">Território</small>
                 <div class="row g-3 mt-2">
                   <div class="col-md-6">
                     <label class="form-label text-xs text-secondary">Concelho</label>
@@ -377,12 +388,11 @@
                 <div class="flex-grow-1">
                   <label class="form-label text-xs text-secondary">Resumo do gráfico</label>
                   <p class="text-sm text-secondary mb-2">A visualização personalizada mostra quantas famílias correspondem aos filtros ativos.</p>
-                  <small class="text-xs text-secondary">Ajusta os filtros acima e usa o botão "Gerar gráfico" para atualizar o resultado.</small>
                 </div>
                 <div class="d-flex flex-column flex-md-row gap-2 w-100 w-xl-auto">
                   <a href="{{ route('funcionario.relatorios.index') }}" class="btn btn-outline-secondary w-100">Limpar</a>
                   <button class="btn bg-gradient-success w-100" type="submit">Aplicar filtros</button>
-                  <button class="btn btn-success w-100" type="button" id="btn-gerar-grafico" {{ ((int) ($totais['totalFamilias'] ?? 0)) === 0 ? 'disabled' : '' }}>Gerar gráfico</button>
+                  <button class="btn btn-success w-100" type="button" id="btn-gerar-grafico" data-url="{{ route('funcionario.relatorios.custom-chart') }}">Gerar gráfico</button>
                 </div>
               </div>
             </div>
@@ -397,7 +407,7 @@
           <h6 class="mb-0">Gráfico do filtro atual</h6>
           <p class="text-xs text-secondary mb-0">Mostra quantas famílias correspondem aos critérios escolhidos.</p>
         </div>
-        <span class="badge bg-light border text-primary" id="custom-chart-title">Aguardando geração</span>
+        <span class="badge bg-warning-subtle text-warning" id="custom-chart-title">Aguardando geração</span>
       </div>
       <div class="card-body">
         <p class="text-sm text-secondary mb-0" id="custom-chart-placeholder">Utiliza o botão "Gerar gráfico" após definir os filtros.</p>
@@ -951,11 +961,45 @@
   </div>
 @endsection
 
+@push('css')
+  <style>
+    .year-control {
+      min-width: 150px;
+    }
+
+    .year-control .year-select,
+    .year-control.btn-success {
+      height: 44px;
+      width: 100%;
+    }
+
+    .year-control.btn-success {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .year-select {
+      border: 1px solid #cad1d7 !important;
+      color: #344767;
+      font-weight: 600;
+      border-radius: 0.85rem;
+      text-align: center;
+      padding-right: 2.5rem;
+      background-position: right 0.9rem center;
+    }
+
+    .year-select:focus {
+      border-color: #82d616 !important;
+      box-shadow: 0 0 0 0.2rem rgba(130, 214, 22, 0.25);
+    }
+  </style>
+@endpush
+
 @push('js')
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const chartConfigs = @json($chartConfigsPayload);
-      const filterTotals = @json(['familias' => $totais['totalFamilias'] ?? 0]);
       const chartInstances = {};
 
       const initChart = (chartId, chartConfig, forcedType = null) => {
@@ -1026,48 +1070,118 @@
         alert: document.getElementById('custom-chart-alert'),
         title: document.getElementById('custom-chart-title'),
         card: document.getElementById('custom-chart-card'),
+        form: document.querySelector('.filter-stats-form'),
       };
 
-      if (customChartElements.button && customChartElements.card) {
-        customChartElements.button.addEventListener('click', () => {
-          const totalFamilias = Number(filterTotals.familias || 0);
+      const toggleCustomChartAlert = (message = '', isError = false) => {
+        if (!customChartElements.alert) {
+          return;
+        }
 
-          if (totalFamilias <= 0) {
-            if (customChartElements.alert) {
-              customChartElements.alert.textContent = 'Não existem famílias para os filtros selecionados.';
-              customChartElements.alert.classList.remove('d-none');
-            }
+        if (!message) {
+          customChartElements.alert.classList.add('d-none');
+          customChartElements.alert.textContent = '';
+          return;
+        }
+
+        customChartElements.alert.textContent = message;
+        customChartElements.alert.classList.toggle('d-none', false);
+        customChartElements.alert.classList.toggle('alert-warning', !isError);
+        customChartElements.alert.classList.toggle('alert-danger', isError);
+      };
+
+      const setGenerateButtonState = isLoading => {
+        const button = customChartElements.button;
+        if (!button) {
+          return;
+        }
+
+        if (isLoading) {
+          if (!button.dataset.originalText) {
+            button.dataset.originalText = button.textContent.trim();
+          }
+          button.disabled = true;
+          button.textContent = 'A processar...';
+        } else {
+          button.disabled = false;
+          if (button.dataset.originalText) {
+            button.textContent = button.dataset.originalText;
+          }
+        }
+      };
+
+      const renderCustomChart = totalFamilias => {
+        const customConfig = {
+          labels: ['Famílias'],
+          datasets: [{
+            label: 'Famílias no filtro',
+            data: [totalFamilias],
+            backgroundColor: ['#17ad37'],
+          }],
+          defaultType: 'bar',
+        };
+
+        initChart('chart-custom', customConfig);
+
+        if (customChartElements.wrapper) {
+          customChartElements.wrapper.classList.remove('d-none');
+        }
+        if (customChartElements.placeholder) {
+          customChartElements.placeholder.classList.add('d-none');
+        }
+        if (customChartElements.title) {
+          customChartElements.title.textContent = `${totalFamilias} família${totalFamilias !== 1 ? 's' : ''}`;
+        }
+
+        customChartElements.card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      };
+
+      if (customChartElements.button && customChartElements.card && customChartElements.form) {
+        customChartElements.button.addEventListener('click', async () => {
+          const endpoint = customChartElements.button.dataset.url;
+          if (!endpoint) {
+            toggleCustomChartAlert('Endpoint do gráfico não disponível.', true);
             return;
           }
 
-          if (customChartElements.alert) {
-            customChartElements.alert.classList.add('d-none');
-            customChartElements.alert.textContent = '';
-          }
+          const params = new URLSearchParams(new FormData(customChartElements.form));
 
-          const customConfig = {
-            labels: ['Famílias'],
-            datasets: [{
-              label: 'Famílias no filtro',
-              data: [totalFamilias],
-              backgroundColor: ['#17ad37'],
-            }],
-            defaultType: 'bar',
-          };
+          setGenerateButtonState(true);
+          toggleCustomChartAlert();
 
-          initChart('chart-custom', customConfig);
+          try {
+            const response = await fetch(`${endpoint}?${params.toString()}`, {
+              headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+              },
+            });
 
-          if (customChartElements.wrapper) {
-            customChartElements.wrapper.classList.remove('d-none');
-          }
-          if (customChartElements.placeholder) {
-            customChartElements.placeholder.classList.add('d-none');
-          }
-          if (customChartElements.title) {
-            customChartElements.title.textContent = `${totalFamilias} família${totalFamilias !== 1 ? 's' : ''}`;
-          }
+            if (!response.ok) {
+              throw new Error('Erro ao processar o pedido.');
+            }
 
-          customChartElements.card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const payload = await response.json();
+            const totalFamilias = Number(payload.totalFamilias ?? 0);
+
+            if (totalFamilias <= 0) {
+              if (customChartElements.wrapper) {
+                customChartElements.wrapper.classList.add('d-none');
+              }
+              if (customChartElements.placeholder) {
+                customChartElements.placeholder.classList.remove('d-none');
+              }
+              toggleCustomChartAlert('Não existem famílias para os filtros selecionados.');
+              return;
+            }
+
+            toggleCustomChartAlert();
+            renderCustomChart(totalFamilias);
+          } catch (error) {
+            toggleCustomChartAlert('Não foi possível gerar o gráfico. Tenta novamente mais tarde.', true);
+          } finally {
+            setGenerateButtonState(false);
+          }
         });
       }
 

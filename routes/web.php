@@ -124,6 +124,7 @@ Route::group([
     Route::get('/dashboard', [FuncionarioDashboardController::class, 'index'])->name('dashboard.index');
     Route::get('/relatorios', [RelatorioController::class, 'index'])->name('relatorios.index');
     Route::get('/relatorios/exportar', [RelatorioController::class, 'export'])->name('relatorios.export');
+    Route::get('/relatorios/custom-chart', [RelatorioController::class, 'customChart'])->name('relatorios.custom-chart');
     Route::get('/exportar-dados', [ExportarDadosController::class, 'index'])->name('exportar.index');
     Route::post('/exportar-dados/pdf-concelho', [ExportarDadosController::class, 'exportEstatisticasConcelhoPdf'])->name('exportar.concelho.pdf');
     Route::post('/exportar-dados/pdf-freguesia', [ExportarDadosController::class, 'exportEstatisticasFreguesiaPdf'])->name('exportar.freguesia.pdf');

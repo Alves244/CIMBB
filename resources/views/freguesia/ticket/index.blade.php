@@ -74,9 +74,7 @@
                         @endif
                       </td>
                       <td class="align-middle">
-                        <a href="{{ route('freguesia.suporte.show', $ticket->id) }}" class="btn btn-link text-info text-gradient px-1 mb-0" data-bs-toggle="tooltip" data-bs-original-title="Ver Ticket">
-                            <i class="fas fa-eye text-sm"></i>
-                        </a>
+                        <a href="{{ route('freguesia.suporte.show', $ticket->id) }}" class="support-action-btn">Ver detalhes</a>
                       </td>
                     </tr>
                   @empty
@@ -99,6 +97,30 @@
   </div>
 
 @endsection
+
+@push('css')
+  <style>
+    .support-action-btn {
+      display: inline-block;
+      padding: 0.1rem 0.25rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #1e3358;
+      text-decoration: none;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      transition: color 0.2s ease;
+    }
+
+    .support-action-btn:hover {
+      color: #0f74c0;
+      text-decoration: none;
+    }
+  </style>
+@endpush
 
 @push('js')
   <script>
