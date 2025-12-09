@@ -17,9 +17,12 @@ class AtividadeEconomica extends Model
      */
     protected $fillable = [
         'familia_id',
+        'identificador',
         'tipo',
         'setor_id',
         'descricao',
+        'vinculo',
+        'local_trabalho',
     ];
 
 

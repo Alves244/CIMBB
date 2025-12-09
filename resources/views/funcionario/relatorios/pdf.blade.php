@@ -19,6 +19,22 @@
   </style>
 </head>
 <body>
+  @php
+    $labelHabitacao = [
+      'moradia' => 'Moradia',
+      'apartamento' => 'Apartamento',
+      'caravana_tenda' => 'Caravana / tenda',
+      'anexo' => 'Anexo / construção secundária',
+      'outro' => 'Outro',
+    ];
+
+    $labelPropriedade = [
+      'propria' => 'Própria',
+      'arrendada' => 'Arrendada',
+      'cedida' => 'Cedida',
+      'outra' => 'Outra',
+    ];
+  @endphp
   <h1>Estatísticas CIMBB · {{ $ano }}</h1>
   <p class="muted">Gerado em {{ $geradoEm->format('d/m/Y H:i') }}</p>
 
@@ -71,8 +87,8 @@
           <td>{{ $familia['codigo'] }}</td>
           <td>{{ $familia['concelho'] }}</td>
           <td>{{ $familia['freguesia'] }}</td>
-          <td>{{ ucfirst($familia['tipologia_habitacao']) }}</td>
-          <td>{{ ucfirst($familia['tipologia_propriedade']) }}</td>
+          <td>{{ $labelHabitacao[$familia['tipologia_habitacao']] ?? ucfirst($familia['tipologia_habitacao']) }}</td>
+          <td>{{ $labelPropriedade[$familia['tipologia_propriedade']] ?? ucfirst($familia['tipologia_propriedade']) }}</td>
           <td>{{ $familia['nacionalidade'] }}</td>
           <td>{{ $familia['total_membros'] }}</td>
           <td>{{ $familia['situacao_inquerito'] }}</td>

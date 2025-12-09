@@ -16,6 +16,13 @@ class SetorAtividade extends Model
     // Indica que não há timestamps created_at/updated_at nesta tabela
     public $timestamps = false;
 
+    protected $fillable = [
+        'nome',
+        'descricao',
+        'macro_grupo',
+        'ativo',
+    ];
+
     /**
      * Define a relação: Um Setor pode classificar muitas Atividades Económicas.
      * (Relação G no ER [cite: 524])

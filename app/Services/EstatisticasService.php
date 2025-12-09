@@ -12,7 +12,6 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class EstatisticasService
@@ -275,6 +274,16 @@ class EstatisticasService
             ->groupBy('tipologia_propriedade')
             ->pluck('total', 'tipologia_propriedade');
 
+        $porLocalizacao = (clone $familiaBase)
+            ->selectRaw("COALESCE(localizacao_tipo, 'nao_informado') as chave, COUNT(*) as total")
+            ->groupBy('chave')
+            ->pluck('total', 'chave');
+
+        $porCondicao = (clone $familiaBase)
+            ->selectRaw("COALESCE(condicao_alojamento, 'nao_informado') as chave, COUNT(*) as total")
+            ->groupBy('chave')
+            ->pluck('total', 'chave');
+
         $porNacionalidade = (clone $familiaBase)
             ->select('nacionalidade', DB::raw('count(*) as total'))
             ->groupBy('nacionalidade')
@@ -305,9 +314,28 @@ class EstatisticasService
             })
             ->first();
 
+        $inscritosSaude = (clone $familiaBase)
+            ->where('inscrito_centro_saude', true)
+            ->count();
+
+        $porEscola = (clone $familiaBase)
+            ->selectRaw("COALESCE(inscrito_escola, 'nao_informado') as chave, COUNT(*) as total")
+            ->groupBy('chave')
+            ->pluck('total', 'chave');
+
+        $necessidades = (clone $familiaBase)
+            ->whereNotNull('necessidades_apoio')
+            ->get(['necessidades_apoio'])
+            ->flatMap(function (Familia $familia) {
+                return collect($familia->necessidades_apoio ?? []);
+            })
+            ->countBy();
+
         return [
             'habitacao' => $porHabitacao,
             'propriedade' => $porPropriedade,
+            'localizacao' => $porLocalizacao,
+            'condicao' => $porCondicao,
             'nacionalidades' => $porNacionalidade,
             'setores' => $porSetor,
             'genero' => [
@@ -320,6 +348,16 @@ class EstatisticasService
                 'adultos_laboral' => (int) ($agregado->faixa_laboral ?? 0),
                 'adultos_65' => (int) ($agregado->faixa_65 ?? 0),
             ],
+            'integracao' => [
+                'centro_saude' => (int) $inscritosSaude,
+                'escola' => [
+                    'sim' => (int) ($porEscola['sim'] ?? 0),
+                    'nao' => (int) ($porEscola['nao'] ?? 0),
+                    'nao_sei' => (int) ($porEscola['nao_sei'] ?? 0),
+                    'nao_informado' => (int) ($porEscola['nao_informado'] ?? 0),
+                ],
+            ],
+            'necessidades' => $necessidades,
         ];
     }
 
@@ -445,15 +483,7 @@ class EstatisticasService
 
         $mapFamilia = function (Familia $familia) use ($submetidas) {
             $agregado = $familia->agregadoFamiliar;
-            $totalMembros = ($agregado->adultos_laboral_m ?? 0)
-                + ($agregado->adultos_laboral_f ?? 0)
-                + ($agregado->adultos_laboral_n ?? 0)
-                + ($agregado->adultos_65_mais_m ?? 0)
-                + ($agregado->adultos_65_mais_f ?? 0)
-                + ($agregado->adultos_65_mais_n ?? 0)
-                + ($agregado->criancas_m ?? 0)
-                + ($agregado->criancas_f ?? 0)
-                + ($agregado->criancas_n ?? 0);
+            $totalMembros = (int) ($agregado->total_membros ?? 0);
 
             return [
                 'codigo' => $familia->codigo,
@@ -462,6 +492,8 @@ class EstatisticasService
                 'nacionalidade' => $familia->nacionalidade,
                 'tipologia_habitacao' => $familia->tipologia_habitacao,
                 'tipologia_propriedade' => $familia->tipologia_propriedade,
+                'localizacao_tipo' => $familia->localizacao_tipo,
+                'condicao_alojamento' => $familia->condicao_alojamento,
                 'total_membros' => (int) $totalMembros,
                 'situacao_inquerito' => in_array($familia->freguesia_id, $submetidas) ? 'Submetido' : 'Pendente',
             ];
@@ -476,4 +508,5 @@ class EstatisticasService
 
         return $paginator;
     }
+
 }

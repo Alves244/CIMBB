@@ -71,15 +71,17 @@ class InqueritoFreguesiaController extends Controller
         $setores = SetorAtividade::where('ativo', true)->orderBy('nome')->get();
         
         $preenchido = [];
-        $preenchido['total_nucleo_urbano'] = $familiasDaFreguesia->where('localizacao', 'nucleo_urbano')->count();
-        $preenchido['total_aldeia_anexa'] = $familiasDaFreguesia->where('localizacao', 'aldeia_anexa')->count();
-        $preenchido['total_agroflorestal'] = $familiasDaFreguesia->where('localizacao', 'espaco_agroflorestal')->count();
+        $preenchido['total_nucleo_urbano'] = $familiasDaFreguesia->where('localizacao_tipo', 'sede_freguesia')->count();
+        $preenchido['total_aldeia_anexa'] = $familiasDaFreguesia->where('localizacao_tipo', 'lugar_aldeia')->count();
+        $preenchido['total_agroflorestal'] = $familiasDaFreguesia->where('localizacao_tipo', 'espaco_agroflorestal')->count();
 
         $preenchido['total_adultos'] = $agregadosDaFreguesia->sum('adultos_laboral') + $agregadosDaFreguesia->sum('adultos_65_mais');
         $preenchido['total_criancas'] = $agregadosDaFreguesia->sum('criancas');
         
         $preenchido['total_propria'] = $familiasDaFreguesia->where('tipologia_propriedade', 'propria')->count();
-        $preenchido['total_arrendada'] = $familiasDaFreguesia->where('tipologia_propriedade', 'arrendada')->count();
+        $preenchido['total_arrendada'] = $familiasDaFreguesia
+            ->whereIn('tipologia_propriedade', ['arrendada', 'cedida', 'outra'])
+            ->count();
 
         $atividadesPropria = $atividadesDaFreguesia->where('tipo', 'conta_propria');
         $atividadesOutrem = $atividadesDaFreguesia->where('tipo', 'conta_outrem');

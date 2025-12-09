@@ -28,6 +28,11 @@ class AgregadoFamiliar extends Model
         'criancas_m',
         'criancas_f',
         'criancas_n',
+        'estrutura_familiar',
+    ];
+
+    protected $casts = [
+        'estrutura_familiar' => 'array',
     ];
 
     /**

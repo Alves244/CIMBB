@@ -24,8 +24,19 @@ class Familia extends Model
         'freguesia_id',
         'tipologia_habitacao',
         'tipologia_propriedade',
+        'localizacao_tipo',
+        'localizacao_detalhe',
+        'condicao_alojamento',
+        'inscrito_centro_saude',
+        'inscrito_escola',
+        'necessidades_apoio',
+        'observacoes',
         'utilizador_registo_id',
-        'localizacao', 
+    ];
+
+    protected $casts = [
+        'inscrito_centro_saude' => 'boolean',
+        'necessidades_apoio' => 'array',
     ];
 
 
