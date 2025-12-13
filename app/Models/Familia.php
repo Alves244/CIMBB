@@ -20,6 +20,9 @@ class Familia extends Model
     protected $fillable = [
         'codigo',
         'ano_instalacao',
+        'estado_acompanhamento',
+        'data_desinstalacao',
+        'ano_desinstalacao',
         'nacionalidade',
         'freguesia_id',
         'tipologia_habitacao',
@@ -30,13 +33,14 @@ class Familia extends Model
         'inscrito_centro_saude',
         'inscrito_escola',
         'necessidades_apoio',
+        'necessidades_apoio_outro',
         'observacoes',
         'utilizador_registo_id',
     ];
 
     protected $casts = [
-        'inscrito_centro_saude' => 'boolean',
         'necessidades_apoio' => 'array',
+        'data_desinstalacao' => 'date',
     ];
 
 

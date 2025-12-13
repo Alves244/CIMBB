@@ -7,7 +7,12 @@
                 <div class="card">
                     <div class="card-header pb-0">
                         <h6>Editar ficha de família residente</h6>
-                        <p class="text-sm mb-0">Código interno: {{ $familia->codigo }}</p>
+                        @if ($familia->updated_at)
+                            <p class="text-xs text-muted mb-0">Última atualização: {{ $familia->updated_at->format('d/m/Y H:i') }}</p>
+                        @endif
+                        @if ($familia->estado_acompanhamento === 'desinstalada')
+                            <p class="text-xs text-danger mb-0">Família desinstalada{{ $familia->data_desinstalacao ? ' desde '.$familia->data_desinstalacao->format('d/m/Y') : '' }}.</p>
+                        @endif
                     </div>
                     <div class="card-body">
                         <form action="{{ route('freguesia.familias.update', $familia->id) }}" method="POST" role="form">

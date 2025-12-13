@@ -202,10 +202,14 @@ class EstatisticasService
 
     private function aplicarFiltroGenero(Builder $query, string $genero): void
     {
+        if ($genero === 'nao_declarado') {
+            $genero = 'sem_informacao';
+        }
+
         $mapaColunas = [
             'masculino' => ['adultos_laboral_m', 'adultos_65_mais_m', 'criancas_m'],
             'feminino' => ['adultos_laboral_f', 'adultos_65_mais_f', 'criancas_f'],
-            'nao_declarado' => ['adultos_laboral_n', 'adultos_65_mais_n', 'criancas_n'],
+            'sem_informacao' => ['membros_sem_informacao'],
         ];
 
         if (!isset($mapaColunas[$genero])) {
@@ -224,9 +228,9 @@ class EstatisticasService
     private function aplicarFiltroFaixaEtaria(Builder $query, string $faixa): void
     {
         $mapaColunas = [
-            'criancas' => ['criancas_m', 'criancas_f', 'criancas_n'],
-            'adultos_laboral' => ['adultos_laboral_m', 'adultos_laboral_f', 'adultos_laboral_n'],
-            'adultos_65' => ['adultos_65_mais_m', 'adultos_65_mais_f', 'adultos_65_mais_n'],
+            'criancas' => ['criancas_m', 'criancas_f'],
+            'adultos_laboral' => ['adultos_laboral_m', 'adultos_laboral_f'],
+            'adultos_65' => ['adultos_65_mais_m', 'adultos_65_mais_f'],
         ];
 
         if (!isset($mapaColunas[$faixa])) {
@@ -249,13 +253,14 @@ class EstatisticasService
 
         $agregado = AgregadoFamiliar::query()
             ->selectRaw('
-                coalesce(sum(adultos_laboral_m + adultos_laboral_f + adultos_laboral_n + adultos_65_mais_m + adultos_65_mais_f + adultos_65_mais_n + criancas_m + criancas_f + criancas_n), 0) as total_membros,
-                coalesce(sum(adultos_laboral_m + adultos_laboral_f + adultos_laboral_n), 0) as adultos_laboral,
-                coalesce(sum(adultos_65_mais_m + adultos_65_mais_f + adultos_65_mais_n), 0) as adultos_65,
-                coalesce(sum(criancas_m + criancas_f + criancas_n), 0) as criancas,
+                coalesce(sum(adultos_laboral_m + adultos_laboral_f + adultos_65_mais_m + adultos_65_mais_f + criancas_m + criancas_f + membros_sem_informacao), 0) as total_membros,
+                coalesce(sum(adultos_laboral_m + adultos_laboral_f), 0) as adultos_laboral,
+                coalesce(sum(adultos_65_mais_m + adultos_65_mais_f), 0) as adultos_65,
+                coalesce(sum(criancas_m + criancas_f), 0) as criancas,
                 coalesce(sum(adultos_laboral_m + adultos_65_mais_m + criancas_m), 0) as total_m,
                 coalesce(sum(adultos_laboral_f + adultos_65_mais_f + criancas_f), 0) as total_f,
-                coalesce(sum(adultos_laboral_n + adultos_65_mais_n + criancas_n), 0) as total_n
+                coalesce(sum(membros_sem_informacao), 0) as total_sem_info,
+                coalesce(sum(eleitores_repenicados), 0) as total_eleitores
             ')
             ->whereHas('familia', function (Builder $familia) use ($filters) {
                 $this->aplicarFiltrosFamilia($familia, $filters);
@@ -270,7 +275,8 @@ class EstatisticasService
             'criancas' => (int) ($agregado->criancas ?? 0),
             'totalMasculino' => (int) ($agregado->total_m ?? 0),
             'totalFeminino' => (int) ($agregado->total_f ?? 0),
-            'totalNaoDeclarado' => (int) ($agregado->total_n ?? 0),
+            'totalSemInformacao' => (int) ($agregado->total_sem_info ?? 0),
+            'totalEleitores' => (int) ($agregado->total_eleitores ?? 0),
             'totalNacionalidades' => $totalNacionalidades,
         ];
     }
@@ -319,10 +325,10 @@ class EstatisticasService
             ->selectRaw('
                 coalesce(sum(adultos_laboral_m + adultos_65_mais_m + criancas_m), 0) as masculino,
                 coalesce(sum(adultos_laboral_f + adultos_65_mais_f + criancas_f), 0) as feminino,
-                coalesce(sum(adultos_laboral_n + adultos_65_mais_n + criancas_n), 0) as nao_declarado,
-                coalesce(sum(criancas_m + criancas_f + criancas_n), 0) as faixa_criancas,
-                coalesce(sum(adultos_laboral_m + adultos_laboral_f + adultos_laboral_n), 0) as faixa_laboral,
-                coalesce(sum(adultos_65_mais_m + adultos_65_mais_f + adultos_65_mais_n), 0) as faixa_65
+                coalesce(sum(membros_sem_informacao), 0) as sem_informacao,
+                coalesce(sum(criancas_m + criancas_f), 0) as faixa_criancas,
+                coalesce(sum(adultos_laboral_m + adultos_laboral_f), 0) as faixa_laboral,
+                coalesce(sum(adultos_65_mais_m + adultos_65_mais_f), 0) as faixa_65
             ')
             ->whereHas('familia', function (Builder $familia) use ($filters) {
                 $this->aplicarFiltrosFamilia($familia, $filters);
@@ -356,7 +362,7 @@ class EstatisticasService
             'genero' => [
                 'masculino' => (int) ($agregado->masculino ?? 0),
                 'feminino' => (int) ($agregado->feminino ?? 0),
-                'nao_declarado' => (int) ($agregado->nao_declarado ?? 0),
+                'sem_informacao' => (int) ($agregado->sem_informacao ?? 0),
             ],
             'faixa_etaria' => [
                 'criancas' => (int) ($agregado->faixa_criancas ?? 0),

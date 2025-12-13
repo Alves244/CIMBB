@@ -8,9 +8,7 @@
             return [
                 'identificador' => $atividade->identificador,
                 'situacao' => $atividade->tipo,
-                'vinculo' => $atividade->vinculo,
                 'setor_id' => $atividade->setor_id,
-                'local_trabalho' => $atividade->local_trabalho,
                 'descricao' => $atividade->descricao,
                 'macro_grupo' => $setor->macro_grupo ?? null,
             ];
@@ -19,25 +17,36 @@
 
     $adultosLaboralM = old('adultos_laboral_m', $agregado->adultos_laboral_m ?? 0);
     $adultosLaboralF = old('adultos_laboral_f', $agregado->adultos_laboral_f ?? 0);
-    $adultosLaboralN = old('adultos_laboral_n', $agregado->adultos_laboral_n ?? 0);
     $adultosSeniorM = old('adultos_senior_m', $agregado->adultos_65_mais_m ?? 0);
     $adultosSeniorF = old('adultos_senior_f', $agregado->adultos_65_mais_f ?? 0);
-    $adultosSeniorN = old('adultos_senior_n', $agregado->adultos_65_mais_n ?? 0);
     $criancasM = old('criancas_m', $agregado->criancas_m ?? 0);
     $criancasF = old('criancas_f', $agregado->criancas_f ?? 0);
-    $criancasN = old('criancas_n', $agregado->criancas_n ?? 0);
-    $adultosLaboralTotal = $adultosLaboralM + $adultosLaboralF + $adultosLaboralN;
-    $adultosSeniorTotal = $adultosSeniorM + $adultosSeniorF + $adultosSeniorN;
-    $criancasTotal = $criancasM + $criancasF + $criancasN;
+    $membrosSemInformacao = old('membros_sem_informacao', $agregado->membros_sem_informacao ?? 0);
+    $eleitoresRepenicados = old('eleitores_repenicados', $agregado->eleitores_repenicados ?? null);
+    $adultosLaboralTotal = $adultosLaboralM + $adultosLaboralF;
+    $adultosSeniorTotal = $adultosSeniorM + $adultosSeniorF;
+    $criancasTotal = $criancasM + $criancasF;
+    $totalResidentes = $adultosLaboralTotal + $adultosSeniorTotal + $criancasTotal + $membrosSemInformacao;
 
     $localizacaoTipo = old('localizacao_tipo', optional($familia)->localizacao_tipo ?? 'sede_freguesia');
     $localizacaoDetalhe = old('localizacao_detalhe', optional($familia)->localizacao_detalhe ?? '');
     $tipologiaHabitacao = old('tipologia_habitacao', optional($familia)->tipologia_habitacao ?? 'moradia');
     $tipologiaPropriedade = old('tipologia_propriedade', optional($familia)->tipologia_propriedade ?? 'propria');
-    $condicaoAlojamento = old('condicao_alojamento', optional($familia)->condicao_alojamento ?? 'bom_estado');
-    $inscritoCentroSaude = filter_var(old('inscrito_centro_saude', optional($familia)->inscrito_centro_saude ?? false), FILTER_VALIDATE_BOOLEAN);
+    $estadoAcompanhamento = old('estado_acompanhamento', optional($familia)->estado_acompanhamento ?? 'ativa');
+    $anoDesinstalacao = old('ano_desinstalacao', optional($familia)->ano_desinstalacao);
+    $dataDesinstalacao = old('data_desinstalacao', optional(optional($familia)->data_desinstalacao)->format('Y-m-d'));
+    $inscritoCentroSaudeRaw = old('inscrito_centro_saude', optional($familia)->inscrito_centro_saude);
+    if ($inscritoCentroSaudeRaw === 'nao_sei' || $inscritoCentroSaudeRaw === null || $inscritoCentroSaudeRaw === '') {
+        $inscritoCentroSaudeSelecionado = 'nao_sei';
+    } elseif ($inscritoCentroSaudeRaw === true || $inscritoCentroSaudeRaw === 1 || $inscritoCentroSaudeRaw === '1') {
+        $inscritoCentroSaudeSelecionado = '1';
+    } else {
+        $inscritoCentroSaudeSelecionado = '0';
+    }
     $inscritoEscola = old('inscrito_escola', optional($familia)->inscrito_escola ?? 'nao_sei');
     $necessidadesSelecionadas = collect(old('necessidades_apoio', optional($familia)->necessidades_apoio ?? []))->filter()->values()->all();
+    $apoioOutro = old('necessidades_apoio_outro', optional($familia)->necessidades_apoio_outro);
+    $apoioOutroSelecionado = in_array('outra', $necessidadesSelecionadas, true);
     $estruturaSelecionada = collect(old('estrutura_familiar', $agregado->estrutura_familiar ?? []))->filter()->values()->all();
     $macroGrupos = $formOptions['macroGrupos'] ?? [];
     $setoresAgrupados = $setores->groupBy('macro_grupo');
@@ -71,11 +80,9 @@
         'espaco_agroflorestal' => 'Espaço agroflorestal / quinta isolada',
     ];
 
-    $labelsCondicao = [
-        'bom_estado' => 'Bom estado',
-        'estado_razoavel' => 'Estado razoável',
-        'necessita_reparacoes' => 'Necessita de reparações relevantes',
-        'situacao_precaria' => 'Situação precária',
+    $labelsEstado = [
+        'ativa' => 'Família ativa / instalada',
+        'desinstalada' => 'Família desinstalada',
     ];
 
     $labelsNecessidades = [
@@ -85,6 +92,7 @@
         'regularizacao_administrativa' => 'Regularização administrativa',
         'transporte_mobilidade' => 'Transporte / mobilidade',
         'apoio_social' => 'Apoio social',
+        'outra' => 'Outro apoio / serviço (especificar)',
     ];
 
     $labelsEstrutura = [
@@ -103,12 +111,6 @@
         'desempregado' => 'Desempregado',
         'estudante' => 'Estudante',
         'outra_situacao' => 'Outra situação',
-    ];
-
-    $labelsVinculo = [
-        'empregado' => 'Empregado',
-        'estagiario' => 'Estagiário',
-        'outro' => 'Outro vínculo',
     ];
 
     $labelsEscola = [
@@ -152,6 +154,41 @@
             </div>
         </div>
     </div>
+    <div class="row g-3 mt-2 align-items-end">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label class="form-control-label" for="estado_acompanhamento">Estado da família *</label>
+                <select class="form-control" id="estado_acompanhamento" name="estado_acompanhamento" required>
+                    @foreach ($formOptions['estadosAcompanhamento'] as $estado)
+                        <option value="{{ $estado }}" {{ $estadoAcompanhamento === $estado ? 'selected' : '' }}>{{ $labelsEstado[$estado] }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+        <div class="col-md-4 desinstalacao-field {{ $estadoAcompanhamento === 'desinstalada' ? '' : 'd-none' }}">
+            <div class="form-group">
+                <label class="form-control-label" for="ano_desinstalacao">Ano de desinstalação</label>
+                <input type="number" class="form-control" id="ano_desinstalacao" name="ano_desinstalacao" min="1900" max="{{ date('Y') }}" value="{{ $anoDesinstalacao }}" placeholder="AAAA">
+                @error('ano_desinstalacao')
+                    <p class="text-danger text-xs mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+        <div class="col-md-4 desinstalacao-field {{ $estadoAcompanhamento === 'desinstalada' ? '' : 'd-none' }}">
+            <div class="form-group">
+                <label class="form-control-label" for="data_desinstalacao">Data de desinstalação</label>
+                <input type="date" class="form-control" id="data_desinstalacao" name="data_desinstalacao" value="{{ $dataDesinstalacao }}">
+                @error('data_desinstalacao')
+                    <p class="text-danger text-xs mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+        @error('estado_acompanhamento')
+            <div class="col-12">
+                <p class="text-danger text-xs">{{ $message }}</p>
+            </div>
+        @enderror
+    </div>
 </div>
 
 <div class="mb-4">
@@ -179,7 +216,7 @@
 <div class="mb-4">
     <h6 class="text-dark">3. Características do alojamento *</h6>
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="form-group">
                 <label class="form-control-label" for="tipologia_habitacao">Tipologia</label>
                 <select class="form-control" name="tipologia_habitacao" id="tipologia_habitacao" required>
@@ -189,22 +226,12 @@
                 </select>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="form-group">
                 <label class="form-control-label" for="tipologia_propriedade">Regime de propriedade</label>
                 <select class="form-control" name="tipologia_propriedade" id="tipologia_propriedade" required>
                     @foreach ($formOptions['regimesPropriedade'] as $valor)
                         <option value="{{ $valor }}" {{ $tipologiaPropriedade === $valor ? 'selected' : '' }}>{{ $labelsPropriedade[$valor] }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <label class="form-control-label" for="condicao_alojamento">Condição do alojamento</label>
-                <select class="form-control" name="condicao_alojamento" id="condicao_alojamento" required>
-                    @foreach ($formOptions['condicoesAlojamento'] as $valor)
-                        <option value="{{ $valor }}" {{ $condicaoAlojamento === $valor ? 'selected' : '' }}>{{ $labelsCondicao[$valor] }}</option>
                     @endforeach
                 </select>
             </div>
@@ -221,7 +248,6 @@
                     <th class="text-secondary text-xs">Faixa etária</th>
                     <th class="text-secondary text-xs">Masculino</th>
                     <th class="text-secondary text-xs">Feminino</th>
-                    <th class="text-secondary text-xs">Não declarado</th>
                     <th class="text-secondary text-xs">Total</th>
                 </tr>
             </thead>
@@ -233,9 +259,6 @@
                     </td>
                     <td style="width: 140px">
                         <input type="number" class="form-control" id="adultos_laboral_f" name="adultos_laboral_f" min="0" value="{{ $adultosLaboralF }}" required>
-                    </td>
-                    <td style="width: 140px">
-                        <input type="number" class="form-control" id="adultos_laboral_n" name="adultos_laboral_n" min="0" value="{{ $adultosLaboralN }}" required>
                     </td>
                     <td style="width: 140px">
                         <input type="number" class="form-control bg-light" id="adultos_laboral_total" value="{{ $adultosLaboralTotal }}" readonly>
@@ -250,9 +273,6 @@
                         <input type="number" class="form-control" id="adultos_senior_f" name="adultos_senior_f" min="0" value="{{ $adultosSeniorF }}" required>
                     </td>
                     <td>
-                        <input type="number" class="form-control" id="adultos_senior_n" name="adultos_senior_n" min="0" value="{{ $adultosSeniorN }}" required>
-                    </td>
-                    <td>
                         <input type="number" class="form-control bg-light" id="adultos_senior_total" value="{{ $adultosSeniorTotal }}" readonly>
                     </td>
                 </tr>
@@ -265,23 +285,30 @@
                         <input type="number" class="form-control" id="criancas_f" name="criancas_f" min="0" value="{{ $criancasF }}" required>
                     </td>
                     <td>
-                        <input type="number" class="form-control" id="criancas_n" name="criancas_n" min="0" value="{{ $criancasN }}" required>
-                    </td>
-                    <td>
                         <input type="number" class="form-control bg-light" id="criancas_total" value="{{ $criancasTotal }}" readonly>
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
-    <div class="row mb-3">
-        <div class="col-md-3 ms-auto">
+    <div class="row g-3 mb-3">
+        <div class="col-md-4">
+            <label class="form-control-label" for="eleitores_repenicados">Eleitores</label>
+            <input type="number" class="form-control" id="eleitores_repenicados" name="eleitores_repenicados" min="0" value="{{ $eleitoresRepenicados }}">
+            <p class="text-xs text-muted mt-1 mb-0">Número de membros que estão recenseados ou registados para votar.</p>
+        </div>
+        <div class="col-md-4">
+            <label class="form-control-label" for="membros_sem_informacao">Pessoas sem informação *</label>
+            <input type="number" class="form-control" id="membros_sem_informacao" name="membros_sem_informacao" min="0" value="{{ $membrosSemInformacao }}" required>
+            <p class="text-xs text-muted mt-1 mb-0">Use quando não é possível identificar idade ou género.</p>
+        </div>
+        <div class="col-md-4">
             <label class="form-control-label">Total de residentes</label>
-            <input type="number" class="form-control bg-light" id="total_residentes" readonly>
+            <input type="number" class="form-control bg-light" id="total_residentes" value="{{ $totalResidentes }}" readonly>
         </div>
     </div>
     <div class="mt-3">
-        <p class="text-sm mb-2">Estrutura familiar (assinale todas as opções aplicáveis)</p>
+        <p class="text-sm mb-2 fw-bold text-dark">Estrutura familiar (assinale todas as opções aplicáveis)</p>
         <div class="row">
             @foreach ($formOptions['estruturasFamiliares'] as $valor)
                 <div class="col-sm-6 col-lg-4">
@@ -301,7 +328,7 @@
             <h6 class="text-dark mb-0">5. Situação socioprofissional dos adultos</h6>
             <p class="text-xs text-muted mb-0">Registe cada adulto em idade laboral. Pode adicionar ou remover linhas conforme necessário.</p>
         </div>
-        <button type="button" class="btn btn-outline-primary btn-sm" id="adicionar-adulto">
+        <button type="button" class="btn btn-outline-success btn-sm" id="adicionar-adulto">
             <i class="fas fa-plus me-1"></i> Adicionar adulto
         </button>
     </div>
@@ -313,7 +340,7 @@
                     <button type="button" class="btn btn-link text-danger text-sm remove-adulto">Remover</button>
                 </div>
                 <div class="row g-3">
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label class="form-control-label">Identificador</label>
                         <input type="text" name="adultos[{{ $index }}][identificador]" class="form-control" value="{{ $adulto['identificador'] ?? '' }}">
                     </div>
@@ -326,7 +353,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-5">
                         <label class="form-control-label">Grande grupo *</label>
                         <select class="form-control macro-grupo-select" name="adultos[{{ $index }}][macro_grupo]" data-selected="{{ $adulto['macro_grupo'] ?? '' }}" data-target="adulto-setor-{{ $index }}">
                             <option value="" {{ empty($adulto['macro_grupo']) ? 'selected' : '' }}>Selecione</option>
@@ -335,26 +362,13 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-control-label">Vínculo</label>
-                        <select class="form-control" name="adultos[{{ $index }}][vinculo]">
-                            <option value="" {{ empty($adulto['vinculo']) ? 'selected' : '' }}>Não aplicável</option>
-                            @foreach ($formOptions['vinculosProfissionais'] as $valor)
-                                <option value="{{ $valor }}" {{ ($adulto['vinculo'] ?? '') === $valor ? 'selected' : '' }}>{{ $labelsVinculo[$valor] }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-control-label">Atividade específica *</label>
                         <select class="form-control setor-select" name="adultos[{{ $index }}][setor_id]" id="adulto-setor-{{ $index }}" data-selected="{{ $adulto['setor_id'] ?? '' }}">
                             <option value="" {{ empty($adulto['setor_id']) ? 'selected' : '' }}>Selecione a atividade</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-control-label">Local de trabalho</label>
-                        <input type="text" class="form-control" name="adultos[{{ $index }}][local_trabalho]" value="{{ $adulto['local_trabalho'] ?? '' }}" placeholder="Município / empresa">
-                    </div>
-                    <div class="col-md-8">
+                    <div class="col-md-6">
                         <label class="form-control-label">Notas / descrição</label>
                         <input type="text" class="form-control" name="adultos[{{ $index }}][descricao]" value="{{ $adulto['descricao'] ?? '' }}" placeholder="Detalhes adicionais (opcional)">
                     </div>
@@ -367,27 +381,36 @@
 </div>
 
 <div class="mb-4">
-    <h6 class="text-dark">6. Integração e serviços</h6>
+    <h6 class="text-dark">6. Apoios e serviços solicitados pela família</h6>
+    <p class="text-xs text-muted">Todos os campos desta secção referem-se ao agregado familiar em acompanhamento.</p>
     <div class="row g-3">
-        <div class="col-md-4">
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="checkbox" id="inscrito_centro_saude" name="inscrito_centro_saude" value="1" {{ $inscritoCentroSaude ? 'checked' : '' }}>
-                <label class="form-check-label" for="inscrito_centro_saude">Inscritos no centro de saúde</label>
+        <div class="col-md-6">
+            <div class="form-group">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <label class="form-control-label mb-0" for="inscrito_centro_saude">Família inscrita no centro de saúde?</label>
+                    <select class="form-control flex-grow-1" id="inscrito_centro_saude" name="inscrito_centro_saude">
+                        <option value="1" {{ $inscritoCentroSaudeSelecionado === '1' ? 'selected' : '' }}>Sim</option>
+                        <option value="0" {{ $inscritoCentroSaudeSelecionado === '0' ? 'selected' : '' }}>Não</option>
+                        <option value="nao_sei" {{ $inscritoCentroSaudeSelecionado === 'nao_sei' ? 'selected' : '' }}>Não sei</option>
+                    </select>
+                </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="form-group">
-                <label class="form-control-label" for="inscrito_escola">Inscritos no agrupamento de escolas</label>
-                <select class="form-control" id="inscrito_escola" name="inscrito_escola">
-                    @foreach ($formOptions['opcoesEscola'] as $valor)
-                        <option value="{{ $valor }}" {{ $inscritoEscola === $valor ? 'selected' : '' }}>{{ $labelsEscola[$valor] }}</option>
-                    @endforeach
-                </select>
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <label class="form-control-label mb-0" for="inscrito_escola">Família com crianças inscritas no agrupamento de escolas?</label>
+                    <select class="form-control flex-grow-1" id="inscrito_escola" name="inscrito_escola">
+                        @foreach ($formOptions['opcoesEscola'] as $valor)
+                            <option value="{{ $valor }}" {{ $inscritoEscola === $valor ? 'selected' : '' }}>{{ $labelsEscola[$valor] }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
         </div>
     </div>
     <div class="mt-3">
-        <p class="text-sm mb-2">Necessidades de apoio identificadas</p>
+        <p class="text-sm mb-2">Apoios / serviços solicitados</p>
         <div class="row">
             @foreach ($formOptions['necessidadesApoio'] as $valor)
                 <div class="col-sm-6 col-lg-4">
@@ -397,6 +420,13 @@
                     </div>
                 </div>
             @endforeach
+        </div>
+        <div class="mt-3 {{ $apoioOutroSelecionado ? '' : 'd-none' }}" id="apoio-outra-wrapper">
+            <label class="form-control-label" for="necessidades_apoio_outro">Outra necessidade — indique qual</label>
+            <input type="text" class="form-control @error('necessidades_apoio_outro') is-invalid @enderror" name="necessidades_apoio_outro" id="necessidades_apoio_outro" value="{{ $apoioOutro }}" placeholder="Descreva o apoio ou serviço solicitado">
+            @error('necessidades_apoio_outro')
+                <p class="text-danger text-xs mt-2">{{ $message }}</p>
+            @enderror
         </div>
     </div>
 </div>
@@ -418,7 +448,7 @@
             <button type="button" class="btn btn-link text-danger text-sm remove-adulto">Remover</button>
         </div>
         <div class="row g-3">
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <label class="form-control-label">Identificador</label>
                 <input type="text" name="adultos[__INDEX__][identificador]" class="form-control">
             </div>
@@ -431,7 +461,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-5">
                 <label class="form-control-label">Grande grupo *</label>
                 <select class="form-control macro-grupo-select" name="adultos[__INDEX__][macro_grupo]" data-target="adulto-setor-__INDEX__">
                     <option value="" selected>Selecione</option>
@@ -440,26 +470,13 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3">
-                <label class="form-control-label">Vínculo</label>
-                <select class="form-control" name="adultos[__INDEX__][vinculo]">
-                    <option value="" selected>Não aplicável</option>
-                    @foreach ($formOptions['vinculosProfissionais'] as $valor)
-                        <option value="{{ $valor }}">{{ $labelsVinculo[$valor] }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <label class="form-control-label">Atividade específica *</label>
                 <select class="form-control setor-select" name="adultos[__INDEX__][setor_id]" id="adulto-setor-__INDEX__">
                     <option value="" selected>Selecione a atividade</option>
                 </select>
             </div>
-            <div class="col-md-4">
-                <label class="form-control-label">Local de trabalho</label>
-                <input type="text" class="form-control" name="adultos[__INDEX__][local_trabalho]" placeholder="Município / empresa">
-            </div>
-            <div class="col-md-8">
+            <div class="col-md-6">
                 <label class="form-control-label">Notas / descrição</label>
                 <input type="text" class="form-control" name="adultos[__INDEX__][descricao]" placeholder="Detalhes adicionais (opcional)">
             </div>
@@ -563,11 +580,12 @@
                 }
 
                 const gruposEtarios = [
-                    { inputs: ['adultos_laboral_m', 'adultos_laboral_f', 'adultos_laboral_n'], totalId: 'adultos_laboral_total' },
-                    { inputs: ['adultos_senior_m', 'adultos_senior_f', 'adultos_senior_n'], totalId: 'adultos_senior_total' },
-                    { inputs: ['criancas_m', 'criancas_f', 'criancas_n'], totalId: 'criancas_total' },
+                    { inputs: ['adultos_laboral_m', 'adultos_laboral_f'], totalId: 'adultos_laboral_total' },
+                    { inputs: ['adultos_senior_m', 'adultos_senior_f'], totalId: 'adultos_senior_total' },
+                    { inputs: ['criancas_m', 'criancas_f'], totalId: 'criancas_total' },
                 ];
                 const totalField = document.getElementById('total_residentes');
+                const semInfoField = document.getElementById('membros_sem_informacao');
                 const obterValor = (id) => {
                     const value = parseInt(document.getElementById(id)?.value || '0', 10);
                     return isNaN(value) ? 0 : value;
@@ -582,6 +600,9 @@
                         }
                         totalResidentes += subtotal;
                     });
+                    if (semInfoField) {
+                        totalResidentes += obterValor('membros_sem_informacao');
+                    }
                     if (totalField) {
                         totalField.value = totalResidentes;
                     }
@@ -589,6 +610,7 @@
                 gruposEtarios
                     .flatMap(grupo => grupo.inputs)
                     .forEach(id => document.getElementById(id)?.addEventListener('input', atualizarTotais));
+                semInfoField?.addEventListener('input', atualizarTotais);
                 atualizarTotais();
 
                 const container = document.getElementById('adultos-container');
@@ -629,8 +651,6 @@
 
                     fillField(`[name="adultos[${nextIndex}][identificador]"]`, data.identificador || '');
                     fillField(`[name="adultos[${nextIndex}][situacao]"]`, data.situacao || '');
-                    fillField(`[name="adultos[${nextIndex}][vinculo]"]`, data.vinculo || '');
-                    fillField(`[name="adultos[${nextIndex}][local_trabalho]"]`, data.local_trabalho || '');
                     fillField(`[name="adultos[${nextIndex}][descricao]"]`, data.descricao || '');
 
                     const macroSelect = row.querySelector(`select[name="adultos[${nextIndex}][macro_grupo]"]`);
@@ -667,6 +687,34 @@
                 };
                 localizacaoSelect?.addEventListener('change', toggleDetalhe);
                 toggleDetalhe();
+
+                const apoioOutroWrapper = document.getElementById('apoio-outra-wrapper');
+                const apoioOutroInput = document.getElementById('necessidades_apoio_outro');
+                const apoioOutroCheckbox = document.getElementById('apoio_outra');
+                const toggleApoioOutro = () => {
+                    if (!apoioOutroWrapper || !apoioOutroCheckbox) {
+                        return;
+                    }
+                    if (apoioOutroCheckbox.checked) {
+                        apoioOutroWrapper.classList.remove('d-none');
+                    } else {
+                        apoioOutroWrapper.classList.add('d-none');
+                        if (apoioOutroInput && !apoioOutroInput.dataset.preserve) {
+                            apoioOutroInput.value = '';
+                        }
+                    }
+                };
+                apoioOutroCheckbox?.addEventListener('change', toggleApoioOutro);
+                toggleApoioOutro();
+
+                const estadoSelect = document.getElementById('estado_acompanhamento');
+                const desinstalacaoFields = document.querySelectorAll('.desinstalacao-field');
+                const toggleDesinstalacaoFields = () => {
+                    const mostrar = estadoSelect?.value === 'desinstalada';
+                    desinstalacaoFields.forEach((field) => field.classList.toggle('d-none', !mostrar));
+                };
+                estadoSelect?.addEventListener('change', toggleDesinstalacaoFields);
+                toggleDesinstalacaoFields();
             });
         </script>
     @endpush

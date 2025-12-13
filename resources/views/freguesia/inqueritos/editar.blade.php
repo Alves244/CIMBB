@@ -115,6 +115,12 @@
                                 @endforeach
                             </div>
 
+                            <div class="form-group mt-4">
+                                <label class="form-control-label h6 text-dark">8. Número total de trabalhadores por conta de outrem</label>
+                                <input class="form-control" type="number" name="total_trabalhadores_outrem" value="{{ old('total_trabalhadores_outrem', $inquerito->total_trabalhadores_outrem) }}" min="0" required>
+                                <p class="text-xs text-muted mb-0">Regista o total de pessoas acompanhadas com atividade por conta de outrem.</p>
+                            </div>
+
                         </div>
                     </div> 
 
@@ -122,11 +128,11 @@
                     <div class="card mt-4">
                         <div class="card-body">
                             {{-- MUDANÇA 3: Texto Verde --}}
-                            <h6 class="font-weight-bolder text-success">Parte 2: Dados Qualitativos</h6>
+                            <h6 class="font-weight-bolder text-success">Parte 2: Percepção da Junta de Freguesia sobre a Integração</h6>
 
                             {{-- Pergunta 20 --}}
                             <div class="form-group mt-4">
-                                <label for="escala_integracao" class="form-control-label h6 text-dark">8. Escala de integração</label>
+                                <label for="escala_integracao" class="form-control-label h6 text-dark">9. Escala de integração</label>
                                 <select class="form-control" name="escala_integracao" id="escala_integracao" required>
                                     @for($i = 1; $i <= 5; $i++)
                                         <option value="{{ $i }}" {{ old('escala_integracao', $inquerito->escala_integracao) == $i ? 'selected' : '' }}>{{ $i }}</option>
@@ -136,19 +142,19 @@
 
                             {{-- Pergunta 21 --}}
                             <div class="form-group">
-                                <label for="aspectos_positivos" class="form-control-label h6 text-dark">9. Aspectos positivos</label>
+                                <label for="aspectos_positivos" class="form-control-label h6 text-dark">10. Aspectos positivos</label>
                                 <textarea class="form-control" name="aspectos_positivos" rows="4">{{ old('aspectos_positivos', $inquerito->aspectos_positivos) }}</textarea>
                             </div>
                             
                             {{-- Pergunta 22 --}}
                             <div class="form-group">
-                                <label for="aspectos_negativos" class="form-control-label h6 text-dark">10. Aspectos negativos</label>
+                                <label for="aspectos_negativos" class="form-control-label h6 text-dark">11. Aspectos negativos</label>
                                 <textarea class="form-control" name="aspectos_negativos" rows="4">{{ old('aspectos_negativos', $inquerito->aspectos_negativos) }}</textarea>
                             </div>
 
                             {{-- Pergunta 23 --}}
                             <div class="form-group">
-                                <label for="satisfacao_global" class="form-control-label h6 text-dark">11. Satisfação global</label>
+                                <label for="satisfacao_global" class="form-control-label h6 text-dark">12. Satisfação global</label>
                                 <select class="form-control" name="satisfacao_global" id="satisfacao_global" required>
                                     @for($i = 1; $i <= 5; $i++)
                                         <option value="{{ $i }}" {{ old('satisfacao_global', $inquerito->satisfacao_global) == $i ? 'selected' : '' }}>{{ $i }}</option>
@@ -158,7 +164,7 @@
                             
                             {{-- Pergunta 24 --}}
                             <div class="form-group">
-                                <label for="sugestoes" class="form-control-label h6 text-dark">12. Sugestões</label>
+                                <label for="sugestoes" class="form-control-label h6 text-dark">13. Sugestões</label>
                                 <textarea class="form-control" name="sugestoes" rows="4">{{ old('sugestoes', $inquerito->sugestoes) }}</textarea>
                             </div>
                             

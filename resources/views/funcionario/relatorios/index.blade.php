@@ -4,7 +4,7 @@
   $labelGenero = [
     'masculino' => 'Masculino',
     'feminino' => 'Feminino',
-    'nao_declarado' => 'Não declarado',
+    'sem_informacao' => 'Sem informação',
   ];
 
   $labelFaixa = [
@@ -131,9 +131,13 @@
     ];
   };
 
-  $chartGeneroData = collect($distribuicoes['genero'] ?? [])->mapWithKeys(function ($valor, $chave) use ($labelGenero) {
+  $chartGeneroData = collect($distribuicoes['genero'] ?? [])
+    ->only(['masculino', 'feminino'])
+    ->mapWithKeys(function ($valor, $chave) use ($labelGenero) {
     return [$labelGenero[$chave] ?? ucfirst($chave) => (int) $valor];
-  });
+    });
+
+  $semInfoGenero = (int) data_get($distribuicoes, 'genero.sem_informacao', 0);
 
   $chartFaixaData = collect($distribuicoes['faixa_etaria'] ?? [])->mapWithKeys(function ($valor, $chave) use ($labelFaixa) {
     return [$labelFaixa[$chave] ?? ucfirst($chave) => (int) $valor];
@@ -292,7 +296,6 @@
                       <option value="all" {{ ($filters['genero'] ?? 'all') === 'all' ? 'selected' : '' }}>Todos</option>
                       <option value="masculino" {{ ($filters['genero'] ?? 'all') === 'masculino' ? 'selected' : '' }}>Masculino</option>
                       <option value="feminino" {{ ($filters['genero'] ?? 'all') === 'feminino' ? 'selected' : '' }}>Feminino</option>
-                      <option value="nao_declarado" {{ ($filters['genero'] ?? 'all') === 'nao_declarado' ? 'selected' : '' }}>Não declarado</option>
                     </select>
                   </div>
                   <div class="col-md-6">
@@ -419,7 +422,7 @@
     </div>
 
     @php
-      $totalGenero = max(1, array_sum($distribuicoes['genero']));
+      $totalGenero = max(1, collect($distribuicoes['genero'] ?? [])->only(['masculino', 'feminino'])->sum());
       $totalFaixa = max(1, array_sum($distribuicoes['faixa_etaria']));
     @endphp
 
@@ -430,10 +433,10 @@
             <h6 class="mb-0">Distribuição por género</h6>
           </div>
           <div class="card-body">
-            @foreach($distribuicoes['genero'] as $label => $valor)
+            @foreach(collect($distribuicoes['genero'] ?? [])->only(['masculino', 'feminino']) as $label => $valor)
               @php
                 $percent = round(($valor / $totalGenero) * 100);
-                $labelText = ['masculino' => 'Masculino', 'feminino' => 'Feminino', 'nao_declarado' => 'Não declarado'][$label] ?? ucfirst($label);
+                $labelText = ['masculino' => 'Masculino', 'feminino' => 'Feminino'][$label] ?? ucfirst($label);
               @endphp
               <div class="mb-3">
                 <div class="d-flex justify-content-between">
@@ -445,6 +448,12 @@
                 </div>
               </div>
             @endforeach
+            @if($semInfoGenero > 0)
+              <div class="mt-2">
+                <p class="text-xs text-secondary mb-1">Sem informação</p>
+                <p class="text-sm text-secondary mb-0">{{ $semInfoGenero }} residentes sem registo de género.</p>
+              </div>
+            @endif
           </div>
         </div>
       </div>

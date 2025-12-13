@@ -37,6 +37,7 @@ class InqueritoFreguesia extends Model
         // Perguntas 16-19 (JSON - Restaurado)
         'total_por_setor_propria',
         'total_por_setor_outrem',
+        'total_trabalhadores_outrem',
 
         // Perguntas 20-24
         'escala_integracao',

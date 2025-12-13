@@ -94,6 +94,7 @@ class InqueritoFreguesiaController extends Controller
         }
         $preenchido['total_por_setor_propria'] = $setorDataPropria;
         $preenchido['total_por_setor_outrem'] = $setorDataOutrem;
+        $preenchido['total_trabalhadores_outrem'] = array_sum($setorDataOutrem);
 
         return view('freguesia.inqueritos.adicionar', compact('anoAtual', 'preenchido', 'setores'));
     }
@@ -199,6 +200,7 @@ class InqueritoFreguesiaController extends Controller
             'total_arrendada' => 'required|integer|min:0',
             'total_por_setor_propria' => 'required|array',
             'total_por_setor_outrem' => 'required|array',
+            'total_trabalhadores_outrem' => 'required|integer|min:0',
             'escala_integracao' => 'required|integer|min:1|max:5',
             'aspectos_positivos' => 'nullable|string|max:2000',
             'aspectos_negativos' => 'nullable|string|max:2000',

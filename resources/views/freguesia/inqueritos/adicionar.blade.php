@@ -100,6 +100,12 @@
                                 @endforeach
                             </div>
 
+                            <div class="form-group mt-4">
+                                <label for="total_trabalhadores_outrem" class="form-control-label h6 text-dark">8. Número total de trabalhadores por conta de outrem</label>
+                                <input class="form-control" type="number" name="total_trabalhadores_outrem" id="total_trabalhadores_outrem" value="{{ old('total_trabalhadores_outrem', $preenchido['total_trabalhadores_outrem']) }}" min="0" required>
+                                <p class="text-xs text-muted mb-0">Regista o total de pessoas acompanhadas com atividade por conta de outrem.</p>
+                            </div>
+
                         </div>
                     </div> {{-- Fim do Card 1 --}}
 
@@ -108,11 +114,11 @@
                     <div class="card mt-4">
                         <div class="card-body">
                             
-                            <h6 class="font-weight-bolder text-success">Parte 2: Dados Qualitativos (Opinião Anual)</h6>
+                            <h6 class="font-weight-bolder text-success">Parte 2: Percepção da Junta de Freguesia sobre a Integração</h6>
 
                             {{-- Pergunta 20 --}}
                             <div class="form-group mt-4">
-                                <label for="escala_integracao" class="form-control-label h6 text-dark">8. Escala de integração *</label>
+                                <label for="escala_integracao" class="form-control-label h6 text-dark">9. Escala de integração *</label>
                                 <p class="text-xs">Como classifica o nível de integração geral dos novos residentes na comunidade?</p>
                                 <select class="form-control" name="escala_integracao" id="escala_integracao" required>
                                     <option value="" disabled {{ old('escala_integracao') ? '' : 'selected' }}>-- Selecione um valor de 1 a 5 --</option>
@@ -126,19 +132,19 @@
 
                             {{-- Pergunta 21 --}}
                             <div class="form-group">
-                                <label for="aspectos_positivos" class="form-control-label h6 text-dark">9. Aspectos positivos da/na integração</label>
+                                <label for="aspectos_positivos" class="form-control-label h6 text-dark">10. Aspectos positivos da/na integração</label>
                                 <textarea class="form-control" name="aspectos_positivos" id="aspectos_positivos" rows="4" placeholder="Descreva os pontos positivos observados...">{{ old('aspectos_positivos') }}</textarea>
                             </div>
                             
                             {{-- Pergunta 22 --}}
                             <div class="form-group">
-                                <label for="aspectos_negativos" class="form-control-label h6 text-dark">10. Aspectos negativos/dificuldades na integração</label>
+                                <label for="aspectos_negativos" class="form-control-label h6 text-dark">11. Aspectos negativos/dificuldades na integração</label>
                                 <textarea class="form-control" name="aspectos_negativos" id="aspectos_negativos" rows="4" placeholder="Descreva as principais dificuldades ou pontos negativos...">{{ old('aspectos_negativos') }}</textarea>
                             </div>
 
                             {{-- Pergunta 23 --}}
                             <div class="form-group">
-                                <label for="satisfacao_global" class="form-control-label h6 text-dark">11. Nível de satisfação global com a integração/impacte dos novos residentes *</label>
+                                <label for="satisfacao_global" class="form-control-label h6 text-dark">12. Nível de satisfação global com a integração/impacte dos novos residentes *</label>
                                 <p class="text-xs">Como classifica o impacto geral (social, económico) dos novos residentes na freguesia?</p>
                                 <select class="form-control" name="satisfacao_global" id="satisfacao_global" required>
                                     <option value="" disabled {{ old('satisfacao_global') ? '' : 'selected' }}>-- Selecione um valor de 1 a 5 --</option>
@@ -152,7 +158,7 @@
                             
                             {{-- Pergunta 24 --}}
                             <div class="form-group">
-                                <label for="sugestoes" class="form-control-label h6 text-dark">12. Apresente as suas sugestões relativamente a medidas ou intervenções necessárias</label>
+                                <label for="sugestoes" class="form-control-label h6 text-dark">13. Apresente as suas sugestões relativamente a medidas ou intervenções necessárias</label>
                                 <textarea class="form-control" name="sugestoes" id="sugestoes" rows="4" placeholder="Que medidas ou intervenções poderiam melhorar a integração?">{{ old('sugestoes') }}</textarea>
                             </div>
                             

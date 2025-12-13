@@ -2,20 +2,42 @@
 
 @section('content') 
 
-  <div class="container-fluid py-4">
+    @php
+      $labelsEstado = [
+        'ativa' => 'Família ativa',
+        'desinstalada' => 'Família desinstalada',
+      ];
+    @endphp
+
+    <div class="container-fluid py-4">
     <div class="row">
       <div class="col-12">
         <div class="card mb-4">
           
           {{-- CABEÇALHO DA TABELA --}}
-          <div class="card-header pb-0 d-flex justify-content-between align-items-center">
-            <div>
-              <h6 class="mb-0">Famílias Registadas</h6>
-              <p class="text-sm">Freguesia: {{ Auth::user()->freguesia->nome ?? 'N/A' }}</p>
+          <div class="card-header pb-0">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+              <div>
+                <h6 class="mb-0">Famílias Registadas</h6>
+                <p class="text-sm mb-0">Freguesia: {{ Auth::user()->freguesia->nome ?? 'N/A' }}</p>
+              </div>
+              <div class="d-flex flex-wrap gap-3 align-items-center justify-content-end">
+                <form method="GET" action="{{ route('freguesia.familias.index') }}" class="d-flex align-items-center gap-2 mb-0">
+                  <select name="estado" id="estado" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">Todas as famílias</option>
+                    @foreach (($estadosDisponiveis ?? []) as $estado)
+                      <option value="{{ $estado }}" {{ ($estadoSelecionado ?? null) === $estado ? 'selected' : '' }}>{{ $labelsEstado[$estado] ?? ucfirst($estado) }}</option>
+                    @endforeach
+                  </select>
+                  @if (!empty($estadoSelecionado))
+                    <a href="{{ route('freguesia.familias.index') }}" class="btn btn-link btn-sm text-secondary">Limpar</a>
+                  @endif
+                </form>
+                <a href="{{ route('freguesia.familias.create') }}" class="btn bg-gradient-success btn-sm">
+                  <i class="fas fa-plus me-1"></i> Adicionar Família
+                </a>
+              </div>
             </div>
-            <a href="{{ route('freguesia.familias.create') }}" class="btn bg-gradient-success btn-sm mb-0">
-              <i class="fas fa-plus me-1"></i> Adicionar Família
-            </a>
           </div>
 
           {{-- CORPO DA TABELA --}}
@@ -25,6 +47,7 @@
                 <thead>
                   <tr>
                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Código</th>
+                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Estado</th>
                     <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Ano Inst.</th>
                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Nacionalidade</th>
                     <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Membros</th>
@@ -43,7 +66,21 @@
                         </div>
                       </td>
                       
-                      {{-- ANO DE INSTALAÇÃO --}}
+                        {{-- ESTADO --}}
+                        <td class="align-middle text-center text-xs">
+                        @php
+                          $estadoAtual = $familia->estado_acompanhamento;
+                          $classeEstado = $estadoAtual === 'desinstalada' ? 'bg-gradient-danger' : 'bg-gradient-success';
+                        @endphp
+                        <span class="badge badge-sm {{ $classeEstado }}">{{ $labelsEstado[$estadoAtual] ?? ucfirst($estadoAtual) }}</span>
+                        @if ($familia->data_desinstalacao)
+                          <small class="d-block text-xxs text-muted">desde {{ $familia->data_desinstalacao->format('d/m/Y') }}</small>
+                        @elseif ($familia->ano_desinstalacao)
+                          <small class="d-block text-xxs text-muted">desde {{ $familia->ano_desinstalacao }}</small>
+                        @endif
+                        </td>
+
+                        {{-- ANO DE INSTALAÇÃO --}}
                       <td class="align-middle text-center text-sm">
                         <span class="badge badge-sm bg-gradient-secondary">{{ $familia->ano_instalacao }}</span>
                       </td>
@@ -93,7 +130,7 @@
                     </tr>
                   @empty
                     <tr>
-                      <td colspan="7" class="text-center text-sm py-4">Nenhuma família registada para esta freguesia.</td>
+                      <td colspan="8" class="text-center text-sm py-4">Nenhuma família registada para esta freguesia.</td>
                     </tr>
                   @endforelse
                 </tbody>
@@ -120,3 +157,5 @@
     })
   </script>
 @endpush
+
+

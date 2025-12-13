@@ -21,18 +21,18 @@ class AgregadoFamiliar extends Model
         'familia_id',
         'adultos_laboral_m',
         'adultos_laboral_f',
-        'adultos_laboral_n',
         'adultos_65_mais_m',
         'adultos_65_mais_f',
-        'adultos_65_mais_n',
         'criancas_m',
         'criancas_f',
-        'criancas_n',
+        'membros_sem_informacao',
+        'eleitores_repenicados',
         'estrutura_familiar',
     ];
 
     protected $casts = [
         'estrutura_familiar' => 'array',
+        'eleitores_repenicados' => 'integer',
     ];
 
     /**

@@ -22,53 +22,101 @@
                         <h6 class="font-weight-bolder text-success">Parte 1: Dados Quantitativos (Snapshot do Ano)</h6>
                         
                         {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
+                        @php
+                            $locais = collect([
+                                'Núcleo Urbano (Sede)' => (int) $inquerito->total_nucleo_urbano,
+                                'Aldeias Anexas' => (int) $inquerito->total_aldeia_anexa,
+                                'Espaço Agroflorestal' => (int) $inquerito->total_agroflorestal,
+                            ])->filter(fn ($valor) => $valor > 0);
+                        @endphp
                         <h6 class="mt-4 text-dark">Localização dos agregados</h6>
-                        <ul class="list-group">
-                            <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">Núcleo Urbano (Sede):</strong> {{ $inquerito->total_nucleo_urbano }}</li>
-                            <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">Aldeias Anexas:</strong> {{ $inquerito->total_aldeia_anexa }}</li>
-                            <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">Espaço Agroflorestal:</strong> {{ $inquerito->total_agroflorestal }}</li>
-                        </ul>
+                        @if($locais->isEmpty())
+                            <p class="text-sm text-muted mb-0">Sem registos disponíveis para esta secção.</p>
+                        @else
+                            <ul class="list-group">
+                                @foreach($locais as $label => $valor)
+                                    <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">{{ $label }}:</strong> {{ $valor }}</li>
+                                @endforeach
+                            </ul>
+                        @endif
                         
-                        {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
+                        @php
+                            $individuos = collect([
+                                'Total de Adultos' => (int) $inquerito->total_adultos,
+                                'Total de Crianças/Jovens' => (int) $inquerito->total_criancas,
+                            ])->filter(fn ($valor) => $valor > 0);
+                        @endphp
                         <h6 class="mt-4 text-dark">Total de indivíduos</h6>
-                        <ul class="list-group">
-                            <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">Total de Adultos:</strong> {{ $inquerito->total_adultos }}</li>
-                            <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">Total de Crianças/Jovens:</strong> {{ $inquerito->total_criancas }}</li>
-                        </ul>
+                        @if($individuos->isEmpty())
+                            <p class="text-sm text-muted mb-0">Sem registos disponíveis para esta secção.</p>
+                        @else
+                            <ul class="list-group">
+                                @foreach($individuos as $label => $valor)
+                                    <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">{{ $label }}:</strong> {{ $valor }}</li>
+                                @endforeach
+                            </ul>
+                        @endif
                         
-                        {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
+                        @php
+                            $tipologias = collect([
+                                'Propriedade Própria' => (int) $inquerito->total_propria,
+                                'Propriedade Arrendada' => (int) $inquerito->total_arrendada,
+                            ])->filter(fn ($valor) => $valor > 0);
+                        @endphp
                         <h6 class="mt-4 text-dark">Tipologia de propriedade</h6>
-                        <ul class="list-group">
-                            <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">Propriedade Própria:</strong> {{ $inquerito->total_propria }}</li>
-                            <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">Propriedade Arrendada:</strong> {{ $inquerito->total_arrendada }}</li>
-                        </ul>
+                        @if($tipologias->isEmpty())
+                            <p class="text-sm text-muted mb-0">Sem registos disponíveis para esta secção.</p>
+                        @else
+                            <ul class="list-group">
+                                @foreach($tipologias as $label => $valor)
+                                    <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">{{ $label }}:</strong> {{ $valor }}</li>
+                                @endforeach
+                            </ul>
+                        @endif
                         
-                        {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
                         <h6 class="mt-4 text-dark">Número de atividades por setor</h6>
                         <div class="row">
+                            @php
+                                $setoresPropria = collect($inquerito->total_por_setor_propria ?? [])->filter(fn ($valor) => (int) $valor > 0);
+                                $setoresOutrem = collect($inquerito->total_por_setor_outrem ?? [])->filter(fn ($valor) => (int) $valor > 0);
+                            @endphp
                             <div class="col-md-6">
                                 <strong class="text-dark">Conta Própria:</strong>
-                                <ul class="list-group">
-                                    @foreach($inquerito->total_por_setor_propria ?? [] as $setor => $total)
-                                        <li class="list-group-item border-0 ps-0 pt-0 text-sm">{{ $setor }}: <span class="font-weight-bold">{{ $total }}</span></li>
-                                    @endforeach
-                                </ul>
+                                @if($setoresPropria->isEmpty())
+                                    <p class="text-sm text-muted mb-0">Sem registos neste grupo.</p>
+                                @else
+                                    <ul class="list-group">
+                                        @foreach($setoresPropria as $setor => $total)
+                                            <li class="list-group-item border-0 ps-0 pt-0 text-sm">{{ $setor }}: <span class="font-weight-bold">{{ $total }}</span></li>
+                                        @endforeach
+                                    </ul>
+                                @endif
                             </div>
                             <div class="col-md-6">
                                 <strong class="text-dark">Conta de Outrem:</strong>
-                                <ul class="list-group">
-                                    @foreach($inquerito->total_por_setor_outrem ?? [] as $setor => $total)
-                                        <li class="list-group-item border-0 ps-0 pt-0 text-sm">{{ $setor }}: <span class="font-weight-bold">{{ $total }}</span></li>
-                                    @endforeach
-                                </ul>
+                                @if($setoresOutrem->isEmpty())
+                                    <p class="text-sm text-muted mb-0">Sem registos neste grupo.</p>
+                                @else
+                                    <ul class="list-group">
+                                        @foreach($setoresOutrem as $setor => $total)
+                                            <li class="list-group-item border-0 ps-0 pt-0 text-sm">{{ $setor }}: <span class="font-weight-bold">{{ $total }}</span></li>
+                                        @endforeach
+                                    </ul>
+                                @endif
                             </div>
                         </div>
+
+                        @php $totalTrabalhadoresOutrem = (int) ($inquerito->total_trabalhadores_outrem ?? 0); @endphp
+                        @if($totalTrabalhadoresOutrem > 0)
+                            <h6 class="mt-4 text-dark">Número total de trabalhadores por conta de outrem</h6>
+                            <p class="text-sm mb-0"><strong class="text-dark">{{ $totalTrabalhadoresOutrem }}</strong> trabalhadores acompanhados.</p>
+                        @endif
                     </div>
                     
                     {{-- CARD 2: DADOS QUALITATIVOS (Guardados) --}}
                     <div class="card-body pt-0">
                         <hr class="horizontal dark mt-0 mb-4">
-                        <h6 class="font-weight-bolder text-success">Parte 2: Dados Qualitativos (Opinião Anual)</h6>
+                        <h6 class="font-weight-bolder text-success">Parte 2: Percepção da Junta de Freguesia sobre a Integração</h6>
                         
                         <div class="form-group">
                             {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
