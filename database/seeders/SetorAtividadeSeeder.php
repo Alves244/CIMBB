@@ -15,23 +15,15 @@ class SetorAtividadeSeeder extends Seeder
     public function run(): void
     {
         $setores = [
-            // Produção, Construção e Agricultura
-            ['nome' => 'Agricultura, Pecuária e Floresta', 'descricao' => null, 'macro_grupo' => 'producao', 'ativo' => true],
-            ['nome' => 'Indústria Transformadora (Fábricas)', 'descricao' => 'Unidades fabris e transformação de bens', 'macro_grupo' => 'producao', 'ativo' => true],
-            ['nome' => 'Construção Civil e Obras', 'descricao' => null, 'macro_grupo' => 'producao', 'ativo' => true],
-            ['nome' => 'Pesca', 'descricao' => null, 'macro_grupo' => 'producao', 'ativo' => true],
-            ['nome' => 'Energia e Águas', 'descricao' => 'Produção energética, saneamento e abastecimento', 'macro_grupo' => 'producao', 'ativo' => true],
-
-            // Serviços, Comércio e Turismo
-            ['nome' => 'Comércio (Lojas e Supermercados)', 'descricao' => null, 'macro_grupo' => 'servicos', 'ativo' => true],
-            ['nome' => 'Restauração e Hotelaria (Cafés, Restaurantes, Hotéis)', 'descricao' => null, 'macro_grupo' => 'servicos', 'ativo' => true],
-            ['nome' => 'Limpeza e Segurança', 'descricao' => null, 'macro_grupo' => 'servicos', 'ativo' => true],
-            ['nome' => 'Apoio Domiciliário e Ação Social', 'descricao' => 'Inclui IPSS, lares, cuidadores', 'macro_grupo' => 'servicos', 'ativo' => true],
-            ['nome' => 'Transportes e Logística', 'descricao' => null, 'macro_grupo' => 'servicos', 'ativo' => true],
-            ['nome' => 'Educação e Saúde', 'descricao' => 'Creches, escolas, hospitais, clínicas', 'macro_grupo' => 'servicos', 'ativo' => true],
-            ['nome' => 'Serviços Domésticos', 'descricao' => 'Empregados domésticos, cuidadores informais', 'macro_grupo' => 'servicos', 'ativo' => true],
-            ['nome' => 'Serviços Administrativos e Escritórios', 'descricao' => 'Secretariado, receção, apoio administrativo', 'macro_grupo' => 'servicos', 'ativo' => true],
-            ['nome' => 'Beleza e Bem-estar (Cabeleireiros, Estética)', 'descricao' => null, 'macro_grupo' => 'servicos', 'ativo' => true],
+            ['nome' => 'Agricultura, silvicultura e pecuária', 'descricao' => 'Trabalho agrícola, florestal ou com animais', 'macro_grupo' => 'producao', 'ativo' => true],
+            ['nome' => 'Indústria transformadora', 'descricao' => 'Fábricas, transformação de bens e produção industrial', 'macro_grupo' => 'producao', 'ativo' => true],
+            ['nome' => 'Construção civil e obras públicas', 'descricao' => 'Construção, manutenção e obras de engenharia', 'macro_grupo' => 'producao', 'ativo' => true],
+            ['nome' => 'Comércio e retalho', 'descricao' => 'Lojas, mercados, vendas e atendimento ao público', 'macro_grupo' => 'servicos', 'ativo' => true],
+            ['nome' => 'Restauração, hotelaria e turismo', 'descricao' => 'Cafés, restaurantes, alojamento e atividades turísticas', 'macro_grupo' => 'servicos', 'ativo' => true],
+            ['nome' => 'Serviços pessoais e sociais (inclui limpezas, cuidados de idosos, apoio doméstico)', 'descricao' => 'Limpezas, cuidadoras/es, apoio social ou doméstico', 'macro_grupo' => 'servicos', 'ativo' => true],
+            ['nome' => 'Transportes e logística', 'descricao' => 'Motoristas, distribuição, armazenagem e entregas', 'macro_grupo' => 'servicos', 'ativo' => true],
+            ['nome' => 'Administração, serviços técnicos ou trabalho de escritório', 'descricao' => 'Secretariado, técnicos administrativos e trabalho de escritório', 'macro_grupo' => 'servicos', 'ativo' => true],
+            ['nome' => 'Outro (especificar)', 'descricao' => 'Utilize quando não se enquadra nas categorias anteriores', 'macro_grupo' => 'servicos', 'ativo' => true],
         ];
 
         // Limpa a tabela antes de inserir (Necessário se não usar migrate:fresh)

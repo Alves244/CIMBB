@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Funcionario;
 
 use App\Http\Controllers\Controller;
-use App\Models\Conselho;
+use App\Models\Concelho;
 use App\Models\Familia;
 use App\Models\Freguesia;
 use App\Models\SetorAtividade;
@@ -53,9 +53,9 @@ class RelatorioController extends Controller
             'listaFamilias' => $listaFamilias,
             'familiasPerPage' => $perPage,
             'chartTimeline' => $resultado['timeline'],
-            'chartHeatmap' => $resultado['heatmap'],
-            'concelhos' => Conselho::with('freguesias:id,nome,conselho_id')->orderBy('nome')->get(),
-            'freguesias' => Freguesia::orderBy('nome')->get(['id', 'nome', 'conselho_id']),
+                        'concelhos' => Concelho::with('freguesias:id,nome,concelho_id')->orderBy('nome')->get(),
+                        'freguesias' => Freguesia::orderBy('nome')->get(['id', 'nome', 'concelho_id']),
+            'freguesias' => Freguesia::orderBy('nome')->get(['id', 'nome', 'concelho_id']),
             'setores' => SetorAtividade::orderBy('nome')->get(['id', 'nome']),
             'nacionalidades' => Familia::select('nacionalidade')->distinct()->orderBy('nacionalidade')->pluck('nacionalidade'),
         ]);

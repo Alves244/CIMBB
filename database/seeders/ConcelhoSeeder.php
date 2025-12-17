@@ -3,9 +3,9 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Conselho; // Importar o Model
+use App\Models\Concelho;
 
-class ConselhoSeeder extends Seeder
+class ConcelhoSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -15,8 +15,7 @@ class ConselhoSeeder extends Seeder
         $concelhos = config('concelhos', []);
 
         foreach ($concelhos as $concelho) {
-            // Ensure every concelho carries its SIGO code pulled from config
-            Conselho::updateOrCreate(
+            Concelho::updateOrCreate(
                 ['nome' => $concelho['nome']],
                 ['codigo' => $concelho['codigo']]
             );

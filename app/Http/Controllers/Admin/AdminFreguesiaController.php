@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Conselho;
+use App\Models\Concelho;
 use App\Models\Freguesia;
 use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
@@ -14,23 +14,23 @@ class AdminFreguesiaController extends Controller
 {
     public function index(Request $request): View
     {
-        $conselhoId = $request->input('conselho_id');
+        $concelhoId = $request->input('concelho_id');
 
-        $freguesiasQuery = Freguesia::with('conselho')
+        $freguesiasQuery = Freguesia::with('concelho')
             ->withCount(['users', 'familias'])
             ->orderBy('nome');
 
-        if ($conselhoId) {
-            $freguesiasQuery->where('conselho_id', $conselhoId);
+        if ($concelhoId) {
+            $freguesiasQuery->where('concelho_id', $concelhoId);
         }
 
         $freguesias = $freguesiasQuery->paginate(12)->withQueryString();
-        $conselhos = Conselho::orderBy('nome')->get();
+        $concelhos = Concelho::orderBy('nome')->get();
 
         return view('admin.freguesias.index', [
             'freguesias' => $freguesias,
-            'conselhos' => $conselhos,
-            'conselhoSelecionado' => $conselhoId,
+            'concelhos' => $concelhos,
+            'concelhoSelecionado' => $concelhoId,
         ]);
     }
 
@@ -39,7 +39,7 @@ class AdminFreguesiaController extends Controller
         $data = $request->validateWithBag('createFreguesia', [
             'nome' => ['required', 'string', 'max:100'],
             'codigo' => ['nullable', 'string', 'max:10'],
-            'conselho_id' => ['required', 'exists:conselhos,id'],
+            'concelho_id' => ['required', 'exists:concelhos,id'],
         ]);
 
         $freguesia = Freguesia::create($data);
@@ -53,7 +53,7 @@ class AdminFreguesiaController extends Controller
         $data = $request->validateWithBag('editFreguesia', [
             'nome' => ['required', 'string', 'max:100'],
             'codigo' => ['nullable', 'string', 'max:10'],
-            'conselho_id' => ['required', 'exists:conselhos,id'],
+            'concelho_id' => ['required', 'exists:concelhos,id'],
         ]);
 
         $freguesia->update($data);

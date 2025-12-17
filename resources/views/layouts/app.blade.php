@@ -81,6 +81,91 @@
           opacity: 0 !important;
           width: 0 !important;
       }
+
+        .flash-container {
+          position: fixed;
+          top: 24px;
+          left: 50%;
+          transform: translateX(-50%);
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          z-index: 1200;
+          width: min(92vw, 460px);
+          pointer-events: none;
+        }
+
+        .flash-message {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.75rem;
+          padding: 0.95rem 1.2rem;
+          border-radius: 16px;
+          color: #fff;
+          font-size: 0.95rem;
+          line-height: 1.45;
+          box-shadow: 0 18px 35px rgba(15, 23, 42, 0.2);
+          background: #1f2937;
+          pointer-events: auto;
+          animation: flashSlideIn 0.35s ease;
+        }
+
+        .flash-icon {
+          font-size: 1.2rem;
+          line-height: 1;
+        }
+
+        .flash-text {
+          flex: 1;
+        }
+
+        .flash-close {
+          background: transparent;
+          border: 0;
+          color: inherit;
+          font-size: 1.2rem;
+          line-height: 1;
+          margin-left: 0.35rem;
+          cursor: pointer;
+          opacity: 0.8;
+        }
+
+        .flash-close:hover {
+          opacity: 1;
+        }
+
+          .flash-message.flash-success {
+            background: linear-gradient(135deg, #7ee084, #34d399);
+          }
+
+        .flash-message.flash-warning {
+          background: linear-gradient(135deg, #f2994a, #f2c94c);
+        }
+
+        .flash-message.flash-info {
+          background: linear-gradient(135deg, #396afc, #2948ff);
+        }
+
+        .flash-message.flash-error {
+          background: linear-gradient(135deg, #eb3349, #f45c43);
+        }
+
+        .flash-hide {
+          opacity: 0;
+          transform: translateY(-8px) scale(0.98);
+          transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        @keyframes flashSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
   </style>
 
   @stack('css')
@@ -95,27 +180,82 @@
     @yield('guest')
   @endguest
 
-  {{-- Mensagem de SUCESSO (Centrada, 5 segundos) --}}
-  @if(session()->has('success'))
-    <div x-data="{ show: true}"
-        x-init="setTimeout(() => show = false, 5000)"
-        x-show="show" x-transition
-        class="position-fixed bg-gradient-success rounded top-3 start-50 translate-middle-x text-sm py-2 px-4 text-white" 
-        style="z-index: 9999;">
-      <p class="m-0">{{ session('success')}}</p>
-    </div>
-  @endif
+    @php
+      $flashMessages = [];
+      $sessionFlashMap = [
+        'success' => 'success',
+        'status' => 'info',
+        'info' => 'info',
+        'warning' => 'warning',
+        'error' => 'error',
+      ];
 
-  {{-- Mensagem de ERRO (Centrada, 5 segundos) --}}
-  @if(session()->has('error') || $errors->any())
-    <div x-data="{ show: true}"
-         x-init="setTimeout(() => show = false, 5000)"
-         x-show="show" x-transition
-         class="position-fixed bg-gradient-danger rounded top-3 start-50 translate-middle-x text-sm py-2 px-4 text-white" 
-         style="z-index: 9999;">
-        <p class="m-0">{{ $errors->any() ? $errors->first() : session('error') }}</p>
-    </div>
-  @endif
+      foreach ($sessionFlashMap as $sessionKey => $type) {
+        if (!session()->has($sessionKey)) {
+          continue;
+        }
+
+          $message = session($sessionKey);
+          if (is_array($message)) {
+            $message = implode(' ', $message);
+          }
+
+        $flashMessages[] = [
+          'type' => $type,
+            'message' => $message,
+        ];
+      }
+
+      if ($errors->any()) {
+        foreach ($errors->all() as $message) {
+          $flashMessages[] = [
+            'type' => 'error',
+            'message' => $message,
+          ];
+        }
+      }
+    @endphp
+
+    @if (!empty($flashMessages))
+      <div class="flash-container" role="status" aria-live="polite">
+        @foreach ($flashMessages as $flash)
+          @php
+            $iconClass = match ($flash['type']) {
+              'success' => 'fa-check-circle',
+              'warning' => 'fa-exclamation-circle',
+              'error' => 'fa-times-circle',
+              default => 'fa-info-circle',
+            };
+          @endphp
+          <div class="flash-message flash-{{ $flash['type'] }}" data-timeout="5000" role="alert">
+            <span class="flash-icon"><i class="fas {{ $iconClass }}"></i></span>
+            <span class="flash-text">{{ $flash['message'] }}</span>
+            <button type="button" class="flash-close" aria-label="Fechar" data-flash-close>&times;</button>
+          </div>
+        @endforeach
+      </div>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          const messages = document.querySelectorAll('.flash-message');
+          const hideMessage = (element) => {
+            if (!element) return;
+            element.classList.add('flash-hide');
+            setTimeout(() => element.remove(), 300);
+          };
+
+          messages.forEach((message) => {
+            const timeout = parseInt(message.dataset.timeout, 10) || 5000;
+            setTimeout(() => hideMessage(message), timeout);
+          });
+
+          document.querySelectorAll('[data-flash-close]').forEach((button) => {
+            button.addEventListener('click', (event) => {
+              hideMessage(event.currentTarget.closest('.flash-message'));
+            });
+          });
+        });
+      </script>
+    @endif
 
 
     <script src="{{ asset('assets/js/core/popper.min.js') }}"></script>

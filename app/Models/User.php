@@ -18,8 +18,9 @@ class User extends Authenticatable
         'nome',
         'email',
         'password',
-        'perfil',        // 'admin', 'freguesia', 'cimbb'
-        'freguesia_id',  // Pode ser null se for Admin/CIMBB
+        'perfil',        // 'admin', 'freguesia', 'cimbb', 'agrupamento'
+        'freguesia_id',
+        'agrupamento_id',
         'telemovel',
     ];
 
@@ -51,6 +52,11 @@ class User extends Authenticatable
         return $this->belongsTo(Freguesia::class);
     }
 
+    public function agrupamento()
+    {
+        return $this->belongsTo(Agrupamento::class);
+    }
+
     /*
     |--------------------------------------------------------------------------
     | MÉTODOS AUXILIARES (Helpers)
@@ -72,5 +78,10 @@ class User extends Authenticatable
     {
         // Pode ser 'cimbb' ou outro nome que tenhas definido para funcionário CIMBB
         return $this->perfil === 'cimbb'; 
+    }
+
+    public function isAgrupamento()
+    {
+        return $this->perfil === 'agrupamento';
     }
 }

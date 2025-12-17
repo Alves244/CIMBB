@@ -3,14 +3,19 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\WelcomeNewUserMail;
+use App\Models\Agrupamento;
 use App\Models\Freguesia;
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
-use App\Services\AuditLogger;
 
 class AdminUserController extends Controller
 {
@@ -19,17 +24,22 @@ class AdminUserController extends Controller
      */
     public function index(): View
     {
-        $users = User::with(['freguesia.conselho'])
+        $users = User::with(['freguesia.concelho', 'agrupamento.concelho'])
             ->orderByDesc('created_at')
             ->paginate(10);
 
-        $freguesias = Freguesia::with('conselho')
+        $freguesias = Freguesia::with('concelho')
+            ->orderBy('nome')
+            ->get();
+
+        $agrupamentos = Agrupamento::with('concelho')
             ->orderBy('nome')
             ->get();
 
         return view('laravel-examples.user-management', [
             'users' => $users,
             'freguesias' => $freguesias,
+            'agrupamentos' => $agrupamentos,
         ]);
     }
 
@@ -42,9 +52,9 @@ class AdminUserController extends Controller
             'nome' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'telemovel' => ['nullable', 'string', 'max:20'],
-            'perfil' => ['required', Rule::in(['admin', 'cimbb', 'freguesia'])],
+            'perfil' => ['required', Rule::in(['admin', 'cimbb', 'freguesia', 'agrupamento'])],
             'freguesia_id' => ['nullable', 'exists:freguesias,id'],
-            'password' => ['required', 'confirmed', 'min:8'],
+            'agrupamento_id' => ['nullable', 'exists:agrupamentos,id'],
         ]);
 
         if ($data['perfil'] === 'freguesia' && empty($data['freguesia_id'])) {
@@ -53,18 +63,38 @@ class AdminUserController extends Controller
             ], 'createUser')->withInput();
         }
 
+        if ($data['perfil'] === 'agrupamento' && empty($data['agrupamento_id'])) {
+            return back()->withErrors([
+                'agrupamento_id' => 'Selecione um agrupamento para utilizadores deste perfil.',
+            ], 'createUser')->withInput();
+        }
+
+        $generatedPassword = Str::random(12);
+
         $novoUtilizador = User::create([
             'nome' => $data['nome'],
             'email' => $data['email'],
             'telemovel' => $data['telemovel'],
             'perfil' => $data['perfil'],
             'freguesia_id' => $data['perfil'] === 'freguesia' ? $data['freguesia_id'] : null,
-            'password' => Hash::make($data['password']),
+            'agrupamento_id' => $data['perfil'] === 'agrupamento' ? $data['agrupamento_id'] : null,
+            'password' => Hash::make($generatedPassword),
         ]);
 
         AuditLogger::log('admin_user_create', 'Criou o utilizador '.$novoUtilizador->nome.' (#'.$novoUtilizador->id.').');
 
-        return back()->with('success', 'Utilizador criado com sucesso.');
+        try {
+            Mail::to($novoUtilizador->email)->send(new WelcomeNewUserMail($novoUtilizador, $generatedPassword));
+        } catch (\Throwable $exception) {
+            Log::error('Falha ao enviar email de boas-vindas para o utilizador.', [
+                'user_id' => $novoUtilizador->id,
+                'exception' => $exception->getMessage(),
+            ]);
+
+            return back()->with('warning', 'Utilizador criado, mas ocorreu um erro ao enviar o email de boas-vindas. Atualize a password manualmente e partilhe o acesso.');
+        }
+
+        return back()->with('success', 'Utilizador criado e email de boas-vindas enviado com sucesso.');
     }
 
     /**
@@ -76,13 +106,20 @@ class AdminUserController extends Controller
             'nome' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'telemovel' => ['nullable', 'string', 'max:20'],
-            'perfil' => ['required', Rule::in(['admin', 'cimbb', 'freguesia'])],
+            'perfil' => ['required', Rule::in(['admin', 'cimbb', 'freguesia', 'agrupamento'])],
             'freguesia_id' => ['nullable', 'exists:freguesias,id'],
+            'agrupamento_id' => ['nullable', 'exists:agrupamentos,id'],
         ]);
 
         if ($data['perfil'] === 'freguesia' && empty($data['freguesia_id'])) {
             return back()->withErrors([
                 'freguesia_id' => 'Selecione uma freguesia para utilizadores do perfil "freguesia".',
+            ]);
+        }
+
+        if ($data['perfil'] === 'agrupamento' && empty($data['agrupamento_id'])) {
+            return back()->withErrors([
+                'agrupamento_id' => 'Selecione um agrupamento para utilizadores deste perfil.',
             ]);
         }
 
@@ -92,6 +129,7 @@ class AdminUserController extends Controller
             'telemovel' => $data['telemovel'],
             'perfil' => $data['perfil'],
             'freguesia_id' => $data['perfil'] === 'freguesia' ? $data['freguesia_id'] : null,
+            'agrupamento_id' => $data['perfil'] === 'agrupamento' ? $data['agrupamento_id'] : null,
         ]);
 
         AuditLogger::log('admin_user_update', 'Atualizou o utilizador '.$user->nome.' (#'.$user->id.').');

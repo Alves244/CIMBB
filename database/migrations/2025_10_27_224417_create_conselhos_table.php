@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('conselhos', function (Blueprint $table) {
+        Schema::create('concelhos', function (Blueprint $table) {
             $table->id(); // Equivalente a INT AUTO_INCREMENT PRIMARY KEY
             $table->string('nome', 100)->unique(); // VARCHAR(100) UNIQUE NOT NULL
             $table->string('codigo', 10)->nullable(); // VARCHAR(10) NULL
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('conselhos');
+        Schema::dropIfExists('concelhos');
     }
 };

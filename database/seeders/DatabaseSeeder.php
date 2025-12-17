@@ -14,10 +14,11 @@ class DatabaseSeeder extends Seeder
     {
         // Chamar os seeders pela ordem de dependência
         $this->call([
-            ConselhoSeeder::class,
+            ConcelhoSeeder::class,
             FreguesiaSeeder::class, 
             SetorAtividadeSeeder::class, // Chamado SÓ UMA VEZ
             UserSeeder::class,
+            InqueritoAgrupamentoSeeder::class,
             // A chamada duplicada foi removida
         ]);
     }

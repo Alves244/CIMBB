@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Funcionario;
 
 use App\Http\Controllers\Controller;
-use App\Models\Conselho;
+use App\Models\Concelho;
 use App\Models\Familia;
 use App\Models\Freguesia;
 use App\Models\InqueritoFreguesia;
@@ -37,8 +37,8 @@ class ExportarDadosController extends Controller
         return view('funcionario.exportar.index', [
             'title' => 'Exportar Dados',
             'anosDisponiveis' => $anos,
-            'concelhos' => Conselho::orderBy('nome')->get(['id', 'nome']),
-            'freguesias' => Freguesia::orderBy('nome')->get(['id', 'nome', 'conselho_id']),
+            'concelhos' => Concelho::orderBy('nome')->get(['id', 'nome']),
+            'freguesias' => Freguesia::orderBy('nome')->get(['id', 'nome', 'concelho_id']),
         ]);
     }
 
@@ -62,7 +62,7 @@ class ExportarDadosController extends Controller
     public function exportInqueritosPdf(Request $request)
     {
         $ano = (int) $request->input('ano', date('Y'));
-        $inqueritos = InqueritoFreguesia::with('freguesia.conselho')
+        $inqueritos = InqueritoFreguesia::with('freguesia.concelho')
             ->where('ano', $ano)
             ->orderBy('freguesia_id')
             ->get();

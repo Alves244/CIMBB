@@ -16,17 +16,17 @@ class Freguesia extends Model
 
     protected $fillable = [
         'nome',
-        'conselho_id',
+        'concelho_id',
         'codigo',
     ];
 
     /**
-     * Define a relação inversa: Uma Freguesia pertence a um Conselho.
+    * Define a relação inversa: Uma Freguesia pertence a um Concelho.
      * (Relação A no ER [cite: 518])
      */
-    public function conselho(): BelongsTo
+    public function concelho(): BelongsTo
     {
-        return $this->belongsTo(Conselho::class);
+        return $this->belongsTo(Concelho::class);
     }
 
     /**

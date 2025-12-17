@@ -85,13 +85,14 @@ class FamiliaController extends Controller
         $dadosValidados = $request->validate($this->regrasFormulario());
         $this->validarNecessidadesOutro($dadosValidados);
         $this->validarEstadoDesinstalacao($dadosValidados);
+        $this->validarEleitores($dadosValidados);
 
         try {
             $user = Auth::user();
-            $freguesia = $user->freguesia->load('conselho');
-            $conselho = $freguesia->conselho;
+            $freguesia = $user->freguesia->load('concelho');
+            $concelho = $freguesia->concelho;
 
-            if (!$conselho) {
+            if (!$concelho) {
                 throw new \Exception('Não foi possível encontrar o concelho associado.');
             }
 
@@ -165,6 +166,7 @@ class FamiliaController extends Controller
         $dadosValidados = $request->validate($this->regrasFormulario());
         $this->validarNecessidadesOutro($dadosValidados);
         $this->validarEstadoDesinstalacao($dadosValidados);
+        $this->validarEleitores($dadosValidados);
 
         $dadosFamilia = $this->montarDadosFamilia($dadosValidados);
         $agregadoPayload = $this->montarAgregado($dadosValidados);
@@ -420,5 +422,23 @@ class FamiliaController extends Controller
         return (isset($dados['ano_desinstalacao']) && $dados['ano_desinstalacao'] !== '')
             ? (int) $dados['ano_desinstalacao']
             : null;
+    }
+
+    private function validarEleitores(array $dados): void
+    {
+        if (!array_key_exists('eleitores_repenicados', $dados) || $dados['eleitores_repenicados'] === null) {
+            return;
+        }
+
+        $eleitores = (int) $dados['eleitores_repenicados'];
+        $adultosLaboral = (int) ($dados['adultos_laboral_m'] ?? 0) + (int) ($dados['adultos_laboral_f'] ?? 0);
+        $adultosSenior = (int) ($dados['adultos_senior_m'] ?? 0) + (int) ($dados['adultos_senior_f'] ?? 0);
+        $adultosTotais = $adultosLaboral + $adultosSenior;
+
+        if ($eleitores > $adultosTotais) {
+            throw ValidationException::withMessages([
+                'eleitores_repenicados' => 'O número de eleitores não pode ser superior ao total de adultos (idade laboral + seniores).',
+            ]);
+        }
     }
 }

@@ -6,6 +6,8 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Freguesia;
+use App\Models\Agrupamento;
+use App\Models\Concelho;
 
 class UserSeeder extends Seeder
 {
@@ -58,7 +60,35 @@ class UserSeeder extends Seeder
                 ]
             );
         } else {
-             $this->command->warn("Nenhuma freguesia encontrada. O utilizador de freguesia de teste não foi criado.");
+            $this->command?->warn('Nenhuma freguesia encontrada. O utilizador de freguesia de teste não foi criado.');
+        }
+
+        // --- Utilizador Agrupamento ---
+        $primeiroConcelho = Concelho::first();
+
+        if ($primeiroConcelho) {
+            $agrupamentoPadrao = Agrupamento::firstOrCreate(
+                ['codigo' => 'AGR-TESTE'],
+                [
+                    'nome' => 'Agrupamento Escola Teste',
+                    'concelho_id' => $primeiroConcelho->id,
+                ]
+            );
+
+            User::firstOrCreate(
+                ['email' => 'escola@cimbb.pt'],
+                [
+                    'nome' => 'Coordenador Agrupamento Teste',
+                    'password' => Hash::make('12345678'),
+                    'perfil' => 'agrupamento',
+                    'agrupamento_id' => $agrupamentoPadrao->id,
+                    'freguesia_id' => null,
+                    'telemovel' => null,
+                    'email_verified_at' => now(),
+                ]
+            );
+        } else {
+            $this->command?->warn('Nenhum concelho encontrado. O utilizador de agrupamento não foi criado.');
         }
     }
 }

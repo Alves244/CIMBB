@@ -27,7 +27,7 @@
                                 <tr>
                                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Utilizador</th>
                                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Perfil</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Freguesia Associada</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Entidade Associada</th>
                                     <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Data Criação</th>
                                     <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Ações</th>
                                 </tr>
@@ -50,13 +50,20 @@
                                             <span class="badge badge-sm bg-gradient-danger">Admin</span>
                                         @elseif($user->perfil == 'cimbb')
                                             <span class="badge badge-sm bg-gradient-info">CIMBB</span>
+                                        @elseif($user->perfil == 'agrupamento')
+                                            <span class="badge badge-sm bg-gradient-dark">Agrupamento</span>
                                         @else
                                             <span class="badge badge-sm bg-gradient-success">Freguesia</span>
                                         @endif
                                     </td>
                                     <td>
-                                        {{-- Acede à relação 'freguesia' que definimos no Model User --}}
-                                        <p class="text-xs font-weight-bold mb-0">{{ $user->freguesia->nome ?? 'N/A' }}</p>
+                                        @if($user->perfil == 'freguesia')
+                                            <p class="text-xs font-weight-bold mb-0">{{ $user->freguesia->nome ?? 'N/A' }}</p>
+                                        @elseif($user->perfil == 'agrupamento')
+                                            <p class="text-xs font-weight-bold mb-0">{{ $user->agrupamento->nome ?? 'N/A' }}</p>
+                                        @else
+                                            <p class="text-xs font-weight-bold mb-0">—</p>
+                                        @endif
                                     </td>
                                     <td class="text-center">
                                         <span class="text-secondary text-xs font-weight-bold">{{ $user->created_at->format('d/m/Y') }}</span>
@@ -112,6 +119,9 @@
             <form action="{{ route('admin.users.store') }}" method="POST">
                 @csrf
                 <div class="modal-body">
+                    <div class="alert alert-info text-sm" role="alert">
+                        A password será gerada automaticamente e enviada por email ao novo utilizador juntamente com uma mensagem de boas-vindas.
+                    </div>
                     <div class="form-group">
                         <label for="create-nome" class="form-control-label">Nome *</label>
                         <input type="text" class="form-control" id="create-nome" name="nome" value="{{ old('nome') }}" required>
@@ -135,8 +145,12 @@
                     </div>
                     <div class="form-group">
                         <label for="create-perfil" class="form-control-label">Perfil *</label>
-                        <select class="form-control" name="perfil" id="create-perfil" data-wrapper="create-freguesia-wrapper" onchange="toggleFreguesia(this)" required>
+                        <select class="form-control perfil-select" name="perfil" id="create-perfil"
+                                data-freguesia-wrapper="create-freguesia-wrapper"
+                                data-agrupamento-wrapper="create-agrupamento-wrapper"
+                                onchange="toggleAssociacoes(this)" required>
                             <option value="freguesia" {{ $createPerfil == 'freguesia' ? 'selected' : '' }}>Freguesia</option>
+                            <option value="agrupamento" {{ $createPerfil == 'agrupamento' ? 'selected' : '' }}>Agrupamento de Escolas</option>
                             <option value="cimbb" {{ $createPerfil == 'cimbb' ? 'selected' : '' }}>Funcionário CIMBB</option>
                             <option value="admin" {{ $createPerfil == 'admin' ? 'selected' : '' }}>Administrador</option>
                         </select>
@@ -150,7 +164,7 @@
                             <option value="">-- Selecione uma Freguesia --</option>
                             @foreach ($freguesias as $freguesia)
                                 <option value="{{ $freguesia->id }}" {{ old('freguesia_id') == $freguesia->id ? 'selected' : '' }}>
-                                    {{ $freguesia->nome }} ({{ $freguesia->conselho->nome ?? 'N/A' }})
+                                    {{ $freguesia->nome }} ({{ $freguesia->concelho->nome ?? 'N/A' }})
                                 </option>
                             @endforeach
                         </select>
@@ -158,16 +172,19 @@
                             <small class="text-danger">{{ $message }}</small>
                         @enderror
                     </div>
-                    <div class="form-group">
-                        <label for="create-password" class="form-control-label">Password *</label>
-                        <input type="password" class="form-control" id="create-password" name="password" required>
-                        @error('password', 'createUser')
+                    <div class="form-group" id="create-agrupamento-wrapper" style="{{ $createPerfil == 'agrupamento' ? '' : 'display:none;' }}">
+                        <label for="create-agrupamento" class="form-control-label">Agrupamento *</label>
+                        <select class="form-control" name="agrupamento_id" id="create-agrupamento">
+                            <option value="">-- Selecione um Agrupamento --</option>
+                            @foreach ($agrupamentos as $agrupamento)
+                                <option value="{{ $agrupamento->id }}" {{ old('agrupamento_id') == $agrupamento->id ? 'selected' : '' }}>
+                                    {{ $agrupamento->nome }} ({{ $agrupamento->concelho->nome ?? 'N/A' }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('agrupamento_id', 'createUser')
                             <small class="text-danger">{{ $message }}</small>
                         @enderror
-                    </div>
-                    <div class="form-group">
-                        <label for="create-password-confirmation" class="form-control-label">Confirmar Password *</label>
-                        <input type="password" class="form-control" id="create-password-confirmation" name="password_confirmation" required>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -208,8 +225,12 @@
                     </div>
                     <div class="form-group">
                         <label for="perfil" class="form-control-label">Perfil *</label>
-                        <select class="form-control" name="perfil" id="perfil-{{ $user->id }}" data-wrapper="freguesia-wrapper-{{ $user->id }}" required onchange="toggleFreguesia(this)">
+                        <select class="form-control perfil-select" name="perfil" id="perfil-{{ $user->id }}"
+                                data-freguesia-wrapper="freguesia-wrapper-{{ $user->id }}"
+                                data-agrupamento-wrapper="agrupamento-wrapper-{{ $user->id }}"
+                                required onchange="toggleAssociacoes(this)">
                             <option value="freguesia" {{ $user->perfil == 'freguesia' ? 'selected' : '' }}>Freguesia</option>
+                            <option value="agrupamento" {{ $user->perfil == 'agrupamento' ? 'selected' : '' }}>Agrupamento de Escolas</option>
                             <option value="cimbb" {{ $user->perfil == 'cimbb' ? 'selected' : '' }}>Funcionário CIMBB</option>
                             <option value="admin" {{ $user->perfil == 'admin' ? 'selected' : '' }}>Administrador</option>
                         </select>
@@ -222,7 +243,18 @@
                             <option value="">-- Selecione uma Freguesia --</option>
                             @foreach ($freguesias as $freguesia)
                                 <option value="{{ $freguesia->id }}" {{ $user->freguesia_id == $freguesia->id ? 'selected' : '' }}>
-                                    {{ $freguesia->nome }} ({{ $freguesia->conselho->nome ?? 'N/A' }})
+                                    {{ $freguesia->nome }} ({{ $freguesia->concelho->nome ?? 'N/A' }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group" id="agrupamento-wrapper-{{ $user->id }}" style="{{ $user->perfil == 'agrupamento' ? '' : 'display:none;' }}">
+                        <label for="agrupamento_id-{{ $user->id }}" class="form-control-label">Agrupamento *</label>
+                        <select class="form-control" name="agrupamento_id" id="agrupamento_id-{{ $user->id }}">
+                            <option value="">-- Selecione um Agrupamento --</option>
+                            @foreach ($agrupamentos as $agrupamento)
+                                <option value="{{ $agrupamento->id }}" {{ $user->agrupamento_id == $agrupamento->id ? 'selected' : '' }}>
+                                    {{ $agrupamento->nome }} ({{ $agrupamento->concelho->nome ?? 'N/A' }})
                                 </option>
                             @endforeach
                         </select>
@@ -277,21 +309,22 @@
 
 @push('js')
 <script>
-    function toggleFreguesia(selectElement) {
-        var wrapperId = selectElement.getAttribute('data-wrapper');
-        if (!wrapperId) {
-            return;
+    function toggleAssociacoes(selectElement) {
+        var freguesiaWrapperId = selectElement.getAttribute('data-freguesia-wrapper');
+        var agrupamentoWrapperId = selectElement.getAttribute('data-agrupamento-wrapper');
+
+        if (freguesiaWrapperId) {
+            var freguesiaWrapper = document.getElementById(freguesiaWrapperId);
+            if (freguesiaWrapper) {
+                freguesiaWrapper.style.display = selectElement.value === 'freguesia' ? 'block' : 'none';
+            }
         }
 
-        var wrapper = document.getElementById(wrapperId);
-        if (!wrapper) {
-            return;
-        }
-
-        if (selectElement.value === 'freguesia') {
-            wrapper.style.display = 'block';
-        } else {
-            wrapper.style.display = 'none';
+        if (agrupamentoWrapperId) {
+            var agrupamentoWrapper = document.getElementById(agrupamentoWrapperId);
+            if (agrupamentoWrapper) {
+                agrupamentoWrapper.style.display = selectElement.value === 'agrupamento' ? 'block' : 'none';
+            }
         }
     }
 
@@ -299,6 +332,11 @@
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        var perfilSelects = document.querySelectorAll('.perfil-select');
+        perfilSelects.forEach(function (select) {
+            toggleAssociacoes(select);
         });
     });
 </script>

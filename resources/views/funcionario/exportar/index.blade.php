@@ -61,7 +61,7 @@
               <select name="freguesia_id" id="freguesia_filtro_export" class="form-select" required>
                 <option value="" disabled selected>Selecione uma freguesia</option>
                 @foreach($freguesias as $freguesia)
-                  <option value="{{ $freguesia->id }}" data-concelho="{{ $freguesia->conselho_id }}">{{ $freguesia->nome }}</option>
+                  <option value="{{ $freguesia->id }}" data-concelho="{{ $freguesia->concelho_id }}">{{ $freguesia->nome }}</option>
                 @endforeach
               </select>
             </div>

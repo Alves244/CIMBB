@@ -3,8 +3,9 @@
 namespace App\Services;
 
 use App\Models\AgregadoFamiliar;
-use App\Models\Conselho;
+use App\Models\Concelho;
 use App\Models\Familia;
+use App\Models\InqueritoAgrupamento;
 use App\Models\InqueritoFreguesia;
 use App\Models\TicketSuporte;
 use App\Models\User;
@@ -42,6 +43,11 @@ class RegionalDashboardService
             'familiasMonitorizadas' => 0,
             'ticketsPendentes' => 0,
         ];
+        $agrupamentoResumo = [
+            'totalSubmissoes' => 0,
+            'ultimoAno' => null,
+            'ultimoTotalAlunos' => 0,
+        ];
 
         if ($user->isFreguesia()) {
             $freguesiaId = $user->freguesia_id;
@@ -63,6 +69,39 @@ class RegionalDashboardService
                 ->exists();
 
             $inqueritoDisponivel = !$jaPreencheuInquerito && now()->lessThanOrEqualTo($inqueritoPrazo);
+        } elseif ($user->isAgrupamento()) {
+            $agrupamentoId = $user->agrupamento_id;
+
+            $familiaQuery->whereRaw('1 = 0');
+            $agregadoQuery->whereRaw('1 = 0');
+
+            $tituloDashboard = 'Dashboard do Agrupamento';
+            $nomeLocalidade = $user->agrupamento->nome ?? 'N/A';
+
+            $ticketsRespondidos = TicketSuporte::where('utilizador_id', $user->id)
+                ->where('estado', 'respondido')
+                ->count();
+
+            if ($agrupamentoId) {
+                $inqueritosAgrupamento = InqueritoAgrupamento::where('agrupamento_id', $agrupamentoId);
+
+                $agrupamentoResumo['totalSubmissoes'] = (clone $inqueritosAgrupamento)->count();
+                $ultimoInquerito = (clone $inqueritosAgrupamento)->orderByDesc('ano_referencia')->first();
+
+                if ($ultimoInquerito) {
+                    $agrupamentoResumo['ultimoAno'] = $ultimoInquerito->ano_referencia;
+                    $agrupamentoResumo['ultimoTotalAlunos'] = $ultimoInquerito->total_alunos;
+                }
+
+                $jaPreencheuInquerito = (clone $inqueritosAgrupamento)
+                    ->where('ano_referencia', $anoInquerito)
+                    ->exists();
+
+                $inqueritoDisponivel = !$jaPreencheuInquerito && now()->lessThanOrEqualTo($inqueritoPrazo);
+            } else {
+                $jaPreencheuInquerito = false;
+                $inqueritoDisponivel = false;
+            }
         } else {
             $overview = $this->getRegionalOverview($anoInquerito);
             $concelhosResumo = $overview['concelhosResumo'];
@@ -104,53 +143,54 @@ class RegionalDashboardService
             'concelhosResumo' => $concelhosResumo,
             'dashboardProgress' => $dashboardProgress,
             'regionalHighlights' => $regionalHighlights,
+            'agrupamentoResumo' => $agrupamentoResumo,
         ];
     }
 
     public function getRegionalOverview(int $anoInquerito): array
     {
-        $concelhos = Conselho::with(['freguesias:id,conselho_id,nome,codigo'])->withCount('freguesias')->get();
+        $concelhos = Concelho::with(['freguesias:id,concelho_id,nome,codigo'])->withCount('freguesias')->get();
 
-        $familiasPorConcelho = Familia::select('freguesias.conselho_id', DB::raw('count(familias.id) as total'))
+        $familiasPorConcelho = Familia::select('freguesias.concelho_id', DB::raw('count(familias.id) as total'))
             ->join('freguesias', 'familias.freguesia_id', '=', 'freguesias.id')
-            ->groupBy('freguesias.conselho_id')
-            ->pluck('total', 'freguesias.conselho_id');
+            ->groupBy('freguesias.concelho_id')
+            ->pluck('total', 'freguesias.concelho_id');
 
-        $membrosPorConcelho = AgregadoFamiliar::select('freguesias.conselho_id', DB::raw('sum(agregado_familiars.total_membros) as total'))
+        $membrosPorConcelho = AgregadoFamiliar::select('freguesias.concelho_id', DB::raw('sum(agregado_familiars.total_membros) as total'))
             ->join('familias', 'agregado_familiars.familia_id', '=', 'familias.id')
             ->join('freguesias', 'familias.freguesia_id', '=', 'freguesias.id')
-            ->groupBy('freguesias.conselho_id')
-            ->pluck('total', 'freguesias.conselho_id');
+            ->groupBy('freguesias.concelho_id')
+            ->pluck('total', 'freguesias.concelho_id');
 
-        $ticketsPendentesPorConcelho = TicketSuporte::select('freguesias.conselho_id', DB::raw('count(ticket_suportes.id) as total'))
+        $ticketsPendentesPorConcelho = TicketSuporte::select('freguesias.concelho_id', DB::raw('count(ticket_suportes.id) as total'))
             ->join('users', 'ticket_suportes.utilizador_id', '=', 'users.id')
             ->join('freguesias', 'users.freguesia_id', '=', 'freguesias.id')
             ->where('ticket_suportes.estado', 'em_processamento')
-            ->groupBy('freguesias.conselho_id')
-            ->pluck('total', 'freguesias.conselho_id');
+            ->groupBy('freguesias.concelho_id')
+            ->pluck('total', 'freguesias.concelho_id');
 
-        $freguesiasComInquerito = InqueritoFreguesia::select('inquerito_freguesias.freguesia_id', 'freguesias.conselho_id')
+        $freguesiasComInquerito = InqueritoFreguesia::select('inquerito_freguesias.freguesia_id', 'freguesias.concelho_id')
             ->join('freguesias', 'inquerito_freguesias.freguesia_id', '=', 'freguesias.id')
             ->where('inquerito_freguesias.ano', $anoInquerito)
             ->get()
-            ->groupBy('conselho_id')
+            ->groupBy('concelho_id')
             ->map(fn ($items) => $items->pluck('freguesia_id')->unique());
 
-        $ultimaSubmissaoPorConcelho = InqueritoFreguesia::select('freguesias.conselho_id', DB::raw('max(inquerito_freguesias.updated_at) as ultima'))
+        $ultimaSubmissaoPorConcelho = InqueritoFreguesia::select('freguesias.concelho_id', DB::raw('max(inquerito_freguesias.updated_at) as ultima'))
             ->join('freguesias', 'inquerito_freguesias.freguesia_id', '=', 'freguesias.id')
             ->where('inquerito_freguesias.ano', $anoInquerito)
-            ->groupBy('freguesias.conselho_id')
-            ->pluck('ultima', 'freguesias.conselho_id');
+            ->groupBy('freguesias.concelho_id')
+            ->pluck('ultima', 'freguesias.concelho_id');
 
-        $concelhosResumo = $concelhos->map(function ($conselho) use (
+        $concelhosResumo = $concelhos->map(function ($concelho) use (
             $familiasPorConcelho,
             $membrosPorConcelho,
             $ticketsPendentesPorConcelho,
             $freguesiasComInquerito,
             $ultimaSubmissaoPorConcelho
         ) {
-            $totalFreguesias = (int) ($conselho->freguesias_count ?? 0);
-            $freguesiasComInqueritoIds = $freguesiasComInquerito[$conselho->id] ?? collect();
+            $totalFreguesias = (int) ($concelho->freguesias_count ?? 0);
+            $freguesiasComInqueritoIds = $freguesiasComInquerito[$concelho->id] ?? collect();
             $totalFreguesiasComInquerito = $freguesiasComInqueritoIds instanceof Collection
                 ? $freguesiasComInqueritoIds->count()
                 : count($freguesiasComInqueritoIds);
@@ -158,9 +198,9 @@ class RegionalDashboardService
                 ? round(($totalFreguesiasComInquerito / $totalFreguesias) * 100)
                 : 0;
 
-            $ultimaSubmissao = $ultimaSubmissaoPorConcelho[$conselho->id] ?? null;
+            $ultimaSubmissao = $ultimaSubmissaoPorConcelho[$concelho->id] ?? null;
 
-            $todasFreguesias = collect($conselho->freguesias ?? []);
+            $todasFreguesias = collect($concelho->freguesias ?? []);
 
             $freguesiasPendentes = $todasFreguesias
                 ->reject(fn ($freguesia) => $freguesiasComInqueritoIds->contains($freguesia->id))
@@ -181,15 +221,15 @@ class RegionalDashboardService
             $totalPendentes = count($freguesiasPendentes);
 
             return [
-                'id' => $conselho->id,
-                'nome' => $conselho->nome,
-                'codigo' => $conselho->codigo,
+                'id' => $concelho->id,
+                'nome' => $concelho->nome,
+                'codigo' => $concelho->codigo,
                 'total_freguesias' => $totalFreguesias,
                 'freguesias_com_inquerito' => $totalFreguesiasComInquerito,
                 'percentual_inquerito' => $percentual,
-                'total_familias' => (int) ($familiasPorConcelho[$conselho->id] ?? 0),
-                'total_membros' => (int) ($membrosPorConcelho[$conselho->id] ?? 0),
-                'tickets_pendentes' => (int) ($ticketsPendentesPorConcelho[$conselho->id] ?? 0),
+                'total_familias' => (int) ($familiasPorConcelho[$concelho->id] ?? 0),
+                'total_membros' => (int) ($membrosPorConcelho[$concelho->id] ?? 0),
+                'tickets_pendentes' => (int) ($ticketsPendentesPorConcelho[$concelho->id] ?? 0),
                 'freguesias_pendentes' => $freguesiasPendentes,
                 'freguesias_concluidas' => $freguesiasConcluidas,
                 'total_pendentes' => $totalPendentes,

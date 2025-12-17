@@ -14,11 +14,13 @@ use App\Http\Controllers\Freguesia\GraficosFreguesiaController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminTicketController;
 use App\Http\Controllers\Admin\AdminLogController;
-use App\Http\Controllers\Admin\AdminConselhoController;
+use App\Http\Controllers\Admin\AdminConcelhoController;
 use App\Http\Controllers\Admin\AdminFreguesiaController;
 use App\Http\Controllers\Funcionario\DashboardController as FuncionarioDashboardController;
 use App\Http\Controllers\Funcionario\RelatorioController;
 use App\Http\Controllers\Funcionario\ExportarDadosController;
+use App\Http\Controllers\Agrupamento\InqueritoAgrupamentoController;
+use App\Http\Controllers\Agrupamento\TicketSuporteController as AgrupamentoTicketSuporteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -95,10 +97,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'c
     Route::delete('/utilizadores/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 
     // Gerir Concelhos
-    Route::get('/concelhos', [AdminConselhoController::class, 'index'])->name('concelhos.index');
-    Route::post('/concelhos', [AdminConselhoController::class, 'store'])->name('concelhos.store');
-    Route::put('/concelhos/{conselho}', [AdminConselhoController::class, 'update'])->name('concelhos.update');
-    Route::delete('/concelhos/{conselho}', [AdminConselhoController::class, 'destroy'])->name('concelhos.destroy');
+    Route::get('/concelhos', [AdminConcelhoController::class, 'index'])->name('concelhos.index');
+    Route::post('/concelhos', [AdminConcelhoController::class, 'store'])->name('concelhos.store');
+    Route::put('/concelhos/{concelho}', [AdminConcelhoController::class, 'update'])->name('concelhos.update');
+    Route::delete('/concelhos/{concelho}', [AdminConcelhoController::class, 'destroy'])->name('concelhos.destroy');
 
     // Gerir Freguesias
     Route::get('/freguesias', [AdminFreguesiaController::class, 'index'])->name('freguesias.index');
@@ -113,6 +115,24 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'c
 
     // Logs do Sistema
     Route::get('/logs', [AdminLogController::class, 'index'])->name('logs.index');
+});
+
+// --- GRUPO ROTAS AGRUPAMENTO DE ESCOLAS ---
+Route::group([
+    'prefix' => 'agrupamento',
+    'as' => 'agrupamento.',
+    'middleware' => ['auth', 'check_agrupamento'],
+], function () {
+    Route::get('/inqueritos', [InqueritoAgrupamentoController::class, 'index'])->name('inqueritos.index');
+    Route::get('/inqueritos/novo', [InqueritoAgrupamentoController::class, 'create'])->name('inqueritos.create');
+    Route::post('/inqueritos', [InqueritoAgrupamentoController::class, 'store'])->name('inqueritos.store');
+    Route::get('/inqueritos/{inquerito}', [InqueritoAgrupamentoController::class, 'show'])->name('inqueritos.show');
+
+    Route::get('/suporte', [AgrupamentoTicketSuporteController::class, 'index'])->name('suporte.index');
+    Route::get('/suporte/novo', [AgrupamentoTicketSuporteController::class, 'create'])->name('suporte.create');
+    Route::post('/suporte', [AgrupamentoTicketSuporteController::class, 'store'])->name('suporte.store');
+    Route::get('/suporte/{ticket}', [AgrupamentoTicketSuporteController::class, 'show'])->name('suporte.show');
+    Route::post('/suporte/{ticket}/mensagens', [AgrupamentoTicketSuporteController::class, 'storeMessage'])->name('suporte.mensagens.store');
 });
 
 // --- GRUPO ROTAS FUNCIONÁRIO CIMBB ---

@@ -89,6 +89,35 @@
       {{-- Fim Menu Freguesia --}}
 
 
+      {{-- ===== MENU AGRUPAMENTO ===== --}}
+      @if(auth()->user()->isAgrupamento())
+        <li class="nav-item mt-3">
+          <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Gestão Escolar</h6>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link {{ Request::routeIs('agrupamento.inqueritos.*') ? 'active' : '' }}" href="{{ route('agrupamento.inqueritos.index') }}">
+            <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('agrupamento.inqueritos.*') ? '' : 'bg-white' }}"
+                 style="{{ Request::routeIs('agrupamento.inqueritos.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
+              <i class="fas fa-poll ps-2 pe-2 text-center {{ Request::routeIs('agrupamento.inqueritos.*') ? 'text-white' : 'text-dark' }}"></i>
+            </div>
+            <span class="nav-link-text ms-1">Inquérito Anual</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link {{ Request::routeIs('agrupamento.suporte.*') ? 'active' : '' }}" href="{{ route('agrupamento.suporte.index') }}">
+            <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('agrupamento.suporte.*') ? '' : 'bg-white' }}"
+                 style="{{ Request::routeIs('agrupamento.suporte.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
+              <i class="fas fa-headset ps-2 pe-2 text-center {{ Request::routeIs('agrupamento.suporte.*') ? 'text-white' : 'text-dark' }}"></i>
+            </div>
+            <span class="nav-link-text ms-1">Suporte</span>
+          </a>
+        </li>
+      @endif
+      {{-- Fim Menu Agrupamento --}}
+
+
       {{-- ===== MENU CIMBB ===== --}}
       @if(auth()->user()->isFuncionario() || auth()->user()->isAdmin())
         <li class="nav-item mt-3">

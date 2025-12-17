@@ -10,8 +10,8 @@
             <h6>Gestão de Concelhos</h6>
             <p class="text-sm mb-0">Mantenha a lista de concelhos disponível para associação das freguesias.</p>
           </div>
-          <button class="btn bg-gradient-success btn-sm mb-0" type="button" data-bs-toggle="modal" data-bs-target="#createConselhoModal">
-            <i class="fas fa-plus me-1"></i> Novo Conselho
+          <button class="btn bg-gradient-success btn-sm mb-0" type="button" data-bs-toggle="modal" data-bs-target="#createConcelhoModal">
+            <i class="fas fa-plus me-1"></i> Novo Concelho
           </button>
         </div>
         <div class="card-body px-0 pt-0 pb-2">
@@ -27,34 +27,34 @@
                 </tr>
               </thead>
               <tbody>
-                @forelse($conselhos as $conselho)
+                @forelse($concelhos as $concelho)
                   <tr>
                     <td>
                       <div class="d-flex px-3 py-1">
                         <div class="d-flex flex-column justify-content-center">
-                          <h6 class="mb-0 text-sm">{{ $conselho->nome }}</h6>
+                          <h6 class="mb-0 text-sm">{{ $concelho->nome }}</h6>
                         </div>
                       </div>
                     </td>
                     <td>
-                      <p class="text-xs text-secondary mb-0">{{ $conselho->codigo ?? '—' }}</p>
+                      <p class="text-xs text-secondary mb-0">{{ $concelho->codigo ?? '—' }}</p>
                     </td>
                     <td class="text-center">
-                      <span class="badge badge-sm bg-gradient-secondary">{{ $conselho->freguesias_count }}</span>
+                      <span class="badge badge-sm bg-gradient-secondary">{{ $concelho->freguesias_count }}</span>
                     </td>
                     <td class="text-center">
-                      <span class="text-secondary text-xs font-weight-bold">{{ optional($conselho->created_at)->format('d/m/Y') ?? '—' }}</span>
+                      <span class="text-secondary text-xs font-weight-bold">{{ optional($concelho->created_at)->format('d/m/Y') ?? '—' }}</span>
                     </td>
                     <td class="text-center">
-                      <a href="#" class="btn btn-link text-dark px-3 mb-0" data-bs-toggle="modal" data-bs-target="#editConselhoModal-{{ $conselho->id }}">
+                      <a href="#" class="btn btn-link text-dark px-3 mb-0" data-bs-toggle="modal" data-bs-target="#editConcelhoModal-{{ $concelho->id }}">
                         <i class="fas fa-pen me-2"></i>Editar
                       </a>
-                      <form action="{{ route('admin.concelhos.destroy', $conselho) }}" method="POST" class="d-inline">
+                      <form action="{{ route('admin.concelhos.destroy', $concelho) }}" method="POST" class="d-inline">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-link text-danger text-gradient px-3 mb-0"
-                                onclick="return confirm('Tem a certeza que deseja remover o conselho {{ $conselho->nome }}?')"
-                                data-bs-toggle="tooltip" data-bs-original-title="Apagar Conselho">
+                          onclick="return confirm('Tem a certeza que deseja remover o concelho {{ $concelho->nome }}?')"
+                          data-bs-toggle="tooltip" data-bs-original-title="Apagar Concelho">
                           <i class="far fa-trash-alt me-2"></i>Apagar
                         </button>
                       </form>
@@ -69,18 +69,18 @@
             </table>
           </div>
         </div>
-        <x-admin.pagination :paginator="$conselhos" />
+        <x-admin.pagination :paginator="$concelhos" />
       </div>
     </div>
   </div>
 </div>
 
-{{-- Modal Criar Conselho --}}
-<div class="modal fade" id="createConselhoModal" tabindex="-1" role="dialog" aria-labelledby="createConselhoLabel" aria-hidden="true">
+{{-- Modal Criar Concelho --}}
+<div class="modal fade" id="createConcelhoModal" tabindex="-1" role="dialog" aria-labelledby="createConcelhoLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="createConselhoLabel">Novo Conselho</h5>
+        <h5 class="modal-title" id="createConcelhoLabel">Novo Concelho</h5>
         <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -88,18 +88,18 @@
       <form action="{{ route('admin.concelhos.store') }}" method="POST">
         @csrf
         <div class="modal-body">
-          @php $conselhoCreateHasOld = $errors->hasBag('createConselho'); @endphp
+          @php $concelhoCreateHasOld = $errors->hasBag('createConcelho'); @endphp
           <div class="form-group mb-3">
             <label class="form-control-label">Nome *</label>
-            <input type="text" class="form-control" name="nome" value="{{ $conselhoCreateHasOld ? old('nome') : '' }}" required>
-            @error('nome', 'createConselho')
+            <input type="text" class="form-control" name="nome" value="{{ $concelhoCreateHasOld ? old('nome') : '' }}" required>
+            @error('nome', 'createConcelho')
               <small class="text-danger">{{ $message }}</small>
             @enderror
           </div>
           <div class="form-group">
             <label class="form-control-label">Código</label>
-            <input type="text" class="form-control" name="codigo" value="{{ $conselhoCreateHasOld ? old('codigo') : '' }}" maxlength="10">
-            @error('codigo', 'createConselho')
+            <input type="text" class="form-control" name="codigo" value="{{ $concelhoCreateHasOld ? old('codigo') : '' }}" maxlength="10">
+            @error('codigo', 'createConcelho')
               <small class="text-danger">{{ $message }}</small>
             @enderror
           </div>
@@ -114,36 +114,36 @@
 </div>
 
 {{-- Modais de Edição --}}
-@foreach($conselhos as $conselho)
-  @php $editingConselhoId = old('editing_conselho_id'); $isEditing = $editingConselhoId == $conselho->id; @endphp
-  <div class="modal fade" id="editConselhoModal-{{ $conselho->id }}" tabindex="-1" role="dialog" aria-labelledby="editConselhoLabel-{{ $conselho->id }}" aria-hidden="true">
+@foreach($concelhos as $concelho)
+  @php $editingConcelhoId = old('editing_concelho_id'); $isEditing = $editingConcelhoId == $concelho->id; @endphp
+  <div class="modal fade" id="editConcelhoModal-{{ $concelho->id }}" tabindex="-1" role="dialog" aria-labelledby="editConcelhoLabel-{{ $concelho->id }}" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="editConselhoLabel-{{ $conselho->id }}">Editar Conselho</h5>
+          <h5 class="modal-title" id="editConcelhoLabel-{{ $concelho->id }}">Editar Concelho</h5>
           <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form action="{{ route('admin.concelhos.update', $conselho) }}" method="POST">
+        <form action="{{ route('admin.concelhos.update', $concelho) }}" method="POST">
           @csrf
           @method('PUT')
-          <input type="hidden" name="editing_conselho_id" value="{{ $conselho->id }}">
+          <input type="hidden" name="editing_concelho_id" value="{{ $concelho->id }}">
           <div class="modal-body">
             <div class="form-group mb-3">
               <label class="form-control-label">Nome *</label>
-              <input type="text" class="form-control" name="nome" value="{{ $isEditing ? old('nome') : $conselho->nome }}" required>
+              <input type="text" class="form-control" name="nome" value="{{ $isEditing ? old('nome') : $concelho->nome }}" required>
               @if($isEditing)
-                @error('nome', 'editConselho')
+                @error('nome', 'editConcelho')
                   <small class="text-danger">{{ $message }}</small>
                 @enderror
               @endif
             </div>
             <div class="form-group">
               <label class="form-control-label">Código</label>
-              <input type="text" class="form-control" name="codigo" value="{{ $isEditing ? old('codigo') : $conselho->codigo }}" maxlength="10">
+              <input type="text" class="form-control" name="codigo" value="{{ $isEditing ? old('codigo') : $concelho->codigo }}" maxlength="10">
               @if($isEditing)
-                @error('codigo', 'editConselho')
+                @error('codigo', 'editConcelho')
                   <small class="text-danger">{{ $message }}</small>
                 @enderror
               @endif
@@ -168,15 +168,15 @@
       return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 
-    @if ($errors->hasBag('createConselho'))
-      var createModal = new bootstrap.Modal(document.getElementById('createConselhoModal'));
+    @if ($errors->hasBag('createConcelho'))
+      var createModal = new bootstrap.Modal(document.getElementById('createConcelhoModal'));
       createModal.show();
     @endif
 
-    var editingConselhoId = "{{ old('editing_conselho_id') }}";
-    @if ($errors->hasBag('editConselho'))
-      if (editingConselhoId) {
-        var modal = document.getElementById('editConselhoModal-' + editingConselhoId);
+    var editingConcelhoId = "{{ old('editing_concelho_id') }}";
+    @if ($errors->hasBag('editConcelho'))
+      if (editingConcelhoId) {
+        var modal = document.getElementById('editConcelhoModal-' + editingConcelhoId);
         if (modal) {
           var editModal = new bootstrap.Modal(modal);
           editModal.show();

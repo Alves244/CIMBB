@@ -6,7 +6,6 @@
             $setor = $atividade->setorAtividade ?? $setores->firstWhere('id', $atividade->setor_id);
 
             return [
-                'identificador' => $atividade->identificador,
                 'situacao' => $atividade->tipo,
                 'setor_id' => $atividade->setor_id,
                 'descricao' => $atividade->descricao,
@@ -120,17 +119,6 @@
     ];
 @endphp
 
-@if ($errors->any())
-    <div class="alert alert-danger">
-        <p class="mb-2 fw-bold">Foram encontrados alguns erros:</p>
-        <ul class="mb-0 ps-3">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-
 <p class="text-sm text-muted">Campos assinalados com * são de preenchimento obrigatório.</p>
 
 <div class="mb-4">
@@ -151,6 +139,9 @@
                         <option value="{{ $nacionalidade }}" {{ old('nacionalidade', optional($familia)->nacionalidade) === $nacionalidade ? 'selected' : '' }}>{{ $nacionalidade }}</option>
                     @endforeach
                 </select>
+                @error('nacionalidade')
+                    <p class="text-danger text-xs mt-1">{{ $message }}</p>
+                @enderror
             </div>
         </div>
     </div>
@@ -295,12 +286,15 @@
         <div class="col-md-4">
             <label class="form-control-label" for="eleitores_repenicados">Eleitores</label>
             <input type="number" class="form-control" id="eleitores_repenicados" name="eleitores_repenicados" min="0" value="{{ $eleitoresRepenicados }}">
-            <p class="text-xs text-muted mt-1 mb-0">Número de membros que estão recenseados ou registados para votar.</p>
+            @error('eleitores_repenicados')
+                <p class="text-danger text-xs mt-1">{{ $message }}</p>
+            @enderror
+            <p class="text-xs text-muted mt-1 mb-0">Número de membros que são eleitores recenseados.</p>
         </div>
         <div class="col-md-4">
             <label class="form-control-label" for="membros_sem_informacao">Pessoas sem informação *</label>
             <input type="number" class="form-control" id="membros_sem_informacao" name="membros_sem_informacao" min="0" value="{{ $membrosSemInformacao }}" required>
-            <p class="text-xs text-muted mt-1 mb-0">Use quando não é possível identificar idade ou género.</p>
+            <p class="text-xs text-muted mt-1 mb-0">Para situações em que não é possível identificar idade ou género.</p>
         </div>
         <div class="col-md-4">
             <label class="form-control-label">Total de residentes</label>
@@ -340,11 +334,7 @@
                     <button type="button" class="btn btn-link text-danger text-sm remove-adulto">Remover</button>
                 </div>
                 <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-control-label">Identificador</label>
-                        <input type="text" name="adultos[{{ $index }}][identificador]" class="form-control" value="{{ $adulto['identificador'] ?? '' }}">
-                    </div>
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         <label class="form-control-label">Situação *</label>
                         <select class="form-control" name="adultos[{{ $index }}][situacao]">
                             <option value="" disabled {{ empty($adulto['situacao']) ? 'selected' : '' }}>Selecione</option>
@@ -353,7 +343,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-5">
+                    <div class="col-md-7">
                         <label class="form-control-label">Grande grupo *</label>
                         <select class="form-control macro-grupo-select" name="adultos[{{ $index }}][macro_grupo]" data-selected="{{ $adulto['macro_grupo'] ?? '' }}" data-target="adulto-setor-{{ $index }}">
                             <option value="" {{ empty($adulto['macro_grupo']) ? 'selected' : '' }}>Selecione</option>
@@ -448,10 +438,6 @@
             <button type="button" class="btn btn-link text-danger text-sm remove-adulto">Remover</button>
         </div>
         <div class="row g-3">
-            <div class="col-md-3">
-                <label class="form-control-label">Identificador</label>
-                <input type="text" name="adultos[__INDEX__][identificador]" class="form-control">
-            </div>
             <div class="col-md-4">
                 <label class="form-control-label">Situação *</label>
                 <select class="form-control" name="adultos[__INDEX__][situacao]">
@@ -649,7 +635,6 @@
                         }
                     };
 
-                    fillField(`[name="adultos[${nextIndex}][identificador]"]`, data.identificador || '');
                     fillField(`[name="adultos[${nextIndex}][situacao]"]`, data.situacao || '');
                     fillField(`[name="adultos[${nextIndex}][descricao]"]`, data.descricao || '');
 

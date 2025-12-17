@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\AgregadoFamiliar;
 use App\Models\AtividadeEconomica;
-use App\Models\Conselho;
+use App\Models\Concelho;
 use App\Models\Familia;
 use App\Models\Freguesia;
 use App\Models\InqueritoFreguesia;
@@ -22,7 +22,7 @@ class EstatisticasService
         $inqueritoContext = $this->obterContextoInquerito($filters);
         $filters['freguesias_submetidas'] = $inqueritoContext['submetidas'];
 
-        $familiaQuery = Familia::query()->with(['freguesia.conselho']);
+        $familiaQuery = Familia::query()->with(['freguesia.concelho']);
         $this->aplicarFiltrosFamilia($familiaQuery, $filters);
 
         $totais = $this->resumoTotais($familiaQuery, $filters);
@@ -151,7 +151,7 @@ class EstatisticasService
 
         if ($filters['concelho_id']) {
             $query->whereHas('freguesia', function (Builder $sub) use ($filters) {
-                $sub->where('conselho_id', $filters['concelho_id']);
+                $sub->where('concelho_id', $filters['concelho_id']);
             });
         }
 
@@ -416,7 +416,7 @@ class EstatisticasService
             $query->where('freguesia_id', $filters['freguesia_id']);
         } elseif ($filters['concelho_id']) {
             $query->whereHas('freguesia', function (Builder $sub) use ($filters) {
-                $sub->where('conselho_id', $filters['concelho_id']);
+                $sub->where('concelho_id', $filters['concelho_id']);
             });
         }
 
@@ -451,11 +451,11 @@ class EstatisticasService
         $submetidas = ($filters['freguesias_submetidas'] ?? collect())->toArray();
 
         $baseQuery = (clone $familiaQuery)
-            ->select('familias.freguesia_id', 'freguesias.conselho_id as conselho_id')
+            ->select('familias.freguesia_id', 'freguesias.concelho_id as concelho_id')
             ->join('freguesias', 'familias.freguesia_id', '=', 'freguesias.id');
 
-        $conselhoIds = (clone $baseQuery)->pluck('conselho_id')->unique()->filter();
-        if ($conselhoIds->isEmpty()) {
+        $concelhoIds = (clone $baseQuery)->pluck('concelho_id')->unique()->filter();
+        if ($concelhoIds->isEmpty()) {
             return [];
         }
 
@@ -467,9 +467,9 @@ class EstatisticasService
         }
 
         $subCounts = $subQuery
-            ->select('conselho_id', DB::raw('count(*) as total'))
-            ->groupBy('conselho_id')
-            ->pluck('total', 'conselho_id');
+            ->select('concelho_id', DB::raw('count(*) as total'))
+            ->groupBy('concelho_id')
+            ->pluck('total', 'concelho_id');
 
         $pendQuery = (clone $baseQuery);
         if (!empty($submetidas)) {
@@ -477,17 +477,17 @@ class EstatisticasService
         }
 
         $pendCounts = $pendQuery
-            ->select('conselho_id', DB::raw('count(*) as total'))
-            ->groupBy('conselho_id')
-            ->pluck('total', 'conselho_id');
+            ->select('concelho_id', DB::raw('count(*) as total'))
+            ->groupBy('concelho_id')
+            ->pluck('total', 'concelho_id');
 
-        $conselhos = Conselho::whereIn('id', $conselhoIds)->orderBy('nome')->get();
+        $concelhos = Concelho::whereIn('id', $concelhoIds)->orderBy('nome')->get();
 
-        return $conselhos->map(function (Conselho $conselho) use ($subCounts, $pendCounts) {
+        return $concelhos->map(function (Concelho $concelho) use ($subCounts, $pendCounts) {
             return [
-                'nome' => $conselho->nome,
-                'submetido' => (int) ($subCounts[$conselho->id] ?? 0),
-                'pendente' => (int) ($pendCounts[$conselho->id] ?? 0),
+                'nome' => $concelho->nome,
+                'submetido' => (int) ($subCounts[$concelho->id] ?? 0),
+                'pendente' => (int) ($pendCounts[$concelho->id] ?? 0),
             ];
         })->filter(function ($item) {
             return ($item['submetido'] ?? 0) > 0 || ($item['pendente'] ?? 0) > 0;
@@ -497,7 +497,7 @@ class EstatisticasService
     private function listarFamilias(Builder $familiaQuery, array $filters, ?int $limit)
     {
         $listaQuery = (clone $familiaQuery)
-            ->with(['freguesia.conselho', 'agregadoFamiliar'])
+            ->with(['freguesia.concelho', 'agregadoFamiliar'])
             ->orderBy('codigo');
 
         $submetidas = ($filters['freguesias_submetidas'] ?? collect())->toArray();
@@ -508,7 +508,7 @@ class EstatisticasService
 
             return [
                 'codigo' => $familia->codigo,
-                'concelho' => $familia->freguesia->conselho->nome ?? '—',
+                'concelho' => $familia->freguesia->concelho->nome ?? '—',
                 'freguesia' => $familia->freguesia->nome ?? '—',
                 'nacionalidade' => $familia->nacionalidade,
                 'tipologia_habitacao' => $familia->tipologia_habitacao,

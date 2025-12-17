@@ -365,7 +365,7 @@
                     <select name="freguesia_id" id="freguesia_id" class="form-select form-select-sm">
                       <option value="all" {{ ($filters['freguesia_id'] ?? 'all') === 'all' ? 'selected' : '' }}>Todas</option>
                       @foreach($freguesias as $freguesia)
-                        <option value="{{ $freguesia->id }}" data-concelho="{{ $freguesia->conselho_id }}" {{ (string) ($filters['freguesia_id'] ?? 'all') === (string) $freguesia->id ? 'selected' : '' }}>
+                        <option value="{{ $freguesia->id }}" data-concelho="{{ $freguesia->concelho_id }}" {{ (string) ($filters['freguesia_id'] ?? 'all') === (string) $freguesia->id ? 'selected' : '' }}>
                           {{ $freguesia->nome }}
                         </option>
                       @endforeach

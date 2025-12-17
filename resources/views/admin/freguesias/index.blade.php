@@ -17,11 +17,11 @@
                                   title="Filtrar freguesias">
               <div class="col-12">
                 <label class="form-label text-xs text-uppercase text-secondary mb-1">Concelho</label>
-                <select name="conselho_id" class="form-select">
+                <select name="concelho_id" class="form-select">
                   <option value="">Todos os concelhos</option>
-                  @foreach($conselhos as $conselho)
-                    <option value="{{ $conselho->id }}" {{ (string) $conselhoSelecionado === (string) $conselho->id ? 'selected' : '' }}>
-                      {{ $conselho->nome }}
+                  @foreach($concelhos as $concelho)
+                      <option value="{{ $concelho->id }}" {{ (string) $concelhoSelecionado === (string) $concelho->id ? 'selected' : '' }}>
+                        {{ $concelho->nome }}
                     </option>
                   @endforeach
                 </select>
@@ -56,7 +56,7 @@
                       </div>
                     </td>
                     <td>
-                      <p class="text-xs text-secondary mb-0">{{ $freguesia->conselho->nome ?? '—' }}</p>
+                      <p class="text-xs text-secondary mb-0">{{ $freguesia->concelho->nome ?? '—' }}</p>
                     </td>
                     <td>
                       <p class="text-xs text-secondary mb-0">{{ $freguesia->codigo ?? '—' }}</p>
@@ -120,15 +120,15 @@
           </div>
           <div class="form-group mb-3">
             <label class="form-control-label">Concelho *</label>
-            <select name="conselho_id" class="form-control" required>
+            <select name="concelho_id" class="form-control" required>
               <option value="">-- Selecione --</option>
-              @foreach($conselhos as $conselho)
-                <option value="{{ $conselho->id }}" {{ $freguesiaCreateHasOld && old('conselho_id') == $conselho->id ? 'selected' : '' }}>
-                  {{ $conselho->nome }}
+              @foreach($concelhos as $concelho)
+                <option value="{{ $concelho->id }}" {{ $freguesiaCreateHasOld && old('concelho_id') == $concelho->id ? 'selected' : '' }}>
+                  {{ $concelho->nome }}
                 </option>
               @endforeach
             </select>
-            @error('conselho_id', 'createFreguesia')
+            @error('concelho_id', 'createFreguesia')
               <small class="text-danger">{{ $message }}</small>
             @enderror
           </div>
@@ -177,17 +177,17 @@
             </div>
             <div class="form-group mb-3">
               <label class="form-control-label">Concelho *</label>
-              <select name="conselho_id" class="form-control" required>
+              <select name="concelho_id" class="form-control" required>
                 <option value="">-- Selecione --</option>
-                @foreach($conselhos as $conselho)
-                  <option value="{{ $conselho->id }}"
-                    {{ ($isEditingFreguesia ? old('conselho_id') : $freguesia->conselho_id) == $conselho->id ? 'selected' : '' }}>
-                    {{ $conselho->nome }}
+                @foreach($concelhos as $concelho)
+                  <option value="{{ $concelho->id }}"
+                    {{ ($isEditingFreguesia ? old('concelho_id') : $freguesia->concelho_id) == $concelho->id ? 'selected' : '' }}>
+                    {{ $concelho->nome }}
                   </option>
                 @endforeach
               </select>
               @if($isEditingFreguesia)
-                @error('conselho_id', 'editFreguesia')
+                @error('concelho_id', 'editFreguesia')
                   <small class="text-danger">{{ $message }}</small>
                 @enderror
               @endif

@@ -27,7 +27,7 @@
         <tbody>
             @forelse($inqueritos as $inquerito)
                 <tr>
-                    <td>{{ optional(optional($inquerito->freguesia)->conselho)->nome }}</td>
+                    <td>{{ optional(optional($inquerito->freguesia)->concelho)->nome }}</td>
                     <td>{{ optional($inquerito->freguesia)->nome }}</td>
                     <td>{{ $inquerito->total_adultos }}</td>
                     <td>{{ $inquerito->total_criancas }}</td>
