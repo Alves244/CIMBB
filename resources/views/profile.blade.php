@@ -1,5 +1,9 @@
 @extends('layouts.user_type.auth')
 
+@php
+    $title = 'Perfil';
+@endphp
+
 @section('content')
 
 <div>
