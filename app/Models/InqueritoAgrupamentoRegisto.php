@@ -16,7 +16,6 @@ class InqueritoAgrupamentoRegisto extends Model
         'inquerito_id',
         'nacionalidade',
         'ano_letivo',
-        'estabelecimento_id',
         'concelho_id',
         'nivel_ensino',
         'numero_alunos',
@@ -25,11 +24,6 @@ class InqueritoAgrupamentoRegisto extends Model
     public function inquerito(): BelongsTo
     {
         return $this->belongsTo(InqueritoAgrupamento::class, 'inquerito_id');
-    }
-
-    public function estabelecimento(): BelongsTo
-    {
-        return $this->belongsTo(EstabelecimentoEnsino::class, 'estabelecimento_id');
     }
 
     public function concelho(): BelongsTo

@@ -16,9 +16,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ConcelhoSeeder::class,
             FreguesiaSeeder::class, 
+            AgrupamentoSeeder::class,
             SetorAtividadeSeeder::class, // Chamado SÓ UMA VEZ
             UserSeeder::class,
-            InqueritoAgrupamentoSeeder::class,
             // A chamada duplicada foi removida
         ]);
     }

@@ -19,98 +19,86 @@
                     
                     {{-- CARD 1: DADOS QUANTITATIVOS (Guardados) --}}
                     <div class="card-body pt-4">
-                        <h6 class="font-weight-bolder text-success">Parte 1: Dados Quantitativos (Snapshot do Ano)</h6>
-                        
-                        {{-- TAMANHO DA LETRA AUMENTADO AQUI --}}
-                        @php
-                            $locais = collect([
-                                'Núcleo Urbano (Sede)' => (int) $inquerito->total_nucleo_urbano,
-                                'Aldeias Anexas' => (int) $inquerito->total_aldeia_anexa,
-                                'Espaço Agroflorestal' => (int) $inquerito->total_agroflorestal,
-                            ])->filter(fn ($valor) => $valor > 0);
-                        @endphp
-                        <h6 class="mt-4 text-dark">Localização dos agregados</h6>
-                        @if($locais->isEmpty())
-                            <p class="text-sm text-muted mb-0">Sem registos disponíveis para esta secção.</p>
-                        @else
-                            <ul class="list-group">
-                                @foreach($locais as $label => $valor)
-                                    <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">{{ $label }}:</strong> {{ $valor }}</li>
-                                @endforeach
-                            </ul>
-                        @endif
-                        
-                        @php
-                            $individuos = collect([
-                                'Total de Adultos' => (int) $inquerito->total_adultos,
-                                'Total de Crianças/Jovens' => (int) $inquerito->total_criancas,
-                            ])->filter(fn ($valor) => $valor > 0);
-                        @endphp
-                        <h6 class="mt-4 text-dark">Total de indivíduos</h6>
-                        @if($individuos->isEmpty())
-                            <p class="text-sm text-muted mb-0">Sem registos disponíveis para esta secção.</p>
-                        @else
-                            <ul class="list-group">
-                                @foreach($individuos as $label => $valor)
-                                    <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">{{ $label }}:</strong> {{ $valor }}</li>
-                                @endforeach
-                            </ul>
-                        @endif
-                        
-                        @php
-                            $tipologias = collect([
-                                'Propriedade Própria' => (int) $inquerito->total_propria,
-                                'Propriedade Arrendada' => (int) $inquerito->total_arrendada,
-                            ])->filter(fn ($valor) => $valor > 0);
-                        @endphp
-                        <h6 class="mt-4 text-dark">Tipologia de propriedade</h6>
-                        @if($tipologias->isEmpty())
-                            <p class="text-sm text-muted mb-0">Sem registos disponíveis para esta secção.</p>
-                        @else
-                            <ul class="list-group">
-                                @foreach($tipologias as $label => $valor)
-                                    <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">{{ $label }}:</strong> {{ $valor }}</li>
-                                @endforeach
-                            </ul>
-                        @endif
-                        
-                        <h6 class="mt-4 text-dark">Número de atividades por setor</h6>
-                        <div class="row">
-                            @php
-                                $setoresPropria = collect($inquerito->total_por_setor_propria ?? [])->filter(fn ($valor) => (int) $valor > 0);
-                                $setoresOutrem = collect($inquerito->total_por_setor_outrem ?? [])->filter(fn ($valor) => (int) $valor > 0);
-                            @endphp
-                            <div class="col-md-6">
-                                <strong class="text-dark">Conta Própria:</strong>
-                                @if($setoresPropria->isEmpty())
-                                    <p class="text-sm text-muted mb-0">Sem registos neste grupo.</p>
-                                @else
-                                    <ul class="list-group">
-                                        @foreach($setoresPropria as $setor => $total)
-                                            <li class="list-group-item border-0 ps-0 pt-0 text-sm">{{ $setor }}: <span class="font-weight-bold">{{ $total }}</span></li>
-                                        @endforeach
-                                    </ul>
-                                @endif
-                            </div>
-                            <div class="col-md-6">
-                                <strong class="text-dark">Conta de Outrem:</strong>
-                                @if($setoresOutrem->isEmpty())
-                                    <p class="text-sm text-muted mb-0">Sem registos neste grupo.</p>
-                                @else
-                                    <ul class="list-group">
-                                        @foreach($setoresOutrem as $setor => $total)
-                                            <li class="list-group-item border-0 ps-0 pt-0 text-sm">{{ $setor }}: <span class="font-weight-bold">{{ $total }}</span></li>
-                                        @endforeach
-                                    </ul>
-                                @endif
-                            </div>
+                        <h6 class="font-weight-bolder text-success mb-1">Parte 1: Dados Quantitativos (Snapshot do Ano)</h6>
+                        <p class="text-sm text-muted">Resumo automático construído com base nos registos anuais.</p>
+
+                        <div class="mt-4">
+                            <h6 class="text-dark fw-semibold mb-1">1. Agregados familiares que residem no núcleo urbano da sede da freguesia</h6>
+                            <p class="text-sm mb-0"><strong class="text-dark">{{ (int) ($inquerito->total_nucleo_urbano ?? 0) }}</strong> agregados.</p>
                         </div>
 
-                        @php $totalTrabalhadoresOutrem = (int) ($inquerito->total_trabalhadores_outrem ?? 0); @endphp
-                        @if($totalTrabalhadoresOutrem > 0)
-                            <h6 class="mt-4 text-dark">Número total de trabalhadores por conta de outrem</h6>
-                            <p class="text-sm mb-0"><strong class="text-dark">{{ $totalTrabalhadoresOutrem }}</strong> trabalhadores acompanhados.</p>
-                        @endif
+                        <div class="mt-4">
+                            <h6 class="text-dark fw-semibold mb-1">2. Agregados familiares que residem em aldeias anexas</h6>
+                            <p class="text-sm mb-0"><strong class="text-dark">{{ (int) ($inquerito->total_aldeia_anexa ?? 0) }}</strong> agregados.</p>
+                        </div>
+
+                        <div class="mt-4">
+                            <h6 class="text-dark fw-semibold mb-1">3. Agregados familiares que residem em quintas ou propriedades no espaço agroflorestal</h6>
+                            <p class="text-sm mb-0"><strong class="text-dark">{{ (int) ($inquerito->total_agroflorestal ?? 0) }}</strong> agregados.</p>
+                        </div>
+
+                        <div class="mt-4">
+                            <h6 class="text-dark fw-semibold">4. Número total de indivíduos</h6>
+                            <ul class="list-group">
+                                <li class="list-group-item border-0 ps-0 pt-0 text-sm">Total de Adultos: <strong class="text-dark">{{ (int) ($inquerito->total_adultos ?? 0) }}</strong></li>
+                                <li class="list-group-item border-0 ps-0 pt-0 text-sm">Total de Crianças/Jovens: <strong class="text-dark">{{ (int) ($inquerito->total_criancas ?? 0) }}</strong></li>
+                            </ul>
+                        </div>
+
+                        <div class="mt-4">
+                            <h6 class="text-dark fw-semibold">5. Agregados familiares que vivem em casa ou propriedade adquiridas</h6>
+                            <ul class="list-group">
+                                <li class="list-group-item border-0 ps-0 pt-0 text-sm">Propriedade Própria: <strong class="text-dark">{{ (int) ($inquerito->total_propria ?? 0) }}</strong></li>
+                                <li class="list-group-item border-0 ps-0 pt-0 text-sm">Propriedade Arrendada: <strong class="text-dark">{{ (int) ($inquerito->total_arrendada ?? 0) }}</strong></li>
+                            </ul>
+                        </div>
+
+                        @php
+                            $setoresPropria = collect($setoresLista)->map(function ($setor) use ($inquerito) {
+                                return [
+                                    'nome' => $setor['nome'],
+                                    'valor' => (int) ($inquerito->total_por_setor_propria[$setor['nome']] ?? 0),
+                                ];
+                            })->filter(fn ($item) => $item['valor'] > 0);
+
+                            $setoresOutrem = collect($setoresLista)->map(function ($setor) use ($inquerito) {
+                                return [
+                                    'nome' => $setor['nome'],
+                                    'valor' => (int) ($inquerito->total_por_setor_outrem[$setor['nome']] ?? 0),
+                                ];
+                            })->filter(fn ($item) => $item['valor'] > 0);
+                        @endphp
+
+                        <div class="mt-4">
+                            <h6 class="text-dark fw-semibold">6. Nº de atividades por Conta Própria</h6>
+                            @if($setoresPropria->isEmpty())
+                                <p class="text-sm text-muted mb-0">Sem registos disponíveis para esta secção.</p>
+                            @else
+                                <ul class="list-group">
+                                    @foreach($setoresPropria as $setor)
+                                        <li class="list-group-item border-0 ps-0 pt-0 text-sm">{{ $setor['nome'] }}: <strong class="text-dark">{{ $setor['valor'] }}</strong></li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
+
+                        <div class="mt-4">
+                            <h6 class="text-dark fw-semibold">7. Nº de atividades por Conta de Outrem</h6>
+                            @if($setoresOutrem->isEmpty())
+                                <p class="text-sm text-muted mb-0">Sem registos disponíveis para esta secção.</p>
+                            @else
+                                <ul class="list-group">
+                                    @foreach($setoresOutrem as $setor)
+                                        <li class="list-group-item border-0 ps-0 pt-0 text-sm">{{ $setor['nome'] }}: <strong class="text-dark">{{ $setor['valor'] }}</strong></li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
+
+                        <div class="mt-4">
+                            <h6 class="text-dark fw-semibold">8. Número total de trabalhadores por conta de outrem</h6>
+                            <p class="text-sm mb-0"><strong class="text-dark">{{ (int) ($inquerito->total_trabalhadores_outrem ?? 0) }}</strong> trabalhadores acompanhados.</p>
+                        </div>
                     </div>
                     
                     {{-- CARD 2: DADOS QUALITATIVOS (Guardados) --}}

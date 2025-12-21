@@ -11,12 +11,15 @@
             <div class="card-header pb-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center">
               <div>
                 <h6 class="mb-0">Inquérito {{ $anoAtual }}</h6>
-                <p class="text-sm mb-0">Registe os alunos por nacionalidade e estabelecimento.</p>
+                <p class="text-sm mb-0">Registe os alunos por nacionalidade e nível de ensino.</p>
               </div>
               <span class="badge bg-gradient-success">Agrupamento: {{ Auth::user()->agrupamento->nome ?? 'N/A' }}</span>
             </div>
             <div class="card-body">
-              <p class="text-sm text-secondary">Todos os campos de cada registo são obrigatórios. Adicione um registo por combinação de nacionalidade / escola / nível de ensino.</p>
+              <p class="text-sm text-secondary">Todos os campos de cada registo são obrigatórios. Adicione um registo por combinação de nacionalidade / ano letivo / nível de ensino.</p>
+              @isset($periodoAtivo)
+                <p class="text-xs text-secondary mb-4">Período aberto até {{ optional($periodoAtivo->fecha_em)->format('d/m/Y H:i') }}.</p>
+              @endisset
 
               <div id="registos-wrapper" class="d-flex flex-column gap-4">
                 <div class="registo-card border rounded p-3" data-index="0">
@@ -27,11 +30,16 @@
                   <div class="row g-3">
                     <div class="col-md-4">
                       <label class="form-label text-xs text-uppercase text-secondary">Nacionalidade *</label>
-                      <input type="text" name="registos[0][nacionalidade]" class="form-control" required>
+                      <select name="registos[0][nacionalidade]" class="form-select nacionalidade-select" required>
+                        <option value="" selected>Selecione</option>
+                        @foreach($nacionalidades as $nacionalidade)
+                          <option value="{{ $nacionalidade }}">{{ $nacionalidade }}</option>
+                        @endforeach
+                      </select>
                     </div>
                     <div class="col-md-4">
                       <label class="form-label text-xs text-uppercase text-secondary">Ano letivo *</label>
-                      <input type="text" name="registos[0][ano_letivo]" class="form-control" placeholder="2024/2025" required>
+                      <input type="text" name="registos[0][ano_letivo]" class="form-control" required>
                     </div>
                     <div class="col-md-4">
                       <label class="form-label text-xs text-uppercase text-secondary">Nível de ensino *</label>
@@ -42,18 +50,9 @@
                       </select>
                     </div>
                     <div class="col-md-6">
-                      <label class="form-label text-xs text-uppercase text-secondary">Estabelecimento *</label>
-                      <select name="registos[0][estabelecimento_id]" class="form-select estabelecimento-select" required>
-                        <option value="">Selecione</option>
-                        @foreach($estabelecimentos as $estabelecimento)
-                          <option value="{{ $estabelecimento->id }}" data-concelho="{{ $estabelecimento->concelho->nome ?? '' }}">{{ $estabelecimento->nome }}</option>
-                        @endforeach
-                      </select>
-                    </div>
-                    <div class="col-md-4">
                       <label class="form-label text-xs text-uppercase text-secondary">Concelho</label>
-                      <input type="text" class="form-control concelho-display" value="" readonly>
-                      <input type="hidden" name="registos[0][concelho_id]" class="concelho-id" required>
+                      <input type="text" class="form-control readonly-plain" value="{{ $concelhoNome }}" readonly>
+                      <input type="hidden" name="registos[0][concelho_id]" value="{{ $concelhoId }}" required>
                     </div>
                     <div class="col-md-2">
                       <label class="form-label text-xs text-uppercase text-secondary">N.º Alunos *</label>
@@ -81,16 +80,51 @@
   </div>
 @endsection
 
-@push('js')
-  <script>
-    const estabelecimentos = @json($estabelecimentos->map(fn ($item) => [
-        'id' => $item->id,
-        'nome' => $item->nome,
-        'concelho_id' => $item->concelho_id,
-        'concelho_nome' => $item->concelho->nome ?? 'Sem concelho',
-    ]));
+@push('css')
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+  <style>
+    .readonly-plain[readonly] {
+      background-color: #fff;
+      color: #344767;
+      opacity: 1;
+    }
+  </style>
+@endpush
 
+@push('js')
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+  <script>
+    const concelhoInfo = @json(['id' => $concelhoId, 'nome' => $concelhoNome]);
     const niveisEnsino = @json($niveisEnsino);
+    const nacionalidades = @json($nacionalidades);
+    const nacionalidadesOptionsHtml = nacionalidades.map((item) => `<option value="${item}">${item}</option>`).join('');
+
+    const nacionalidadeChoices = new Map();
+
+    function enhanceNationalidadeSelect(select) {
+      if (!select || select.dataset.enhanced === 'true') {
+        return;
+      }
+
+      const instance = new Choices(select, {
+        searchPlaceholderValue: 'Pesquisar nacionalidade...',
+        shouldSort: true,
+        itemSelectText: '',
+        removeItemButton: false,
+      });
+
+      nacionalidadeChoices.set(select, instance);
+      select.dataset.enhanced = 'true';
+    }
+
+    function destroyNationalidadeSelect(select) {
+      const instance = nacionalidadeChoices.get(select);
+      if (instance) {
+        instance.destroy();
+        nacionalidadeChoices.delete(select);
+        select.dataset.enhanced = 'false';
+      }
+    }
 
     const wrapper = document.getElementById('registos-wrapper');
     const addButton = document.getElementById('add-registo');
@@ -125,11 +159,14 @@
         <div class="row g-3">
           <div class="col-md-4">
             <label class="form-label text-xs text-uppercase text-secondary">Nacionalidade *</label>
-            <input type="text" name="registos[${index}][nacionalidade]" class="form-control" required>
+            <select name="registos[${index}][nacionalidade]" class="form-select nacionalidade-select" required>
+              <option value="">Selecione</option>
+              ${nacionalidadesOptionsHtml}
+            </select>
           </div>
           <div class="col-md-4">
             <label class="form-label text-xs text-uppercase text-secondary">Ano letivo *</label>
-            <input type="text" name="registos[${index}][ano_letivo]" class="form-control" placeholder="2024/2025" required>
+            <input type="text" name="registos[${index}][ano_letivo]" class="form-control" required>
           </div>
           <div class="col-md-4">
             <label class="form-label text-xs text-uppercase text-secondary">Nível de ensino *</label>
@@ -138,16 +175,9 @@
             </select>
           </div>
           <div class="col-md-6">
-            <label class="form-label text-xs text-uppercase text-secondary">Estabelecimento *</label>
-            <select name="registos[${index}][estabelecimento_id]" class="form-select estabelecimento-select" required>
-              <option value="">Selecione</option>
-              ${estabelecimentos.map((school) => `<option value="${school.id}" data-concelho="${school.concelho_nome}">${school.nome}</option>`).join('')}
-            </select>
-          </div>
-          <div class="col-md-4">
             <label class="form-label text-xs text-uppercase text-secondary">Concelho</label>
-            <input type="text" class="form-control concelho-display" value="" readonly>
-            <input type="hidden" name="registos[${index}][concelho_id]" class="concelho-id" required>
+            <input type="text" class="form-control readonly-plain" value="${concelhoInfo.nome}" readonly>
+            <input type="hidden" name="registos[${index}][concelho_id]" value="${concelhoInfo.id}" required>
           </div>
           <div class="col-md-2">
             <label class="form-label text-xs text-uppercase text-secondary">N.º Alunos *</label>
@@ -156,34 +186,16 @@
         </div>
       `;
       wrapper.appendChild(card);
+      enhanceNationalidadeSelect(card.querySelector('.nacionalidade-select'));
       updatePositions();
     }
-
-    wrapper.addEventListener('change', (event) => {
-      if (!event.target.classList.contains('estabelecimento-select')) {
-        return;
-      }
-
-      const select = event.target;
-      const card = select.closest('.registo-card');
-      const concelhoInput = card.querySelector('.concelho-display');
-      const concelhoIdInput = card.querySelector('.concelho-id');
-      const school = estabelecimentos.find((item) => Number(item.id) === Number(select.value));
-
-      if (school) {
-        concelhoInput.value = school.concelho_nome;
-        concelhoIdInput.value = school.concelho_id;
-      } else {
-        concelhoInput.value = '';
-        concelhoIdInput.value = '';
-      }
-    });
 
     wrapper.addEventListener('click', (event) => {
       if (!event.target.classList.contains('remove-registo')) {
         return;
       }
       const card = event.target.closest('.registo-card');
+      card.querySelectorAll('.nacionalidade-select').forEach((select) => destroyNationalidadeSelect(select));
       card.remove();
       updatePositions();
     });
@@ -193,5 +205,6 @@
     });
 
     updatePositions();
+    document.querySelectorAll('.nacionalidade-select').forEach((select) => enhanceNationalidadeSelect(select));
   </script>
 @endpush

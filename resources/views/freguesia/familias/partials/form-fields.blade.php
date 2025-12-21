@@ -2,14 +2,11 @@
     $editing = isset($familia);
     $agregado = optional($familia)->agregadoFamiliar;
     $adultosExistentes = old('adultos', $editing
-        ? $familia->atividadesEconomicas->map(function ($atividade) use ($setores) {
-            $setor = $atividade->setorAtividade ?? $setores->firstWhere('id', $atividade->setor_id);
-
+        ? $familia->atividadesEconomicas->map(function ($atividade) {
             return [
                 'situacao' => $atividade->tipo,
                 'setor_id' => $atividade->setor_id,
                 'descricao' => $atividade->descricao,
-                'macro_grupo' => $setor->macro_grupo ?? null,
             ];
         })->toArray()
         : []);
@@ -47,16 +44,6 @@
     $apoioOutro = old('necessidades_apoio_outro', optional($familia)->necessidades_apoio_outro);
     $apoioOutroSelecionado = in_array('outra', $necessidadesSelecionadas, true);
     $estruturaSelecionada = collect(old('estrutura_familiar', $agregado->estrutura_familiar ?? []))->filter()->values()->all();
-    $macroGrupos = $formOptions['macroGrupos'] ?? [];
-    $setoresAgrupados = $setores->groupBy('macro_grupo');
-    $setoresDataset = $setoresAgrupados->map(function ($colecao) {
-        return $colecao->map(function ($setor) {
-            return [
-                'id' => $setor->id,
-                'nome' => $setor->nome,
-            ];
-        })->values();
-    });
 
     $labelsHabitacao = [
         'moradia' => 'Moradia',
@@ -344,21 +331,15 @@
                         </select>
                     </div>
                     <div class="col-md-7">
-                        <label class="form-control-label">Grande grupo *</label>
-                        <select class="form-control macro-grupo-select" name="adultos[{{ $index }}][macro_grupo]" data-selected="{{ $adulto['macro_grupo'] ?? '' }}" data-target="adulto-setor-{{ $index }}">
-                            <option value="" {{ empty($adulto['macro_grupo']) ? 'selected' : '' }}>Selecione</option>
-                            @foreach ($macroGrupos as $valor => $label)
-                                <option value="{{ $valor }}" {{ ($adulto['macro_grupo'] ?? '') === $valor ? 'selected' : '' }}>{{ $label }}</option>
+                        <label class="form-control-label">Setor de atividade *</label>
+                        <select class="form-control setor-select" name="adultos[{{ $index }}][setor_id]" id="adulto-setor-{{ $index }}">
+                            <option value="" {{ empty($adulto['setor_id']) ? 'selected' : '' }}>Selecione a atividade</option>
+                            @foreach ($setores as $setor)
+                                <option value="{{ $setor->id }}" {{ ($adulto['setor_id'] ?? '') == $setor->id ? 'selected' : '' }}>{{ $setor->nome }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-control-label">Atividade específica *</label>
-                        <select class="form-control setor-select" name="adultos[{{ $index }}][setor_id]" id="adulto-setor-{{ $index }}" data-selected="{{ $adulto['setor_id'] ?? '' }}">
-                            <option value="" {{ empty($adulto['setor_id']) ? 'selected' : '' }}>Selecione a atividade</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
+                    <div class="col-12">
                         <label class="form-control-label">Notas / descrição</label>
                         <input type="text" class="form-control" name="adultos[{{ $index }}][descricao]" value="{{ $adulto['descricao'] ?? '' }}" placeholder="Detalhes adicionais (opcional)">
                     </div>
@@ -438,7 +419,7 @@
             <button type="button" class="btn btn-link text-danger text-sm remove-adulto">Remover</button>
         </div>
         <div class="row g-3">
-            <div class="col-md-4">
+            <div class="col-md-5">
                 <label class="form-control-label">Situação *</label>
                 <select class="form-control" name="adultos[__INDEX__][situacao]">
                     <option value="" disabled selected>Selecione</option>
@@ -447,22 +428,16 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-5">
-                <label class="form-control-label">Grande grupo *</label>
-                <select class="form-control macro-grupo-select" name="adultos[__INDEX__][macro_grupo]" data-target="adulto-setor-__INDEX__">
-                    <option value="" selected>Selecione</option>
-                    @foreach ($macroGrupos as $valor => $label)
-                        <option value="{{ $valor }}">{{ $label }}</option>
+            <div class="col-md-7">
+                <label class="form-control-label">Setor de atividade *</label>
+                <select class="form-control setor-select" name="adultos[__INDEX__][setor_id]" id="adulto-setor-__INDEX__">
+                    <option value="" selected>Selecione a atividade</option>
+                    @foreach ($setores as $setor)
+                        <option value="{{ $setor->id }}">{{ $setor->nome }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-6">
-                <label class="form-control-label">Atividade específica *</label>
-                <select class="form-control setor-select" name="adultos[__INDEX__][setor_id]" id="adulto-setor-__INDEX__">
-                    <option value="" selected>Selecione a atividade</option>
-                </select>
-            </div>
-            <div class="col-md-6">
+            <div class="col-12">
                 <label class="form-control-label">Notas / descrição</label>
                 <input type="text" class="form-control" name="adultos[__INDEX__][descricao]" placeholder="Detalhes adicionais (opcional)">
             </div>
@@ -484,78 +459,6 @@
         <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                const setoresPorGrupo = @json($setoresDataset);
-                const encontrarMacroPorSetor = (setorId) => {
-                    if (!setorId) {
-                        return '';
-                    }
-                    const alvo = setorId.toString();
-                    for (const [grupo, setores] of Object.entries(setoresPorGrupo)) {
-                        if (setores.some(setor => setor.id.toString() === alvo)) {
-                            return grupo;
-                        }
-                    }
-                    return '';
-                };
-
-                const preencherAtividades = (setorSelect, grupo, selectedValue = '') => {
-                    if (!setorSelect) {
-                        return;
-                    }
-
-                    const placeholder = document.createElement('option');
-                    placeholder.value = '';
-                    placeholder.textContent = 'Selecione a atividade';
-                    placeholder.selected = true;
-                    placeholder.disabled = false;
-
-                    setorSelect.innerHTML = '';
-                    setorSelect.appendChild(placeholder);
-
-                    const lista = setoresPorGrupo[grupo] || [];
-                    lista.forEach(setor => {
-                        const option = document.createElement('option');
-                        option.value = setor.id;
-                        option.textContent = setor.nome;
-                        if (selectedValue && selectedValue.toString() === setor.id.toString()) {
-                            option.selected = true;
-                            placeholder.selected = false;
-                        }
-                        setorSelect.appendChild(option);
-                    });
-
-                    if (!lista.length) {
-                        setorSelect.value = '';
-                    }
-                };
-
-                const inicializarGrupoSelect = (row) => {
-                    const macroSelect = row.querySelector('.macro-grupo-select');
-                    const setorSelect = row.querySelector('.setor-select');
-                    if (!macroSelect || !setorSelect) {
-                        return;
-                    }
-
-                    const setorSelecionado = setorSelect.dataset.selected || setorSelect.value || '';
-                    let macroSelecionado = macroSelect.dataset.selected || macroSelect.value || '';
-
-                    if (!macroSelecionado && setorSelecionado) {
-                        macroSelecionado = encontrarMacroPorSetor(setorSelecionado);
-                    }
-
-                    if (macroSelecionado) {
-                        macroSelect.value = macroSelecionado;
-                        preencherAtividades(setorSelect, macroSelecionado, setorSelecionado);
-                    } else {
-                        preencherAtividades(setorSelect, '', setorSelecionado);
-                    }
-
-                    macroSelect.addEventListener('change', (event) => {
-                        setorSelect.dataset.selected = '';
-                        preencherAtividades(setorSelect, event.target.value);
-                    });
-                };
-
                 const nacionalidadeSelect = document.getElementById('nacionalidade-select');
                 if (nacionalidadeSelect) {
                     new Choices(nacionalidadeSelect, {
@@ -636,19 +539,10 @@
                     };
 
                     fillField(`[name="adultos[${nextIndex}][situacao]"]`, data.situacao || '');
+                    fillField(`[name="adultos[${nextIndex}][setor_id]"]`, data.setor_id || '');
                     fillField(`[name="adultos[${nextIndex}][descricao]"]`, data.descricao || '');
 
-                    const macroSelect = row.querySelector(`select[name="adultos[${nextIndex}][macro_grupo]"]`);
-                    const setorSelect = row.querySelector(`select[name="adultos[${nextIndex}][setor_id]"]`);
-                    if (macroSelect) {
-                        macroSelect.dataset.selected = data.macro_grupo || '';
-                    }
-                    if (setorSelect) {
-                        setorSelect.dataset.selected = data.setor_id || '';
-                    }
-
                     attachRowEvents(row);
-                    inicializarGrupoSelect(row);
                     toggleEmptyState();
                     nextIndex += 1;
                 };
@@ -656,7 +550,6 @@
                 addButton?.addEventListener('click', () => addRow());
                 container?.querySelectorAll('.adulto-row').forEach((row) => {
                     attachRowEvents(row);
-                    inicializarGrupoSelect(row);
                 });
                 toggleEmptyState();
 

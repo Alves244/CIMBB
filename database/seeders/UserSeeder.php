@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Freguesia;
 use App\Models\Agrupamento;
-use App\Models\Concelho;
 
 class UserSeeder extends Seeder
 {
@@ -64,18 +63,11 @@ class UserSeeder extends Seeder
         }
 
         // --- Utilizador Agrupamento ---
-        $primeiroConcelho = Concelho::first();
+        $agrupamentoPadrao = Agrupamento::where('codigo', 'AE-JSR')->first()
+            ?? Agrupamento::first();
 
-        if ($primeiroConcelho) {
-            $agrupamentoPadrao = Agrupamento::firstOrCreate(
-                ['codigo' => 'AGR-TESTE'],
-                [
-                    'nome' => 'Agrupamento Escola Teste',
-                    'concelho_id' => $primeiroConcelho->id,
-                ]
-            );
-
-            User::firstOrCreate(
+        if ($agrupamentoPadrao) {
+            User::updateOrCreate(
                 ['email' => 'escola@cimbb.pt'],
                 [
                     'nome' => 'Coordenador Agrupamento Teste',
@@ -88,7 +80,7 @@ class UserSeeder extends Seeder
                 ]
             );
         } else {
-            $this->command?->warn('Nenhum concelho encontrado. O utilizador de agrupamento não foi criado.');
+            $this->command?->warn('Nenhum agrupamento encontrado. O utilizador de agrupamento não foi criado.');
         }
     }
 }

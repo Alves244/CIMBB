@@ -18,13 +18,12 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $anoSelecionado = (int) $request->query('ano', date('Y'));
-        $anosDisponiveis = collect(range(date('Y'), date('Y') - 5));
 
         $dadosDashboard = $this->dashboardService->buildDashboardPayload($user, $anoSelecionado);
         $dadosDashboard['title'] = 'Dashboard Regional';
         $dadosDashboard['mostrarDashboardRegional'] = true;
-        $dadosDashboard['anosDisponiveis'] = $anosDisponiveis;
-        $dadosDashboard['anoSelecionado'] = $anoSelecionado;
+        $dadosDashboard['anosDisponiveis'] = $dadosDashboard['anosDisponiveis'] ?? collect();
+        $dadosDashboard['anoSelecionado'] = $dadosDashboard['inqueritoAnoAtual'];
 
         return view('dashboard', $dadosDashboard);
     }

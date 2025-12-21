@@ -4,7 +4,14 @@
 
   <div class="container-fluid py-4">
     @php
-      $anosSelect = $anosDisponiveis ?? collect(range(date('Y'), date('Y') - 5));
+      $anosSelect = collect($anosDisponiveis ?? [])->filter();
+      if ($anosSelect->isEmpty()) {
+          $anosSelect = collect([date('Y')]);
+      }
+      if (! $anosSelect->contains((int) $inqueritoAnoAtual)) {
+          $anosSelect->prepend((int) $inqueritoAnoAtual);
+      }
+      $anosSelect = $anosSelect->unique()->sortDesc()->values();
     @endphp
     @php
       $authUser = Auth::user();
@@ -103,7 +110,7 @@
                 <p class="text-sm mb-1 text-capitalize font-weight-bold">Inquérito {{ $inqueritoAnoAtual }}</p>
                 @if($inqueritoDisponivel)
                   <h6 class="text-success mb-1">Disponível até {{ optional($inqueritoPrazo)->format('d/m/Y') }}</h6>
-                  <p class="text-xs text-secondary mb-3">Registe as nacionalidades e estabelecimentos para o ano em curso.</p>
+                  <p class="text-xs text-secondary mb-3">Registe as nacionalidades por nível de ensino para o ano em curso.</p>
                   <a href="{{ route('agrupamento.inqueritos.create') }}" class="btn btn-sm bg-gradient-success">Preencher agora</a>
                 @elseif($jaPreencheuInquerito)
                   <h6 class="text-success mb-1">Inquérito submetido</h6>
@@ -129,7 +136,7 @@
                     {{ $ticketsRespondidos > 0 ? 'Existem novas respostas da equipa CIMBB.' : 'Sem novas mensagens no suporte.' }}
                   </p>
                 </div>
-                <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md">
+                <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md info-card-icon">
                   <i class="fas fa-headset text-lg opacity-10" aria-hidden="true"></i>
                 </div>
               </div>
@@ -139,17 +146,15 @@
         </div>
         <div class="col-xl-4 col-md-12 mb-4">
           <div class="card h-100">
-            <div class="card-body p-3">
-              <p class="text-sm mb-1 text-capitalize font-weight-bold">Resumo do agrupamento</p>
-              <h5 class="font-weight-bolder mb-0">{{ $agrupamentoResumo['totalSubmissoes'] ?? 0 }} submissões</h5>
-              <p class="text-xs text-secondary mb-2">Último registo: {{ $agrupamentoResumo['ultimoAno'] ?? '—' }}</p>
-              <div class="d-flex align-items-center gap-3">
-                <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
-                  <i class="fas fa-user-graduate text-lg opacity-10" aria-hidden="true"></i>
+            <div class="card-body p-4 d-flex flex-column gap-3">
+              <p class="text-sm mb-0 text-capitalize font-weight-bold">Alunos estrangeiros registados</p>
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="numbers">
+                  <h2 class="font-weight-bolder mb-0">{{ $agrupamentoResumo['ultimoTotalAlunos'] ?? 0 }}</h2>
+                  <p class="text-xs text-secondary mb-0">Último inquérito {{ $agrupamentoResumo['ultimoAno'] ?? '—' }}</p>
                 </div>
-                <div>
-                  <p class="text-xs text-secondary mb-0">Total de alunos registados no último inquérito</p>
-                  <h6 class="mb-0">{{ $agrupamentoResumo['ultimoTotalAlunos'] ?? 0 }}</h6>
+                <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md info-card-icon">
+                  <i class="fas fa-user-graduate text-lg opacity-10" aria-hidden="true"></i>
                 </div>
               </div>
             </div>
@@ -375,7 +380,7 @@
       <div class="row mt-4">
         
         {{-- Coluna da Esquerda: Caixa de Boas-Vindas (JÁ TINHA) --}}
-        <div class="col-lg-7 mb-lg-0 mb-4">
+        <div class="{{ $authUser->isAgrupamento() ? 'col-12 mb-4' : 'col-lg-7 mb-lg-0 mb-4' }}">
           <div class="card h-100">
             <div class="card-body p-4">
               <div class="row">
@@ -397,30 +402,30 @@
             </div>
           </div>
         </div>
-
-        {{-- Coluna da Direita: Gráfico de Nacionalidades (JÁ TINHA) --}}
-        <div class="col-lg-5">
-          <div class="card h-100">
-            <div class="card-header pb-0">
-              <h6>Nacionalidades (Top 10)</h6>
-              <p class="text-sm">
-                  <span class="font-weight-bold">{{ $tituloDashboard }}</span>
-              </p>
-            </div>
-            <div class="card-body p-3 d-flex align-items-center justify-content-center">
-              @if($chartValues->count() > 0)
-                {{-- O Canvas onde o gráfico será desenhado --}}
-                <div class="chart w-100">
-                  <canvas id="nacionalidadeChart" class="chart-canvas" height="300"></canvas>
-                </div>
-              @else
-                {{-- Mensagem se não houver dados --}}
-                <p class="text-sm w-100 text-center">Ainda não existem dados de famílias para mostrar.</p>
-              @endif
+        @unless($authUser->isAgrupamento())
+          {{-- Coluna da Direita: Gráfico de Nacionalidades (mantém para admin/freguesia/funcionário) --}}
+          <div class="col-lg-5">
+            <div class="card h-100">
+              <div class="card-header pb-0">
+                <h6>Nacionalidades (Top 10)</h6>
+                <p class="text-sm">
+                    <span class="font-weight-bold">{{ $tituloDashboard }}</span>
+                </p>
+              </div>
+              <div class="card-body p-3 d-flex align-items-center justify-content-center">
+                @if(($chartValues ?? collect())->count() > 0)
+                  {{-- O Canvas onde o gráfico será desenhado --}}
+                  <div class="chart w-100">
+                    <canvas id="nacionalidadeChart" class="chart-canvas" height="300"></canvas>
+                  </div>
+                @else
+                  {{-- Mensagem se não houver dados --}}
+                  <p class="text-sm w-100 text-center">Ainda não existem dados de famílias para mostrar.</p>
+                @endif
+              </div>
             </div>
           </div>
-        </div>
-
+        @endunless
       </div>
     @endif
   </div>
@@ -514,6 +519,12 @@
     .year-select:focus {
       border-color: #82d616 !important;
       box-shadow: 0 0 0 0.2rem rgba(130, 214, 22, 0.25);
+    }
+
+    .info-card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
     }
   </style>
 @endpush
@@ -617,13 +628,14 @@
         });
       }
 
+      @unless($authUser->isAgrupamento())
       var ctx = document.getElementById("nacionalidadeChart");
       if (ctx) {
         var chartCanvas = ctx.getContext("2d");
 
         // Transforma os dados do PHP (Blade) para JavaScript
-        var chartLabels = @json($chartLabels);
-        var chartData = @json($chartValues);
+        var chartLabels = @json($chartLabels ?? []);
+        var chartData = @json($chartValues ?? []);
 
         // Define as nossas cores (priorizando o verde)
         var chartColors = [
@@ -671,7 +683,7 @@
                     
                     // Calcular a percentagem
                     let total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                    let percentage = (value / total * 100).toFixed(1);
+                    let percentage = total ? (value / total * 100).toFixed(1) : 0;
 
                     // Retorna a string final (ex: "Brasil: 5 (25.0%)")
                     return ` ${label}: ${value} (${percentage}%)`;
@@ -683,6 +695,8 @@
           }
         });
       }
+      @endunless
+
     });
   </script>
 @endpush

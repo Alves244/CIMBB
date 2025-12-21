@@ -115,6 +115,49 @@
     </div>
   </div>
 
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="mb-2">PDF - Estatísticas das Escolas</h5>
+          <p class="text-sm text-secondary">Gera um relatório dedicado às escolas, com totais por nacionalidade, níveis de ensino e estabelecimentos. Filtra opcionalmente por concelho ou agrupamento.</p>
+          <form method="POST" action="{{ route('funcionario.exportar.escolas.pdf') }}">
+            @csrf
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label class="form-label">Ano</label>
+                <select name="ano" class="form-select">
+                  @foreach($anosDisponiveis as $ano)
+                    <option value="{{ $ano }}">{{ $ano }}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Concelho</label>
+                <select name="concelho_id" id="escolas_concelho_select" class="form-select">
+                  <option value="">Todos</option>
+                  @foreach($concelhos as $concelho)
+                    <option value="{{ $concelho->id }}">{{ $concelho->nome }}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="col-md-5">
+                <label class="form-label">Agrupamento</label>
+                <select name="agrupamento_id" id="escolas_agrupamento_select" class="form-select">
+                  <option value="">Todos</option>
+                  @foreach($agrupamentos as $agrupamento)
+                    <option value="{{ $agrupamento->id }}" data-concelho="{{ $agrupamento->concelho_id }}">{{ $agrupamento->nome }}</option>
+                  @endforeach
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-success mt-3">Exportar PDF das Escolas</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 @endsection
 
@@ -123,25 +166,44 @@
     document.addEventListener('DOMContentLoaded', () => {
       const concelhoSelect = document.getElementById('concelho_filtro_export');
       const freguesiaSelect = document.getElementById('freguesia_filtro_export');
-      if (!concelhoSelect || !freguesiaSelect) {
-        return;
+
+      if (concelhoSelect && freguesiaSelect) {
+        const allOptions = Array.from(freguesiaSelect.querySelectorAll('option[data-concelho]'));
+
+        function atualizarFreguesias() {
+          const concelhoId = concelhoSelect.value;
+          freguesiaSelect.innerHTML = '<option value="" disabled selected>Selecione uma freguesia</option>';
+
+          allOptions.forEach(option => {
+            if (!concelhoId || option.dataset.concelho === concelhoId) {
+              freguesiaSelect.appendChild(option.cloneNode(true));
+            }
+          });
+        }
+
+        atualizarFreguesias();
+        concelhoSelect.addEventListener('change', atualizarFreguesias);
       }
 
-      const allOptions = Array.from(freguesiaSelect.querySelectorAll('option[data-concelho]'));
+      const concelhoEscolas = document.getElementById('escolas_concelho_select');
+      const agrupamentoSelect = document.getElementById('escolas_agrupamento_select');
+      if (concelhoEscolas && agrupamentoSelect) {
+        const allAgrupamentos = Array.from(agrupamentoSelect.querySelectorAll('option[data-concelho]'));
 
-      function atualizarFreguesias() {
-        const concelhoId = concelhoSelect.value;
-        freguesiaSelect.innerHTML = '<option value="" disabled selected>Selecione uma freguesia</option>';
+        function atualizarAgrupamentos() {
+          const concelhoId = concelhoEscolas.value;
+          agrupamentoSelect.innerHTML = '<option value="">Todos</option>';
 
-        allOptions.forEach(option => {
-          if (!concelhoId || option.dataset.concelho === concelhoId) {
-            freguesiaSelect.appendChild(option.cloneNode(true));
-          }
-        });
+          allAgrupamentos.forEach(option => {
+            if (!concelhoId || option.dataset.concelho === concelhoId) {
+              agrupamentoSelect.appendChild(option.cloneNode(true));
+            }
+          });
+        }
+
+        atualizarAgrupamentos();
+        concelhoEscolas.addEventListener('change', atualizarAgrupamentos);
       }
-
-      atualizarFreguesias();
-      concelhoSelect.addEventListener('change', atualizarFreguesias);
     });
   </script>
 @endpush

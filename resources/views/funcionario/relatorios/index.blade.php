@@ -225,10 +225,24 @@
     );
   }
 
+  $exportQuery = collect(request()->query())->except(['escopo', 'page'])->toArray();
+  $exportFreguesiasUrl = route('funcionario.relatorios.export', array_merge($exportQuery, ['escopo' => 'freguesias']));
+  $exportEscolasUrl = route('funcionario.relatorios.export', array_merge($exportQuery, ['escopo' => 'escolas']));
+
+  $escopoQuery = collect(request()->query())->except(['escopo', 'page'])->toArray();
+  $freguesiasToggleUrl = route('funcionario.relatorios.index', array_merge($escopoQuery, ['escopo' => 'freguesias']));
+  $escolasToggleUrl = route('funcionario.relatorios.index', array_merge($escopoQuery, ['escopo' => 'escolas']));
+
 @endphp
 
 @section('content')
   <div class="container-fluid py-4">
+    <div class="d-flex justify-content-center mb-4">
+      <div class="btn-group scope-toggle" role="group">
+        <a href="{{ $freguesiasToggleUrl }}" class="btn btn-sm {{ $escopoDados === 'freguesias' ? 'btn-success' : 'btn-outline-success' }}">Freguesias</a>
+        <a href="{{ $escolasToggleUrl }}" class="btn btn-sm {{ $escopoDados === 'escolas' ? 'btn-success' : 'btn-outline-success' }}">Escolas</a>
+      </div>
+    </div>
     <div class="row mb-4">
       <div class="col-12">
         <div class="card border border-success shadow-sm">
@@ -242,6 +256,7 @@
               <span class="text-xs text-secondary">Ano em análise</span>
               <h2 class="font-weight-bolder text-success mb-1">{{ $anoSelecionado }}</h2>
               <form method="GET" action="{{ route('funcionario.relatorios.index') }}" class="d-flex align-items-stretch gap-3 mt-3">
+                <input type="hidden" name="escopo" value="freguesias">
                 <div class="year-control d-flex align-items-center">
                   <select name="ano" class="form-select year-select w-100">
                     @foreach($anosDisponiveis as $ano)
@@ -250,7 +265,7 @@
                   </select>
                 </div>
                 @foreach(request()->query() as $param => $value)
-                  @continue($param === 'ano')
+                  @continue(in_array($param, ['ano', 'escopo'], true))
                   <input type="hidden" name="{{ $param }}" value="{{ $value }}">
                 @endforeach
                 <button type="submit" class="btn btn-success px-4 year-control align-self-stretch d-flex align-items-center justify-content-center">Alterar</button>
@@ -273,6 +288,7 @@
           </div>
         </div>
         <form class="filter-stats-form" method="GET" action="{{ route('funcionario.relatorios.index') }}">
+          <input type="hidden" name="escopo" value="freguesias">
           <div class="row g-3">
             <div class="col-12 col-xl-3">
               <div class="border rounded-4 h-100 p-3">
@@ -805,7 +821,13 @@
                 <p class="text-sm text-secondary mb-0">Amostra limitada às últimas {{ $totalFamiliasListadas }} famílias para consulta rápida.</p>
               @endif
             </div>
-            <a href="{{ route('funcionario.relatorios.export', request()->query()) }}" class="btn btn-sm bg-gradient-success text-white">Exportar PDF</a>
+            <div class="text-end">
+              <span class="text-xs text-secondary text-uppercase d-block mb-1">Exportar dados</span>
+              <div class="btn-group btn-group-sm export-toggle" role="group" aria-label="Escolher dados para exportar">
+                <a href="{{ $exportFreguesiasUrl }}" class="btn {{ $escopoDados === 'freguesias' ? 'btn-success' : 'btn-outline-success' }}">Freguesias</a>
+                <a href="{{ $exportEscolasUrl }}" class="btn {{ $escopoDados === 'escolas' ? 'btn-success' : 'btn-outline-success' }}">Escolas</a>
+              </div>
+            </div>
           </div>
           <div class="card-body p-0">
             @if($listaEhPaginator ? $listaFamilias->isNotEmpty() : !empty($listaFamilias))
@@ -1001,6 +1023,17 @@
     .year-select:focus {
       border-color: #82d616 !important;
       box-shadow: 0 0 0 0.2rem rgba(130, 214, 22, 0.25);
+    }
+
+    .scope-toggle .btn {
+      min-width: 140px;
+      font-weight: 700;
+      border-radius: 999px !important;
+    }
+
+    .export-toggle .btn {
+      min-width: 120px;
+      font-weight: 600;
     }
   </style>
 @endpush

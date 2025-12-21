@@ -7,6 +7,8 @@ use App\Models\AtividadeEconomica;
 use App\Models\Concelho;
 use App\Models\Familia;
 use App\Models\Freguesia;
+use App\Models\InqueritoAgrupamento;
+use App\Models\InqueritoAgrupamentoRegisto;
 use App\Models\InqueritoFreguesia;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -41,6 +43,123 @@ class EstatisticasService
             'heatmap' => $heatmap,
             'filtros' => $filters,
         ];
+    }
+
+    public function gerarEscolas(array $inputs, ?int $listLimit = 40): array
+    {
+        $filters = $this->sanitizeEscolasFilters($inputs);
+
+        $inqueritosQuery = InqueritoAgrupamento::query()
+            ->with(['agrupamento.concelho'])
+            ->where('ano_referencia', $filters['ano']);
+
+        if ($filters['agrupamento_id']) {
+            $inqueritosQuery->where('agrupamento_id', $filters['agrupamento_id']);
+        }
+
+        if ($filters['concelho_id']) {
+            $inqueritosQuery->whereHas('agrupamento', function (Builder $sub) use ($filters) {
+                $sub->where('concelho_id', $filters['concelho_id']);
+            });
+        }
+
+        $registosQuery = InqueritoAgrupamentoRegisto::query()
+            ->whereHas('inquerito', function (Builder $sub) use ($filters) {
+                $sub->where('ano_referencia', $filters['ano']);
+
+                if ($filters['agrupamento_id']) {
+                    $sub->where('agrupamento_id', $filters['agrupamento_id']);
+                }
+            });
+
+        $this->aplicarFiltrosEscolas($registosQuery, $filters);
+
+        $totalInqueritos = (clone $inqueritosQuery)->count();
+        $totalAgrupamentos = (clone $inqueritosQuery)->distinct('agrupamento_id')->count('agrupamento_id');
+        $totalAlunos = (clone $registosQuery)->sum('numero_alunos');
+        $mediaAlunos = $totalInqueritos > 0 ? (int) round($totalAlunos / $totalInqueritos) : 0;
+
+        $nivelEnsino = (clone $registosQuery)
+            ->select('nivel_ensino', DB::raw('SUM(numero_alunos) as total'))
+            ->groupBy('nivel_ensino')
+            ->orderByDesc('total')
+            ->pluck('total', 'nivel_ensino');
+
+        $nacionalidades = (clone $registosQuery)
+            ->select('nacionalidade', DB::raw('SUM(numero_alunos) as total'))
+            ->groupBy('nacionalidade')
+            ->orderByDesc('total')
+            ->limit(10)
+            ->pluck('total', 'nacionalidade');
+
+        $registosTable = (new InqueritoAgrupamentoRegisto())->getTable();
+
+        $concelhoDistrib = (clone $registosQuery)
+            ->select("{$registosTable}.concelho_id as concelho_id", DB::raw('SUM(numero_alunos) as total'))
+            ->groupBy("{$registosTable}.concelho_id")
+            ->orderByDesc('total')
+            ->pluck('total', 'concelho_id');
+
+        $concelhoLabels = Concelho::whereIn('id', $concelhoDistrib->keys())
+            ->pluck('nome', 'id');
+
+        $concelhos = $concelhoDistrib->mapWithKeys(function ($total, $concelhoId) use ($concelhoLabels) {
+            return [$concelhoLabels[$concelhoId] ?? '—' => $total];
+        });
+
+        $agrupamentosDistrib = (clone $registosQuery)
+            ->join('inquerito_agrupamentos', 'inquerito_agrupamento_registos.inquerito_id', '=', 'inquerito_agrupamentos.id')
+            ->join('agrupamentos', 'inquerito_agrupamentos.agrupamento_id', '=', 'agrupamentos.id')
+            ->select('agrupamentos.nome', DB::raw('SUM(inquerito_agrupamento_registos.numero_alunos) as total'))
+            ->groupBy('agrupamentos.nome')
+            ->orderByDesc('total')
+            ->limit(12)
+            ->pluck('total', 'agrupamentos.nome');
+
+        $listaInqueritosQuery = (clone $inqueritosQuery)
+            ->withSum('registos as alunos_reportados', 'numero_alunos')
+            ->orderByDesc('ano_referencia');
+
+        if ($listLimit === null) {
+            $listaInqueritos = $listaInqueritosQuery->get();
+        } else {
+            $listaInqueritos = $listaInqueritosQuery
+                ->paginate(max(1, $listLimit))
+                ->withQueryString();
+        }
+
+        return [
+            'totais' => [
+                'totalInqueritos' => $totalInqueritos,
+                'totalAgrupamentos' => $totalAgrupamentos,
+                'totalAlunos' => $totalAlunos,
+                'mediaAlunos' => $mediaAlunos,
+            ],
+            'distribuicoes' => [
+                'nivel_ensino' => $nivelEnsino,
+                'nacionalidade' => $nacionalidades,
+                'concelho' => $concelhos,
+                'agrupamentos' => $agrupamentosDistrib,
+            ],
+            'lista' => $listaInqueritos,
+            'filtros' => $filters,
+        ];
+    }
+
+    public function exportarPdfEscolas(array $inputs)
+    {
+        $resultado = $this->gerarEscolas($inputs, null);
+
+        $pdf = Pdf::loadView('funcionario.relatorios.escolas-pdf', [
+            'geradoEm' => now(),
+            'ano' => $resultado['filtros']['ano'],
+            'totais' => $resultado['totais'],
+            'distribuicoes' => $resultado['distribuicoes'],
+            'filtros' => $resultado['filtros'],
+            'listaInqueritos' => $resultado['lista'],
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->download(sprintf('estatisticas_escolas_%s.pdf', now()->format('Ymd_His')));
     }
 
     public function contarFamilias(array $inputs): array
@@ -95,9 +214,26 @@ class EstatisticasService
         ];
     }
 
+    private function sanitizeEscolasFilters(array $filters): array
+    {
+        $anoAtual = (int) date('Y');
+        $anoFiltro = $this->toIntOrNull($filters['ano'] ?? null);
+        if ($anoFiltro === null || $anoFiltro <= 0) {
+            $anoFiltro = $anoAtual;
+        }
+
+        return [
+            'ano' => $anoFiltro,
+            'concelho_id' => $this->toIntOrNull($filters['concelho_id'] ?? null),
+            'agrupamento_id' => $this->toIntOrNull($filters['agrupamento_id'] ?? null),
+            'nivel_ensino' => $this->emptyToNull($filters['nivel_ensino'] ?? null),
+            'nacionalidade' => $this->emptyToNull($filters['nacionalidade'] ?? null),
+        ];
+    }
+
     private function toIntOrNull($value): ?int
     {
-        if ($value === null || $value === '') {
+        if ($value === null || $value === '' || $value === 'all') {
             return null;
         }
 
@@ -197,6 +333,29 @@ class EstatisticasService
 
         if ($filters['periodo_fim']) {
             $query->where('created_at', '<=', $filters['periodo_fim']);
+        }
+    }
+
+    private function aplicarFiltrosEscolas(Builder $query, array $filters): void
+    {
+        $registosTable = (new InqueritoAgrupamentoRegisto())->getTable();
+
+        if ($filters['concelho_id']) {
+            $query->where($registosTable.'.concelho_id', $filters['concelho_id']);
+        }
+
+        if ($filters['nivel_ensino']) {
+            $query->where('nivel_ensino', $filters['nivel_ensino']);
+        }
+
+        if ($filters['nacionalidade']) {
+            $query->where('nacionalidade', $filters['nacionalidade']);
+        }
+
+        if ($filters['agrupamento_id']) {
+            $query->whereHas('inquerito', function (Builder $sub) use ($filters) {
+                $sub->where('agrupamento_id', $filters['agrupamento_id']);
+            });
         }
     }
 

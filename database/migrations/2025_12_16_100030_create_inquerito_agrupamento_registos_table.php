@@ -13,7 +13,6 @@ return new class extends Migration
             $table->foreignId('inquerito_id')->constrained('inquerito_agrupamentos')->cascadeOnDelete();
             $table->string('nacionalidade');
             $table->string('ano_letivo', 9);
-            $table->foreignId('estabelecimento_id')->constrained('estabelecimentos_ensino')->cascadeOnUpdate()->restrictOnDelete();
             $table->foreignId('concelho_id')->constrained('concelhos')->cascadeOnUpdate()->restrictOnDelete();
             $table->string('nivel_ensino');
             $table->unsignedInteger('numero_alunos');

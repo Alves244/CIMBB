@@ -9,15 +9,24 @@
              style="background-image: linear-gradient(310deg, #98e090 0%, #76c76a 100%);">
         </div>
         <div class="card card-body blur shadow-blur mx-4 mt-n6">
+            @php $user = auth()->user(); @endphp
             <div class="row gx-4">
                 <div class="col-auto my-auto">
                     <div class="h-100">
-                        <h5 class="mb-1">
-                            {{ auth()->user()->nome }}
-                        </h5>
-                        <p class="mb-0 font-weight-bold text-sm">
-                            {{ ucfirst(auth()->user()->perfil) }}
-                        </p>
+                        <h5 class="mb-1">{{ $user->nome }}</h5>
+                        @if($user->isFreguesia())
+                            <p class="mb-0 font-weight-bold text-sm">
+                                Freguesia: {{ optional($user->freguesia)->nome ?? 'Sem freguesia associada' }}
+                            </p>
+                        @elseif($user->isAgrupamento())
+                            <p class="text-sm text-secondary mb-0">
+                                Agrupamento: {{ optional($user->agrupamento)->nome ?? 'Sem agrupamento associado' }}
+                            </p>
+                        @else
+                            <p class="mb-0 font-weight-bold text-sm">
+                                {{ ucfirst($user->perfil) }}
+                            </p>
+                        @endif
                     </div>
                 </div>
             </div>

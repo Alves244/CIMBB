@@ -24,11 +24,6 @@ class Agrupamento extends Model
         return $this->belongsTo(Concelho::class);
     }
 
-    public function estabelecimentos(): HasMany
-    {
-        return $this->hasMany(EstabelecimentoEnsino::class);
-    }
-
     public function users(): HasMany
     {
         return $this->hasMany(User::class);

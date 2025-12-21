@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,16 +11,17 @@ class CheckAgrupamento
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if (! auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        /** @var User|null $user */
         $user = auth()->user();
 
-        if (auth()->check() && $user && $user->isAgrupamento()) {
+        if ($user && $user->isAgrupamento()) {
             return $next($request);
         }
 
-        if (auth()->check()) {
-            return redirect('/dashboard')->with('error', 'Acesso não autorizado.');
-        }
-
-        return redirect()->route('login');
+        return redirect('/dashboard')->with('error', 'Acesso não autorizado.');
     }
 }

@@ -21,10 +21,6 @@ class FamiliaController extends Controller
     private const NECESSIDADES_APOIO = ['lingua_portuguesa', 'acesso_emprego', 'habitacao', 'regularizacao_administrativa', 'transporte_mobilidade', 'apoio_social', 'outra'];
     private const ESTRUTURAS_FAMILIARES = ['casal_com_filhos', 'casal_sem_filhos', 'monoparental', 'familia_alargada', 'coabitacao_informal', 'outra'];
     private const SITUACOES_SOCIOPROFISSIONAIS = ['conta_propria', 'conta_outrem', 'prestacao_servicos', 'desempregado', 'estudante', 'outra_situacao'];
-    private const MACRO_GRUPOS = [
-        'producao' => 'Produção, Construção e Agricultura',
-        'servicos' => 'Serviços, Comércio e Turismo',
-    ];
     private const ESTADOS_ACOMPANHAMENTO = ['ativa', 'desinstalada'];
 
     /**
@@ -243,7 +239,6 @@ class FamiliaController extends Controller
             'estrutura_familiar' => 'nullable|array',
             'estrutura_familiar.*' => ['string', Rule::in(self::ESTRUTURAS_FAMILIARES)],
             'adultos' => 'nullable|array',
-            'adultos.*.macro_grupo' => ['nullable', Rule::in(array_keys(self::MACRO_GRUPOS))],
             'adultos.*.identificador' => 'nullable|string|max:20',
             'adultos.*.situacao' => ['nullable', Rule::in(self::SITUACOES_SOCIOPROFISSIONAIS)],
             'adultos.*.setor_id' => 'nullable|exists:setor_atividades,id',
@@ -361,7 +356,6 @@ class FamiliaController extends Controller
             'estruturasFamiliares' => self::ESTRUTURAS_FAMILIARES,
             'opcoesEscola' => self::ESCOLA_OPCOES,
             'situacoesSociais' => self::SITUACOES_SOCIOPROFISSIONAIS,
-            'macroGrupos' => self::MACRO_GRUPOS,
             'estadosAcompanhamento' => self::ESTADOS_ACOMPANHAMENTO,
         ];
     }

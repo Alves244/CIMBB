@@ -7,6 +7,7 @@ use App\Models\Concelho;
 use App\Models\Familia;
 use App\Models\InqueritoAgrupamento;
 use App\Models\InqueritoFreguesia;
+use App\Models\InqueritoPeriodo;
 use App\Models\TicketSuporte;
 use App\Models\User;
 use Carbon\Carbon;
@@ -23,12 +24,16 @@ class RegionalDashboardService
         $tituloDashboard = 'Dashboard Regional (Todo o Território)';
         $nomeLocalidade = 'Beira Baixa (Todos os Concelhos)';
 
-        $anoAtual = (int) date('Y');
-        $anoInquerito = ($ano && $ano >= 2000 && $ano <= $anoAtual) ? (int) $ano : $anoAtual;
+        $tipoPeriodo = $user->isAgrupamento()
+            ? InqueritoPeriodo::TIPO_AGRUPAMENTO
+            : InqueritoPeriodo::TIPO_FREGUESIA;
+
+        [$anoInquerito, $periodoSelecionado, $anosDisponiveis] = $this->resolverPeriodo($ano, $tipoPeriodo);
+
         $ticketsRespondidos = 0;
         $jaPreencheuInquerito = false;
         $inqueritoDisponivel = false;
-        $inqueritoPrazo = Carbon::create($anoInquerito, 12, 31, 23, 59, 59);
+        $inqueritoPrazo = $periodoSelecionado?->fecha_em ?? Carbon::create($anoInquerito, 12, 31, 23, 59, 59);
 
         $concelhosResumo = collect();
         $dashboardProgress = [
@@ -68,7 +73,7 @@ class RegionalDashboardService
                 ->where('ano', $anoInquerito)
                 ->exists();
 
-            $inqueritoDisponivel = !$jaPreencheuInquerito && now()->lessThanOrEqualTo($inqueritoPrazo);
+            $inqueritoDisponivel = !$jaPreencheuInquerito && ($periodoSelecionado?->estaAberto() ?? false);
         } elseif ($user->isAgrupamento()) {
             $agrupamentoId = $user->agrupamento_id;
 
@@ -97,7 +102,7 @@ class RegionalDashboardService
                     ->where('ano_referencia', $anoInquerito)
                     ->exists();
 
-                $inqueritoDisponivel = !$jaPreencheuInquerito && now()->lessThanOrEqualTo($inqueritoPrazo);
+                $inqueritoDisponivel = !$jaPreencheuInquerito && ($periodoSelecionado?->estaAberto() ?? false);
             } else {
                 $jaPreencheuInquerito = false;
                 $inqueritoDisponivel = false;
@@ -144,7 +149,27 @@ class RegionalDashboardService
             'dashboardProgress' => $dashboardProgress,
             'regionalHighlights' => $regionalHighlights,
             'agrupamentoResumo' => $agrupamentoResumo,
+            'anosDisponiveis' => $anosDisponiveis,
         ];
+    }
+
+    private function resolverPeriodo(?int $anoDesejado, string $tipo): array
+    {
+        $anosDisponiveis = InqueritoPeriodo::anosDisponiveis($tipo);
+
+        if ($anosDisponiveis->isEmpty()) {
+            $anoBase = $anoDesejado ?? (int) date('Y');
+
+            return [$anoBase, null, $anosDisponiveis];
+        }
+
+        $anoSelecionado = $anoDesejado && $anosDisponiveis->contains($anoDesejado)
+            ? (int) $anoDesejado
+            : (int) $anosDisponiveis->first();
+
+        $periodo = InqueritoPeriodo::periodoParaAno($tipo, $anoSelecionado);
+
+        return [$anoSelecionado, $periodo, $anosDisponiveis];
     }
 
     public function getRegionalOverview(int $anoInquerito): array

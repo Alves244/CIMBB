@@ -56,11 +56,11 @@
         {{-- 2. Inquérito Anual --}}
         <li class="nav-item">
           <a class="nav-link {{ Request::routeIs('freguesia.inqueritos.*') ? 'active' : '' }}" href="{{ route('freguesia.inqueritos.index') }}">
-            <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('freguesia.inqueritos.*') ? '' : 'bg-white' }}" 
+            <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('freguesia.inqueritos.*') ? '' : 'bg-white' }}"
                  style="{{ Request::routeIs('freguesia.inqueritos.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
               <i class="fas fa-poll ps-2 pe-2 text-center {{ Request::routeIs('freguesia.inqueritos.*') ? 'text-white' : 'text-dark' }}"></i>
             </div>
-              <span class="nav-link-text ms-1">Inquérito Anual</span>
+            <span class="nav-link-text ms-1">Inquérito Anual</span>
           </a>
         </li>
         
@@ -160,6 +160,15 @@
           <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Administração</h6>
         </li>
         <li class="nav-item">
+          <a class="nav-link {{ Request::routeIs('admin.inqueritos.periodos.*') ? 'active' : '' }}" href="{{ route('admin.inqueritos.periodos.index') }}">
+            <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.inqueritos.periodos.*') ? '' : 'bg-white' }}"
+                 style="{{ Request::routeIs('admin.inqueritos.periodos.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
+              <i class="fas fa-calendar-alt ps-2 pe-2 text-center {{ Request::routeIs('admin.inqueritos.periodos.*') ? 'text-white' : 'text-dark' }}"></i>
+            </div>
+            <span class="nav-link-text ms-1">Períodos dos Inquéritos</span>
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link {{ Request::routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
             <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.users.*') ? '' : 'bg-white' }}"
                  style="{{ Request::routeIs('admin.users.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
@@ -187,6 +196,15 @@
           </a>
         </li>
         <li class="nav-item">
+          <a class="nav-link {{ Request::routeIs('admin.agrupamentos.*') ? 'active' : '' }}" href="{{ route('admin.agrupamentos.index') }}">
+            <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.agrupamentos.*') ? '' : 'bg-white' }}"
+                 style="{{ Request::routeIs('admin.agrupamentos.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
+              <i class="fas fa-school ps-2 pe-2 text-center {{ Request::routeIs('admin.agrupamentos.*') ? 'text-white' : 'text-dark' }}"></i>
+            </div>
+            <span class="nav-link-text ms-1">Gerir Escolas</span>
+          </a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link {{ Request::routeIs('admin.tickets.*') ? 'active' : '' }}" href="{{ route('admin.tickets.index') }}">
               <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.tickets.*') ? '' : 'bg-white' }}"
                    style="{{ Request::routeIs('admin.tickets.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
@@ -202,15 +220,6 @@
                 <i class="fas fa-clipboard-list ps-2 pe-2 text-center {{ Request::routeIs('admin.logs.*') ? 'text-white' : 'text-dark' }}"></i>
               </div>
               <span class="nav-link-text ms-1">Logs do Sistema</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {{ Request::routeIs('admin.parametros.*') ? 'active' : '' }}" href="#">
-              <div class="icon icon-shape icon-sm shadow border-radius-md text-center me-2 d-flex align-items-center justify-content-center {{ Request::routeIs('admin.parametros.*') ? '' : 'bg-white' }}"
-                   style="{{ Request::routeIs('admin.parametros.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
-                <i class="fas fa-cogs ps-2 pe-2 text-center {{ Request::routeIs('admin.parametros.*') ? 'text-white' : 'text-dark' }}"></i>
-              </div>
-              <span class="nav-link-text ms-1">Parâmetros</span>
             </a>
         </li>
       @endif

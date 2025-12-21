@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Funcionario;
 
 use App\Http\Controllers\Controller;
+use App\Models\Agrupamento;
 use App\Models\Concelho;
 use App\Models\Familia;
 use App\Models\Freguesia;
@@ -39,6 +40,7 @@ class ExportarDadosController extends Controller
             'anosDisponiveis' => $anos,
             'concelhos' => Concelho::orderBy('nome')->get(['id', 'nome']),
             'freguesias' => Freguesia::orderBy('nome')->get(['id', 'nome', 'concelho_id']),
+            'agrupamentos' => Agrupamento::with('concelho:id,nome')->orderBy('nome')->get(['id', 'nome', 'concelho_id']),
         ]);
     }
 
@@ -46,6 +48,13 @@ class ExportarDadosController extends Controller
     {
         $dados = $this->sanitizeExportFilters($request->all());
         return $this->estatisticasService->exportarPdf($dados);
+    }
+
+    public function exportEstatisticasEscolasPdf(Request $request)
+    {
+        $dados = $this->sanitizeExportEscolasFilters($request->all());
+
+        return $this->estatisticasService->exportarPdfEscolas($dados);
     }
 
     public function exportEstatisticasFreguesiaPdf(Request $request)
@@ -106,6 +115,26 @@ class ExportarDadosController extends Controller
             'ano' => $ano,
             'concelho_id' => $inputs['concelho_id'] ?? null,
             'freguesia_id' => $inputs['freguesia_id'] ?? null,
+        ];
+    }
+
+    private function sanitizeExportEscolasFilters(array $inputs): array
+    {
+        $anosValidos = Familia::query()
+            ->select('ano_instalacao')
+            ->distinct()
+            ->orderByDesc('ano_instalacao')
+            ->pluck('ano_instalacao');
+
+        $ano = (int) ($inputs['ano'] ?? $anosValidos->first());
+        if (!$anosValidos->contains($ano)) {
+            $ano = (int) $anosValidos->first();
+        }
+
+        return [
+            'ano' => $ano,
+            'concelho_id' => $inputs['concelho_id'] ?? null,
+            'agrupamento_id' => $inputs['agrupamento_id'] ?? null,
         ];
     }
 }

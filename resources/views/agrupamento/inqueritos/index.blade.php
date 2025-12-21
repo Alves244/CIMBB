@@ -9,6 +9,11 @@
             <div>
               <h6 class="mb-0">Inquéritos Anuais do Agrupamento</h6>
               <p class="text-sm mb-0">Agrupamento: {{ Auth::user()->agrupamento->nome ?? 'N/A' }}</p>
+              @if(isset($periodoAtual))
+                <p class="text-xs text-secondary mb-0">Período aberto até {{ optional($periodoAtual->fecha_em)->format('d/m/Y H:i') }}.</p>
+              @else
+                <p class="text-xs text-secondary mb-0">Ainda não existe período de submissão ativo.</p>
+              @endif
             </div>
             @if(!$jaPreencheuEsteAno && $dentroDoPrazo)
               <a href="{{ route('agrupamento.inqueritos.create') }}" class="btn bg-gradient-success btn-sm">

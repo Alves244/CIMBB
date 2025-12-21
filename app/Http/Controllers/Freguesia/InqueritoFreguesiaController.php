@@ -11,9 +11,22 @@ use App\Models\SetorAtividade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class InqueritoFreguesiaController extends Controller
 {
+    private const SETORES_PRIORITARIOS = [
+        'Administração, serviços técnicos ou trabalho de escritório',
+        'Agricultura, silvicultura e pecuária',
+        'Comércio e retalho',
+        'Construção civil e obras públicas',
+        'Indústria transformadora',
+        'Restauração, hotelaria e turismo',
+        'Serviços pessoais e sociais (inclui limpezas, cuidados de idosos, apoio doméstico)',
+        'Transportes e logística',
+        'Outro (especificar)',
+    ];
+
     /**
      * Mostra a lista (histórico) de inquéritos submetidos.
      */
@@ -68,7 +81,11 @@ class InqueritoFreguesiaController extends Controller
         $familiaIds = $familiasDaFreguesia->pluck('id');
         $agregadosDaFreguesia = AgregadoFamiliar::whereIn('familia_id', $familiaIds)->get();
         $atividadesDaFreguesia = AtividadeEconomica::whereIn('familia_id', $familiaIds)->get();
-        $setores = SetorAtividade::where('ativo', true)->orderBy('nome')->get();
+        $setoresConfig = collect(self::SETORES_PRIORITARIOS);
+        $setoresRegistados = SetorAtividade::where('ativo', true)
+            ->whereIn('nome', $setoresConfig->all())
+            ->get()
+            ->keyBy('nome');
         
         $preenchido = [];
         $preenchido['total_nucleo_urbano'] = $familiasDaFreguesia->where('localizacao_tipo', 'sede_freguesia')->count();
@@ -85,18 +102,19 @@ class InqueritoFreguesiaController extends Controller
 
         $atividadesPropria = $atividadesDaFreguesia->where('tipo', 'conta_propria');
         $atividadesOutrem = $atividadesDaFreguesia->where('tipo', 'conta_outrem');
-        $setorDataPropria = [];
-        $setorDataOutrem = [];
 
-        foreach ($setores as $setor) {
-            $setorDataPropria[$setor->nome] = $atividadesPropria->where('setor_id', $setor->id)->count();
-            $setorDataOutrem[$setor->nome] = $atividadesOutrem->where('setor_id', $setor->id)->count();
+        $preenchido['total_por_setor_propria'] = $setoresConfig->mapWithKeys(fn ($nome) => [$nome => 0])->toArray();
+        $preenchido['total_por_setor_outrem'] = $setoresConfig->mapWithKeys(fn ($nome) => [$nome => 0])->toArray();
+
+        foreach ($setoresRegistados as $nome => $setor) {
+            $preenchido['total_por_setor_propria'][$nome] = $atividadesPropria->where('setor_id', $setor->id)->count();
+            $preenchido['total_por_setor_outrem'][$nome] = $atividadesOutrem->where('setor_id', $setor->id)->count();
         }
-        $preenchido['total_por_setor_propria'] = $setorDataPropria;
-        $preenchido['total_por_setor_outrem'] = $setorDataOutrem;
-        $preenchido['total_trabalhadores_outrem'] = array_sum($setorDataOutrem);
 
-        return view('freguesia.inqueritos.adicionar', compact('anoAtual', 'preenchido', 'setores'));
+        $preenchido['total_trabalhadores_outrem'] = array_sum($preenchido['total_por_setor_outrem']);
+        $setoresLista = $this->obterSetoresFormulario();
+
+        return view('freguesia.inqueritos.adicionar', compact('anoAtual', 'preenchido', 'setoresLista'));
     }
 
     /**
@@ -133,7 +151,9 @@ class InqueritoFreguesiaController extends Controller
             abort(403, 'Acesso não autorizado.');
         }
         $inquerito->load('freguesia');
-        return view('freguesia.inqueritos.show', compact('inquerito'));
+        $setoresLista = $this->obterSetoresFormulario();
+
+        return view('freguesia.inqueritos.show', compact('inquerito', 'setoresLista'));
     }
 
     /**
@@ -154,9 +174,9 @@ class InqueritoFreguesiaController extends Controller
         }
 
         // 3. Dados necessários
-        $setores = SetorAtividade::where('ativo', true)->orderBy('nome')->get();
+        $setoresLista = $this->obterSetoresFormulario();
 
-        return view('freguesia.inqueritos.editar', compact('inquerito', 'setores'));
+        return view('freguesia.inqueritos.editar', compact('inquerito', 'setoresLista'));
     }
 
     /**
@@ -207,5 +227,15 @@ class InqueritoFreguesiaController extends Controller
             'satisfacao_global' => 'required|integer|min:1|max:5',
             'sugestoes' => 'nullable|string|max:2000',
         ]);
+    }
+
+    private function obterSetoresFormulario(): array
+    {
+        return collect(self::SETORES_PRIORITARIOS)
+            ->map(fn (string $nome) => [
+                'nome' => $nome,
+                'slug' => Str::slug($nome, '_'),
+            ])
+            ->toArray();
     }
 }

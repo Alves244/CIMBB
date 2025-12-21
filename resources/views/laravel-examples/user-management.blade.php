@@ -51,7 +51,7 @@
                                         @elseif($user->perfil == 'cimbb')
                                             <span class="badge badge-sm bg-gradient-info">CIMBB</span>
                                         @elseif($user->perfil == 'agrupamento')
-                                            <span class="badge badge-sm bg-gradient-dark">Agrupamento</span>
+                                            <span class="badge badge-sm" style="background-image: linear-gradient(310deg, #ff8c00 0%, #ff5e00 100%); color: #fff;">Agrupamento</span>
                                         @else
                                             <span class="badge badge-sm bg-gradient-success">Freguesia</span>
                                         @endif

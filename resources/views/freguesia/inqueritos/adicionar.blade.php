@@ -15,93 +15,78 @@
                             <p class="text-sm">Freguesia: {{ Auth::user()->freguesia->nome ?? 'N/A' }}</p>
                         </div>
                         <div class="card-body">
-                            
-                            <h6 class="font-weight-bolder text-success">Parte 1: Dados Quantitativos (Pré-preenchidos)</h6>
-                            <p class="text-sm">Estes valores são calculados automaticamente com base nos registos de "Gerir Famílias". Pode corrigi-los se necessário antes de submeter.</p>
+                            <h6 class="font-weight-bolder text-success mb-1">Parte 1: Dados Quantitativos (Pré-preenchidos)</h6>
+                            <p class="text-sm mb-4">Estes valores são calculados automaticamente com base nos registos de "Gerir Famílias". Pode corrigi-los se necessário antes de submeter.</p>
 
-                            {{-- Pergunta 11 --}}
-                            <div class="form-group mt-4">
-                                <label for="total_nucleo_urbano" class="form-control-label h6 text-dark">1. Agregados familiares que residem no núcleo urbano da sede da freguesia</label>
+                            <div class="mb-3">
+                                <label for="total_nucleo_urbano" class="form-label fw-semibold">1. Agregados familiares que residem no núcleo urbano da sede da freguesia</label>
                                 <input class="form-control" type="number" name="total_nucleo_urbano" id="total_nucleo_urbano" value="{{ old('total_nucleo_urbano', $preenchido['total_nucleo_urbano']) }}" min="0" required>
                             </div>
-                            
-                            {{-- Pergunta 12 --}}
-                            <div class="form-group">
-                                <label for="total_aldeia_anexa" class="form-control-label h6 text-dark">2. Agregados familiares que residem em aldeias anexas</label>
+
+                            <div class="mb-3">
+                                <label for="total_aldeia_anexa" class="form-label fw-semibold">2. Agregados familiares que residem em aldeias anexas</label>
                                 <input class="form-control" type="number" name="total_aldeia_anexa" id="total_aldeia_anexa" value="{{ old('total_aldeia_anexa', $preenchido['total_aldeia_anexa']) }}" min="0" required>
                             </div>
 
-                            {{-- Pergunta 13 --}}
-                            <div class="form-group">
-                                <label for="total_agroflorestal" class="form-control-label h6 text-dark">3. Agregados familiares que residem em quintas ou propriedades no espaço agroflorestal</label>
+                            <div class="mb-4">
+                                <label for="total_agroflorestal" class="form-label fw-semibold">3. Agregados familiares que residem em quintas ou propriedades no espaço agroflorestal</label>
                                 <input class="form-control" type="number" name="total_agroflorestal" id="total_agroflorestal" value="{{ old('total_agroflorestal', $preenchido['total_agroflorestal']) }}" min="0" required>
                             </div>
-                            
-                            {{-- Pergunta 14 (Restaurado) --}}
-                            <h6 class="mt-4 text-dark">4. Número total de indivíduos</h6>
-                             <div class="row">
-                                 <div class="col-md-6">
-                                     <div class="form-group">
-                                         <label for="total_adultos" class="form-control-label">Total de Adultos</label>
-                                         <input class="form-control" type="number" name="total_adultos" id="total_adultos" value="{{ old('total_adultos', $preenchido['total_adultos']) }}" min="0" required>
-                                     </div>
-                                 </div>
-                                 <div class="col-md-6">
-                                     <div class="form-group">
-                                         <label for="total_criancas" class="form-control-label">Total de Crianças/Jovens</label>
-                                         <input class="form-control" type="number" name="total_criancas" id="total_criancas" value="{{ old('total_criancas', $preenchido['total_criancas']) }}" min="0" required>
-                                     </div>
-                                 </div>
-                            </div>
-                            
-                            {{-- Pergunta 15 (Restaurado) --}}
-                            <h6 class="mt-4 text-dark">5. Agregados familiares que vivem em casa ou propriedade adquiridas</h6>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="total_propria" class="form-control-label">Nº de Agregados (Propriedade Própria)</label>
-                                        <input class="form-control" type="number" name="total_propria" id="total_propria" value="{{ old('total_propria', $preenchido['total_propria']) }}" min="0" required>
+
+                            <div class="mb-4">
+                                <h6 class="text-dark fw-semibold">4. Número total de indivíduos</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="total_adultos" class="form-label text-sm mb-1">Total de Adultos</label>
+                                        <input class="form-control" type="number" name="total_adultos" id="total_adultos" value="{{ old('total_adultos', $preenchido['total_adultos']) }}" min="0" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="total_criancas" class="form-label text-sm mb-1">Total de Crianças/Jovens</label>
+                                        <input class="form-control" type="number" name="total_criancas" id="total_criancas" value="{{ old('total_criancas', $preenchido['total_criancas']) }}" min="0" required>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="total_arrendada" class="form-control-label">Nº de Agregados (Propriedade Arrendada)</label>
+                            </div>
+
+                            <div class="mb-4">
+                                <h6 class="text-dark fw-semibold">5. Agregados familiares que vivem em casa ou propriedade adquiridas</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="total_propria" class="form-label text-sm mb-1">Nº de Agregados (Propriedade Própria)</label>
+                                        <input class="form-control" type="number" name="total_propria" id="total_propria" value="{{ old('total_propria', $preenchido['total_propria']) }}" min="0" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="total_arrendada" class="form-label text-sm mb-1">Nº de Agregados (Propriedade Arrendada)</label>
                                         <input class="form-control" type="number" name="total_arrendada" id="total_arrendada" value="{{ old('total_arrendada', $preenchido['total_arrendada']) }}" min="0" required>
                                     </div>
                                 </div>
                             </div>
-                            
-                            {{-- Perguntas 16-19 (Restaurado) --}}
-                            <h6 class="mt-4 text-dark">6. Nº de atividades por Conta Própria</h6>
-                            <div class="row">
-                                @foreach($setores as $setor)
-                                <div class="col-md-6">
-                                    <div class="form-group row">
-                                        <label for="propria_{{ $setor->id }}" class="col-sm-6 col-form-label text-sm">{{ $setor->nome }}</label>
-                                        <div class="col-sm-6">
-                                            <input type="number" class="form-control form-control-sm" name="total_por_setor_propria[{{ $setor->nome }}]" id="propria_{{ $setor->id }}" value="{{ old('total_por_setor_propria.'.$setor->nome, $preenchido['total_por_setor_propria'][$setor->nome] ?? 0) }}" min="0" required>
+
+                            <div class="mb-4">
+                                <h6 class="text-dark fw-semibold">6. Nº de atividades por Conta Própria</h6>
+                                <div class="row g-3">
+                                    @foreach($setoresLista as $setor)
+                                        <div class="col-md-6">
+                                            <label for="propria_{{ $setor['slug'] }}" class="form-label text-sm">{{ $setor['nome'] }}</label>
+                                            <input type="number" class="form-control form-control-sm" name="total_por_setor_propria[{{ $setor['nome'] }}]" id="propria_{{ $setor['slug'] }}" value="{{ old('total_por_setor_propria.'.$setor['nome'], $preenchido['total_por_setor_propria'][$setor['nome']] ?? 0) }}" min="0" required>
                                         </div>
-                                    </div>
+                                    @endforeach
                                 </div>
-                                @endforeach
-                            </div>
-                            
-                            <h6 class="mt-4 text-dark">7. Nº de atividades por Conta de Outrem</h6>
-                            <div class="row">
-                                @foreach($setores as $setor)
-                                <div class="col-md-6">
-                                    <div class="form-group row">
-                                        <label for="outrem_{{ $setor->id }}" class="col-sm-6 col-form-label text-sm">{{ $setor->nome }}</label>
-                                        <div class="col-sm-6">
-                                            <input type="number" class="form-control form-control-sm" name="total_por_setor_outrem[{{ $setor->nome }}]" id="outrem_{{ $setor->id }}" value="{{ old('total_por_setor_outrem.'.$setor->nome, $preenchido['total_por_setor_outrem'][$setor->nome] ?? 0) }}" min="0" required>
-                                        </div>
-                                    </div>
-                                </div>
-                                @endforeach
                             </div>
 
-                            <div class="form-group mt-4">
-                                <label for="total_trabalhadores_outrem" class="form-control-label h6 text-dark">8. Número total de trabalhadores por conta de outrem</label>
+                            <div class="mb-4">
+                                <h6 class="text-dark fw-semibold">7. Nº de atividades por Conta de Outrem</h6>
+                                <div class="row g-3">
+                                    @foreach($setoresLista as $setor)
+                                        <div class="col-md-6">
+                                            <label for="outrem_{{ $setor['slug'] }}" class="form-label text-sm">{{ $setor['nome'] }}</label>
+                                            <input type="number" class="form-control form-control-sm" name="total_por_setor_outrem[{{ $setor['nome'] }}]" id="outrem_{{ $setor['slug'] }}" value="{{ old('total_por_setor_outrem.'.$setor['nome'], $preenchido['total_por_setor_outrem'][$setor['nome']] ?? 0) }}" min="0" required>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="total_trabalhadores_outrem" class="form-label fw-semibold">8. Número total de trabalhadores por conta de outrem</label>
                                 <input class="form-control" type="number" name="total_trabalhadores_outrem" id="total_trabalhadores_outrem" value="{{ old('total_trabalhadores_outrem', $preenchido['total_trabalhadores_outrem']) }}" min="0" required>
                                 <p class="text-xs text-muted mb-0">Regista o total de pessoas acompanhadas com atividade por conta de outrem.</p>
                             </div>

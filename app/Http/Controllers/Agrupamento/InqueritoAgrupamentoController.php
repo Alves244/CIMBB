@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Agrupamento;
 
 use App\Http\Controllers\Controller;
-use App\Models\EstabelecimentoEnsino;
 use App\Models\InqueritoAgrupamento;
 use App\Models\InqueritoAgrupamentoRegisto;
+use App\Models\InqueritoPeriodo;
 use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,20 +17,21 @@ use Illuminate\View\View;
 class InqueritoAgrupamentoController extends Controller
 {
     private array $niveisEnsino = [
-        'Pré-escolar',
-        '1.º ciclo',
-        '2.º ciclo',
-        '3.º ciclo',
-        'Secundário',
-        'Profissional',
-        'Outro',
+        'Pré-Escolar',
+        '1.º Ciclo do EB',
+        '2.º Ciclo do EB',
+        '3.º Ciclo do EB',
+        'Ensino Secundário',
+        'Ensino Profissional',
+        'Ensino Superior',
     ];
 
     public function index(): View
     {
         $user = Auth::user();
         $agrupamentoId = $user->agrupamento_id;
-        $anoAtual = (int) date('Y');
+        $periodoAtual = InqueritoPeriodo::periodoAtivo(InqueritoPeriodo::TIPO_AGRUPAMENTO);
+        $anoAtual = $periodoAtual?->ano ?? (int) date('Y');
 
         $inqueritos = InqueritoAgrupamento::withCount('registos')
             ->where('agrupamento_id', $agrupamentoId)
@@ -38,8 +39,8 @@ class InqueritoAgrupamentoController extends Controller
             ->get();
 
         $jaPreencheuEsteAno = $inqueritos->contains('ano_referencia', $anoAtual);
-        $dataLimite = now()->copy()->setDate($anoAtual, 12, 31)->endOfDay();
-        $dentroDoPrazo = now()->lessThanOrEqualTo($dataLimite);
+        $dataLimite = $periodoAtual?->fecha_em ?? now()->copy()->setDate($anoAtual, 12, 31)->endOfDay();
+        $dentroDoPrazo = $periodoAtual?->estaAberto() ?? false;
 
         return view('agrupamento.inqueritos.index', [
             'inqueritos' => $inqueritos,
@@ -47,6 +48,7 @@ class InqueritoAgrupamentoController extends Controller
             'jaPreencheuEsteAno' => $jaPreencheuEsteAno,
             'dentroDoPrazo' => $dentroDoPrazo,
             'dataLimite' => $dataLimite,
+            'periodoAtual' => $periodoAtual,
         ]);
     }
 
@@ -54,7 +56,16 @@ class InqueritoAgrupamentoController extends Controller
     {
         $user = Auth::user();
         $agrupamentoId = $user->agrupamento_id;
-        $anoAtual = (int) date('Y');
+        $periodoAtivo = InqueritoPeriodo::periodoAtivo(InqueritoPeriodo::TIPO_AGRUPAMENTO);
+
+        abort_if(! $periodoAtivo, 403, 'Não existe período aberto para submissão. Contacte a CIMBB.');
+
+        $anoAtual = $periodoAtivo->ano;
+
+        $agrupamento = $user->agrupamento()->with('concelho')->first();
+
+        abort_if(! $agrupamento, 403, 'Não foi possível identificar o seu agrupamento.');
+        abort_if(! $agrupamento->concelho, 403, 'Associe um concelho ao agrupamento antes de submeter o inquérito.');
 
         $jaPreencheu = InqueritoAgrupamento::where('agrupamento_id', $agrupamentoId)
             ->where('ano_referencia', $anoAtual)
@@ -62,17 +73,13 @@ class InqueritoAgrupamentoController extends Controller
 
         abort_if($jaPreencheu, 403, 'O inquérito deste ano já foi submetido.');
 
-        $estabelecimentos = EstabelecimentoEnsino::with('concelho')
-            ->where('agrupamento_id', $agrupamentoId)
-            ->orderBy('nome')
-            ->get();
-
-        abort_if($estabelecimentos->isEmpty(), 403, 'Ainda não existem estabelecimentos associados ao seu agrupamento.');
-
         return view('agrupamento.inqueritos.create', [
             'anoAtual' => $anoAtual,
-            'estabelecimentos' => $estabelecimentos,
+            'concelhoNome' => $agrupamento->concelho->nome,
+            'concelhoId' => $agrupamento->concelho_id,
             'niveisEnsino' => $this->niveisEnsino,
+            'nacionalidades' => config('nacionalidades', []),
+            'periodoAtivo' => $periodoAtivo,
         ]);
     }
 
@@ -80,26 +87,28 @@ class InqueritoAgrupamentoController extends Controller
     {
         $user = Auth::user();
         $agrupamentoId = $user->agrupamento_id;
-        $anoAtual = (int) date('Y');
+        $periodoAtivo = InqueritoPeriodo::periodoAtivo(InqueritoPeriodo::TIPO_AGRUPAMENTO);
 
-        $estabelecimentos = EstabelecimentoEnsino::where('agrupamento_id', $agrupamentoId)
-            ->get()
-            ->keyBy('id');
+        if (! $periodoAtivo) {
+            return redirect()->route('agrupamento.inqueritos.index')->with('error', 'Não existe período aberto para submissão.');
+        }
 
-        if ($estabelecimentos->isEmpty()) {
-            return redirect()->route('agrupamento.inqueritos.index')->with('error', 'Não existem estabelecimentos associados ao seu agrupamento.');
+        $agrupamento = $user->agrupamento()->with('concelho')->first();
+
+        if (! $agrupamento || ! $agrupamento->concelho) {
+            return redirect()->route('agrupamento.inqueritos.index')->with('error', 'Associe um concelho ao agrupamento antes de submeter o inquérito.');
         }
 
         $validated = $request->validate([
-            'ano_referencia' => ['required', 'integer', 'min:2000', 'max:'.($anoAtual + 1)],
+            'ano_referencia' => ['required', 'integer', Rule::in([$periodoAtivo->ano])],
             'registos' => ['required', 'array', 'min:1'],
             'registos.*.nacionalidade' => ['required', 'string', 'max:120'],
             'registos.*.ano_letivo' => ['required', 'string', 'max:15'],
-            'registos.*.estabelecimento_id' => ['required', 'integer', Rule::in($estabelecimentos->keys()->all())],
-            'registos.*.concelho_id' => ['required', 'integer', 'exists:concelhos,id'],
             'registos.*.nivel_ensino' => ['required', 'string', 'max:120'],
             'registos.*.numero_alunos' => ['required', 'integer', 'min:1', 'max:5000'],
         ]);
+
+        $validated['ano_referencia'] = $periodoAtivo->ano;
 
         $jaPreencheu = InqueritoAgrupamento::where('agrupamento_id', $agrupamentoId)
             ->where('ano_referencia', $validated['ano_referencia'])
@@ -109,14 +118,10 @@ class InqueritoAgrupamentoController extends Controller
             return redirect()->route('agrupamento.inqueritos.index')->with('error', 'O inquérito para este ano já foi submetido.');
         }
 
-        $registos = collect($validated['registos'])->map(function (array $registo) use ($estabelecimentos) {
-            $estabelecimento = $estabelecimentos[$registo['estabelecimento_id']] ?? null;
+        $concelhoId = $agrupamento->concelho_id;
 
-            if (! $estabelecimento) {
-                abort(422, 'Estabelecimento inválido.');
-            }
-
-            $registo['concelho_id'] = $estabelecimento->concelho_id;
+        $registos = collect($validated['registos'])->map(function (array $registo) use ($concelhoId) {
+            $registo['concelho_id'] = $concelhoId;
 
             return $registo;
         });
@@ -139,7 +144,6 @@ class InqueritoAgrupamentoController extends Controller
                     'inquerito_id' => $inquerito->id,
                     'nacionalidade' => $registo['nacionalidade'],
                     'ano_letivo' => $registo['ano_letivo'],
-                    'estabelecimento_id' => $registo['estabelecimento_id'],
                     'concelho_id' => $registo['concelho_id'],
                     'nivel_ensino' => $registo['nivel_ensino'],
                     'numero_alunos' => $registo['numero_alunos'],
@@ -157,7 +161,7 @@ class InqueritoAgrupamentoController extends Controller
         $user = Auth::user();
         abort_if($inquerito->agrupamento_id !== $user->agrupamento_id, 403);
 
-        $inquerito->load(['registos.estabelecimento.concelho']);
+        $inquerito->load(['registos.concelho']);
 
         return view('agrupamento.inqueritos.show', [
             'inquerito' => $inquerito,
