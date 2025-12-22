@@ -129,7 +129,7 @@
                  style="{{ Request::routeIs('funcionario.dashboard.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
               <i class="fas fa-chart-line ps-2 pe-2 text-center {{ Request::routeIs('funcionario.dashboard.*') ? 'text-white' : 'text-dark' }}"></i>
             </div>
-            <span class="nav-link-text ms-1">Dashboard Regional</span>
+            <span class="nav-link-text ms-1">Visão Territorial</span>
           </a>
         </li>
         <li class="nav-item">
@@ -138,7 +138,7 @@
                    style="{{ Request::routeIs('funcionario.relatorios.*') ? 'background-image: linear-gradient(310deg, #82d616 0%, #4ca800 100%) !important;' : '' }}">
                 <i class="fas fa-file-alt ps-2 pe-2 text-center {{ Request::routeIs('funcionario.relatorios.*') ? 'text-white' : 'text-dark' }}"></i>
               </div>
-              <span class="nav-link-text ms-1">Relatórios</span>
+              <span class="nav-link-text ms-1">Estatísticas</span>
             </a>
         </li>
         <li class="nav-item">

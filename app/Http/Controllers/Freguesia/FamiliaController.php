@@ -213,7 +213,7 @@ class FamiliaController extends Controller
         $nacionalidades = config('nacionalidades', []);
 
         return [
-            'ano_instalacao' => 'required|integer|min:1900|max:'.$anoAtual,
+            'ano_instalacao' => 'required|integer|in:'.$anoAtual,
             'nacionalidade' => ['required', 'string', Rule::in($nacionalidades)],
             'tipologia_habitacao' => ['required', Rule::in(self::TIPOLOGIAS_HABITACAO)],
             'tipologia_propriedade' => ['required', Rule::in(self::REGIMES_PROPRIEDADE)],

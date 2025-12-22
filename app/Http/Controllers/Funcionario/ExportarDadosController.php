@@ -25,14 +25,18 @@ class ExportarDadosController extends Controller
 
     public function index()
     {
+        $anoAtual = (int) date('Y');
         $anos = Familia::query()
             ->select('ano_instalacao')
             ->distinct()
             ->orderByDesc('ano_instalacao')
-            ->pluck('ano_instalacao');
+            ->pluck('ano_instalacao')
+            ->map(fn ($ano) => (int) $ano)
+            ->filter(fn ($ano) => $ano === $anoAtual)
+            ->values();
 
         if ($anos->isEmpty()) {
-            $anos = collect([date('Y')]);
+            $anos = collect([$anoAtual]);
         }
 
         return view('funcionario.exportar.index', [
@@ -70,7 +74,11 @@ class ExportarDadosController extends Controller
 
     public function exportInqueritosPdf(Request $request)
     {
-        $ano = (int) $request->input('ano', date('Y'));
+        $anoAtual = (int) date('Y');
+        $ano = (int) $request->input('ano', $anoAtual);
+        if ($ano !== $anoAtual) {
+            $ano = $anoAtual;
+        }
         $inqueritos = InqueritoFreguesia::with('freguesia.concelho')
             ->where('ano', $ano)
             ->orderBy('freguesia_id')
@@ -86,7 +94,11 @@ class ExportarDadosController extends Controller
 
     public function exportEstatisticasPdf(Request $request)
     {
-        $ano = (int) $request->input('ano', date('Y'));
+        $anoAtual = (int) date('Y');
+        $ano = (int) $request->input('ano', $anoAtual);
+        if ($ano !== $anoAtual) {
+            $ano = $anoAtual;
+        }
         $overview = $this->dashboardService->getRegionalOverview($ano);
 
         $pdf = Pdf::loadView('funcionario.exportar.pdf_estatisticas', [
@@ -100,15 +112,10 @@ class ExportarDadosController extends Controller
 
     private function sanitizeExportFilters(array $inputs): array
     {
-        $anosValidos = Familia::query()
-            ->select('ano_instalacao')
-            ->distinct()
-            ->orderByDesc('ano_instalacao')
-            ->pluck('ano_instalacao');
-
-        $ano = (int) ($inputs['ano'] ?? $anosValidos->first());
-        if (!$anosValidos->contains($ano)) {
-            $ano = (int) $anosValidos->first();
+        $anoAtual = (int) date('Y');
+        $ano = (int) ($inputs['ano'] ?? $anoAtual);
+        if ($ano !== $anoAtual) {
+            $ano = $anoAtual;
         }
 
         return [
@@ -120,15 +127,10 @@ class ExportarDadosController extends Controller
 
     private function sanitizeExportEscolasFilters(array $inputs): array
     {
-        $anosValidos = Familia::query()
-            ->select('ano_instalacao')
-            ->distinct()
-            ->orderByDesc('ano_instalacao')
-            ->pluck('ano_instalacao');
-
-        $ano = (int) ($inputs['ano'] ?? $anosValidos->first());
-        if (!$anosValidos->contains($ano)) {
-            $ano = (int) $anosValidos->first();
+        $anoAtual = (int) date('Y');
+        $ano = (int) ($inputs['ano'] ?? $anoAtual);
+        if ($ano !== $anoAtual) {
+            $ano = $anoAtual;
         }
 
         return [

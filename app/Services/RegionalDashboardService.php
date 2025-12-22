@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AgregadoFamiliar;
+use App\Models\Agrupamento;
 use App\Models\Concelho;
 use App\Models\Familia;
 use App\Models\InqueritoAgrupamento;
@@ -21,7 +22,7 @@ class RegionalDashboardService
         $familiaQuery = Familia::query();
         $agregadoQuery = AgregadoFamiliar::query();
 
-        $tituloDashboard = 'Dashboard Regional (Todo o Território)';
+        $tituloDashboard = 'Visão Territorial (Todo o Território)';
         $nomeLocalidade = 'Beira Baixa (Todos os Concelhos)';
 
         $tipoPeriodo = $user->isAgrupamento()
@@ -52,6 +53,22 @@ class RegionalDashboardService
             'totalSubmissoes' => 0,
             'ultimoAno' => null,
             'ultimoTotalAlunos' => 0,
+        ];
+        $escolasResumo = [
+            'anoReferencia' => null,
+            'totalInqueritos' => 0,
+            'agrupamentosComDados' => 0,
+            'totalAlunos' => 0,
+        ];
+        $escolasPendentesLista = collect();
+        $escolasHighlights = [
+            'totalAgrupamentos' => 0,
+            'agrupamentosComDados' => 0,
+            'agrupamentosPendentes' => 0,
+            'totalAlunos' => 0,
+            'mediaAlunos' => 0,
+            'totalInqueritos' => 0,
+            'anoReferencia' => null,
         ];
 
         if ($user->isFreguesia()) {
@@ -112,6 +129,24 @@ class RegionalDashboardService
             $concelhosResumo = $overview['concelhosResumo'];
             $dashboardProgress = $overview['dashboardProgress'];
             $regionalHighlights = $overview['regionalHighlights'] ?? $regionalHighlights;
+
+            $todosAgrupamentos = Agrupamento::with('concelho:id,nome')
+                ->orderBy('nome')
+                ->get(['id', 'nome', 'concelho_id']);
+            $agrupamentosComInquerito = InqueritoAgrupamento::where('ano_referencia', $anoInquerito)
+                ->pluck('agrupamento_id')
+                ->unique();
+
+            $escolasPendentesLista = $todosAgrupamentos
+                ->reject(fn ($agrupamento) => $agrupamentosComInquerito->contains($agrupamento->id))
+                ->map(function ($agrupamento) {
+                    return [
+                        'id' => $agrupamento->id,
+                        'nome' => $agrupamento->nome,
+                        'concelho' => optional($agrupamento->concelho)->nome ?? '—',
+                    ];
+                })
+                ->values();
         }
 
         $nacionalidadesData = (clone $familiaQuery)
@@ -128,6 +163,53 @@ class RegionalDashboardService
 
         $ticketsPendentes = TicketSuporte::where('estado', 'em_processamento')->count();
         $regionalHighlights['ticketsPendentes'] = $ticketsPendentes;
+
+        $anoReferenciaEscolas = InqueritoAgrupamento::max('ano_referencia');
+        if ($anoReferenciaEscolas) {
+            $anoReferenciaEscolas = (int) $anoReferenciaEscolas;
+            $baseInqueritos = InqueritoAgrupamento::where('ano_referencia', $anoReferenciaEscolas);
+            $escolasResumo['anoReferencia'] = $anoReferenciaEscolas;
+            $escolasResumo['totalInqueritos'] = (clone $baseInqueritos)->count();
+            $escolasResumo['agrupamentosComDados'] = (clone $baseInqueritos)
+                ->distinct('agrupamento_id')
+                ->count('agrupamento_id');
+            $escolasResumo['totalAlunos'] = (int) (clone $baseInqueritos)->sum('total_alunos');
+        }
+
+        if (!$user->isFreguesia() && !$user->isAgrupamento()) {
+            $todosAgrupamentos = Agrupamento::with('concelho:id,nome')
+                ->orderBy('nome')
+                ->get(['id', 'nome', 'concelho_id']);
+
+            $agrupamentosComInquerito = InqueritoAgrupamento::where('ano_referencia', $anoInquerito)
+                ->pluck('agrupamento_id')
+                ->unique();
+
+            $escolasPendentesLista = $todosAgrupamentos
+                ->reject(fn ($agrupamento) => $agrupamentosComInquerito->contains($agrupamento->id))
+                ->map(fn ($agrupamento) => [
+                    'id' => $agrupamento->id,
+                    'nome' => $agrupamento->nome,
+                    'concelho' => optional($agrupamento->concelho)->nome ?? '—',
+                ])->values();
+
+            $totalAgrupamentos = $todosAgrupamentos->count();
+            $agrupamentosComDados = $agrupamentosComInquerito->count();
+            $agrupamentosPendentes = max($totalAgrupamentos - $agrupamentosComDados, 0);
+            $mediaAlunos = ($escolasResumo['totalInqueritos'] ?? 0) > 0
+                ? (int) round(($escolasResumo['totalAlunos'] ?? 0) / max(1, $escolasResumo['totalInqueritos']))
+                : 0;
+
+            $escolasHighlights = [
+                'totalAgrupamentos' => $totalAgrupamentos,
+                'agrupamentosComDados' => $agrupamentosComDados,
+                'agrupamentosPendentes' => $agrupamentosPendentes,
+                'totalAlunos' => $escolasResumo['totalAlunos'] ?? 0,
+                'mediaAlunos' => $mediaAlunos,
+                'totalInqueritos' => $escolasResumo['totalInqueritos'] ?? 0,
+                'anoReferencia' => $anoInquerito,
+            ];
+        }
 
         return [
             'title' => 'Página Inicial',
@@ -150,6 +232,9 @@ class RegionalDashboardService
             'regionalHighlights' => $regionalHighlights,
             'agrupamentoResumo' => $agrupamentoResumo,
             'anosDisponiveis' => $anosDisponiveis,
+            'escolasResumo' => $escolasResumo,
+            'escolasPendentes' => $escolasPendentesLista,
+            'escolasHighlights' => $escolasHighlights,
         ];
     }
 

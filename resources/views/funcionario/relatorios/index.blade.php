@@ -248,7 +248,6 @@
         <div class="card border border-success shadow-sm">
           <div class="card-body d-flex flex-column flex-lg-row justify-content-between align-items-start gap-4">
             <div>
-              <span class="badge bg-success-subtle text-success text-uppercase mb-2">Estatísticas & Exportações</span>
               <h4 class="mb-2 text-dark">Explora os dados do território CIMBB</h4>
               <p class="mb-0 text-secondary">Filtra por concelho, freguesia ou perfis sociodemográficos para gerar relatórios e exportar evidências.</p>
             </div>

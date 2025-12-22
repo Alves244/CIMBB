@@ -22,7 +22,6 @@
                 <th>Código</th>
                 <th>Famílias</th>
                 <th>Membros</th>
-                <th>Tickets pendentes</th>
                 <th>Freguesias com inquérito</th>
                 <th>Total de freguesias</th>
                 <th>% Inquérito</th>
@@ -35,14 +34,13 @@
                     <td>{{ $linha['codigo'] }}</td>
                     <td>{{ $linha['total_familias'] }}</td>
                     <td>{{ $linha['total_membros'] }}</td>
-                    <td>{{ $linha['tickets_pendentes'] }}</td>
                     <td>{{ $linha['freguesias_com_inquerito'] }}</td>
                     <td>{{ $linha['total_freguesias'] }}</td>
                     <td>{{ $linha['percentual_inquerito'] }}%</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8">Sem registos para o ano selecionado.</td>
+                    <td colspan="7">Sem registos para o ano selecionado.</td>
                 </tr>
             @endforelse
         </tbody>

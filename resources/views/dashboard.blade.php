@@ -34,6 +34,25 @@
         'ultimoAno' => null,
         'ultimoTotalAlunos' => 0,
       ];
+      $escolasPendentes = collect($escolasPendentes ?? []);
+      $escolasResumo = $escolasResumo ?? [
+        'anoReferencia' => null,
+        'totalInqueritos' => 0,
+        'agrupamentosComDados' => 0,
+        'totalAlunos' => 0,
+      ];
+      $escolasHighlights = $escolasHighlights ?? [
+        'totalAgrupamentos' => 0,
+        'agrupamentosComDados' => 0,
+        'agrupamentosPendentes' => 0,
+        'totalAlunos' => 0,
+        'mediaAlunos' => 0,
+        'totalInqueritos' => 0,
+        'anoReferencia' => null,
+      ];
+      $escolasPercentual = $escolasHighlights['totalAgrupamentos'] > 0
+        ? round(($escolasHighlights['agrupamentosComDados'] / $escolasHighlights['totalAgrupamentos']) * 100)
+        : 0;
     @endphp
     
     {{-- ***** CARTÕES RESUMO ***** --}}
@@ -168,14 +187,10 @@
             <div class="card-body d-flex flex-column flex-lg-row justify-content-between gap-4">
               <div>
                 <p class="text-xs text-uppercase text-secondary mb-1">Visão regional</p>
-                <h4 class="mb-2">Estado global do território CIMBB</h4>
-                <p class="text-sm text-secondary mb-3">
+                <h4 class="mb-2" id="regionalTitle">Estado global do território CIMBB</h4>
+                <p class="text-sm text-secondary mb-3" id="regionalDescription">
                   Monitorização em tempo real das freguesias e dos inquéritos para o ano {{ $inqueritoAnoAtual }}.
                 </p>
-                <div class="d-flex flex-wrap gap-2">
-                  <a href="{{ route('funcionario.relatorios.index') }}" class="btn btn-sm bg-gradient-success">Ver relatórios</a>
-                  <a href="{{ route('funcionario.exportar.index') }}" class="btn btn-sm bg-gradient-primary">Exportar dados</a>
-                </div>
               </div>
               <div class="text-lg-end">
                 <span class="text-xs text-secondary">Ano em análise</span>
@@ -198,7 +213,7 @@
             </div>
           </div>
         </div>
-        <div class="col-xl-4 mt-4 mt-xl-0">
+        <div class="col-xl-4 mt-4 mt-xl-0 regional-scope-panel regional-scope-freguesias">
           <div class="card h-100">
             <div class="card-body">
               <h6 class="text-uppercase text-secondary text-xxs font-weight-bolder mb-1">Progresso global</h6>
@@ -211,9 +226,22 @@
             </div>
           </div>
         </div>
+        <div class="col-xl-4 mt-4 mt-xl-0 regional-scope-panel regional-scope-escolas d-none">
+          <div class="card h-100">
+            <div class="card-body">
+              <h6 class="text-uppercase text-secondary text-xxs font-weight-bolder mb-1">Cobertura dos agrupamentos</h6>
+              <h3 class="font-weight-bolder mb-0">{{ $escolasHighlights['agrupamentosComDados'] }} / {{ $escolasHighlights['totalAgrupamentos'] }}</h3>
+              <p class="text-sm text-secondary mb-3">Agrupamentos com o inquérito das escolas concluído.</p>
+              <div class="progress mb-2">
+                <div class="progress-bar bg-gradient-success" role="progressbar" style="width: {{ $escolasPercentual }}%;" aria-valuenow="{{ $escolasPercentual }}" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <small class="text-muted">{{ $escolasPercentual }}% dos agrupamentos com dados.</small>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="row mb-4">
+      <div class="row mb-4 regional-scope-panel regional-scope-freguesias">
         <div class="col-xl-3 col-sm-6 mb-4">
           <div class="card h-100">
             <div class="card-body">
@@ -247,20 +275,54 @@
           </div>
         </div>
       </div>
+      <div class="row mb-4 regional-scope-panel regional-scope-escolas d-none">
+        <div class="col-xl-3 col-sm-6 mb-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <p class="text-xs text-uppercase text-secondary mb-1">Agrupamentos com dados</p>
+              <h4 class="font-weight-bolder mb-0">{{ $escolasHighlights['agrupamentosComDados'] }}</h4>
+              <small class="text-xs text-secondary">de {{ $escolasHighlights['totalAgrupamentos'] }} totais</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 mb-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <p class="text-xs text-uppercase text-secondary mb-1">Agrupamentos pendentes</p>
+              <h4 class="font-weight-bolder mb-0">{{ $escolasHighlights['agrupamentosPendentes'] }}</h4>
+              <small class="text-xs text-secondary">Aguardam submissão do inquérito</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 mb-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <p class="text-xs text-uppercase text-secondary mb-1">Total alunos reportados</p>
+              <h4 class="font-weight-bolder mb-0">{{ number_format($escolasHighlights['totalAlunos'], 0, ',', ' ') }}</h4>
+              <small class="text-xs text-secondary">Inquéritos {{ $escolasHighlights['anoReferencia'] ?? $inqueritoAnoAtual }}</small>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="row mb-4">
         <div class="col-12">
           <div class="card">
-            <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+            <div class="card-header pb-0 d-flex flex-wrap justify-content-between align-items-center gap-3">
               <div>
-                <h6 class="mb-0">Mapa de pendências por concelho</h6>
-                <p class="text-sm mb-0 text-secondary">Detalha famílias, membros e inquéritos submetidos por concelho.</p>
+                <h6 class="mb-0">Mapa de pendências</h6>
+                <p class="text-sm mb-0 text-secondary">Alterna para visualizar freguesias ou escolas em falta.</p>
+              </div>
+              <div class="btn-group btn-group-sm" role="group" aria-label="Alternar pendências">
+                <button type="button" class="btn btn-success regional-view-toggle" data-target="freguesias">Freguesias</button>
+                <button type="button" class="btn btn-outline-success regional-view-toggle" data-target="escolas">Escolas</button>
               </div>
             </div>
             <div class="card-body px-3 pb-3">
-              @if($concelhosResumo->isNotEmpty())
-                <div class="table-responsive">
-                  <table class="table align-items-center mb-0">
+              <div class="regional-panel regional-panel-freguesias">
+                @if($concelhosResumo->isNotEmpty())
+                  <div class="table-responsive">
+                    <table class="table align-items-center mb-0">
                     <thead>
                       <tr>
                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Concelho</th>
@@ -328,6 +390,41 @@
               @else
                 <p class="text-sm text-secondary mb-0">Ainda não existem dados para apresentar o progresso regional.</p>
               @endif
+              </div>
+              <div class="regional-panel regional-panel-escolas d-none">
+                @if($escolasPendentes->isNotEmpty())
+                  <p class="text-sm text-secondary text-center fw-bold">{{ $escolasPendentes->count() }} agrupamentos ainda não entregaram o inquérito {{ $inqueritoAnoAtual }}.</p>
+                  <div class="table-responsive">
+                    <table class="table align-items-center mb-0">
+                      <thead>
+                        <tr>
+                          <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Agrupamento</th>
+                          <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Concelho</th>
+                          <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-end">Situação</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @foreach($escolasPendentes as $pendente)
+                          <tr>
+                            <td>
+                              <div class="d-flex flex-column">
+                                <span class="text-sm font-weight-bold">{{ $pendente['nome'] }}</span>
+                                <small class="text-xs text-secondary">Agrupamento pendente</small>
+                              </div>
+                            </td>
+                            <td class="text-sm">{{ $pendente['concelho'] }}</td>
+                            <td class="text-end">
+                              <button type="button" class="btn btn-sm bg-gradient-danger text-white">Pendente</button>
+                            </td>
+                          </tr>
+                        @endforeach
+                      </tbody>
+                    </table>
+                  </div>
+                @else
+                  <p class="text-sm text-secondary mb-0">Todos os agrupamentos já submeteram o inquérito das escolas.</p>
+                @endif
+              </div>
             </div>
           </div>
         </div>
@@ -359,13 +456,13 @@
               <div class="row">
                 <div class="col-8">
                   <div class="numbers">
-                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Tickets por responder</p>
-                    <h5 class="font-weight-bolder mb-0">{{ $ticketsPendentes }}</h5>
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Total de alunos reportados</p>
+                    <h5 class="font-weight-bolder mb-0">{{ number_format($escolasResumo['totalAlunos'] ?? 0, 0, ',', ' ') }}</h5>
                   </div>
                 </div>
                 <div class="col-4 text-end">
-                  <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md">
-                    <i class="fas fa-headset text-lg opacity-10" aria-hidden="true"></i>
+                  <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
+                    <i class="fas fa-school text-lg opacity-10" aria-hidden="true"></i>
                   </div>
                 </div>
               </div>
@@ -533,6 +630,48 @@
   {{-- O 'chartjs.min.js' já é carregado pelo seu app.blade.php --}}
   <script>
     document.addEventListener("DOMContentLoaded", () => {
+      const regionalToggleButtons = document.querySelectorAll('.regional-view-toggle');
+      const regionalTitle = document.getElementById('regionalTitle');
+      const regionalDescription = document.getElementById('regionalDescription');
+      const textsPorEscopo = {
+        freguesias: {
+          titulo: 'Estado global do território CIMBB',
+          descricao: 'Monitorização em tempo real das freguesias e dos inquéritos para o ano {{ $inqueritoAnoAtual }}.',
+        },
+        escolas: {
+          titulo: 'Rede escolar CIMBB',
+          descricao: 'Acompanha os agrupamentos e as submissões dos inquéritos das escolas para {{ $inqueritoAnoAtual }}.',
+        },
+      };
+      const updateRegionalPanels = (scope) => {
+        document.querySelectorAll('.regional-panel').forEach((panel) => panel.classList.add('d-none'));
+        document.querySelectorAll('.regional-panel-' + scope).forEach((panel) => panel.classList.remove('d-none'));
+        document.querySelectorAll('.regional-scope-panel').forEach((panel) => panel.classList.add('d-none'));
+        document.querySelectorAll('.regional-scope-' + scope).forEach((panel) => panel.classList.remove('d-none'));
+
+        if (regionalTitle && regionalDescription) {
+          regionalTitle.textContent = textsPorEscopo[scope]?.titulo || textsPorEscopo.freguesias.titulo;
+          regionalDescription.textContent = textsPorEscopo[scope]?.descricao || textsPorEscopo.freguesias.descricao;
+        }
+      };
+
+      if (regionalToggleButtons.length) {
+        regionalToggleButtons.forEach((button) => {
+          button.addEventListener('click', () => {
+            const target = button.getAttribute('data-target');
+            regionalToggleButtons.forEach((btn) => {
+              const isActive = btn === button;
+              btn.classList.toggle('btn-success', isActive);
+              btn.classList.toggle('btn-outline-success', !isActive);
+            });
+
+            updateRegionalPanels(target);
+          });
+        });
+
+        updateRegionalPanels('freguesias');
+      }
+
       var pendentesModal = document.getElementById("pendentesModal");
       if (pendentesModal) {
         var scrollableArea = pendentesModal.querySelector('.pendentes-scroll');

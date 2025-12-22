@@ -20,7 +20,7 @@ class DashboardController extends Controller
         $anoSelecionado = (int) $request->query('ano', date('Y'));
 
         $dadosDashboard = $this->dashboardService->buildDashboardPayload($user, $anoSelecionado);
-        $dadosDashboard['title'] = 'Dashboard Regional';
+        $dadosDashboard['title'] = 'Visão Territorial';
         $dadosDashboard['mostrarDashboardRegional'] = true;
         $dadosDashboard['anosDisponiveis'] = $dadosDashboard['anosDisponiveis'] ?? collect();
         $dadosDashboard['anoSelecionado'] = $dadosDashboard['inqueritoAnoAtual'];

@@ -1,5 +1,6 @@
 @php
     $editing = isset($familia);
+    $anoAtual = (int) date('Y');
     $agregado = optional($familia)->agregadoFamiliar;
     $adultosExistentes = old('adultos', $editing
         ? $familia->atividadesEconomicas->map(function ($atividade) {
@@ -114,7 +115,7 @@
         <div class="col-md-4">
             <div class="form-group">
                 <label class="form-control-label" for="ano_instalacao">Ano de Instalação *</label>
-                <input type="number" class="form-control" id="ano_instalacao" name="ano_instalacao" min="1900" max="{{ date('Y') }}" value="{{ old('ano_instalacao', optional($familia)->ano_instalacao) }}" required>
+                <input type="number" class="form-control" id="ano_instalacao" name="ano_instalacao" min="{{ $anoAtual }}" max="{{ $anoAtual }}" value="{{ old('ano_instalacao', optional($familia)->ano_instalacao ?? $anoAtual) }}" required>
             </div>
         </div>
         <div class="col-md-8">

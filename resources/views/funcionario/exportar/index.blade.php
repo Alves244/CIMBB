@@ -97,7 +97,7 @@
       <div class="card">
         <div class="card-body">
           <h5 class="mb-2">PDF - Estatísticas Regionais</h5>
-          <p class="text-sm text-secondary">Exporta os indicadores agregados por concelho (famílias, membros, tickets, progresso dos inquéritos).</p>
+          <p class="text-sm text-secondary">Exporta os indicadores agregados por concelho (famílias, membros, progresso dos inquéritos).</p>
           <form method="POST" action="{{ route('funcionario.exportar.estatisticas.pdf') }}">
             @csrf
             <div class="mb-3">

@@ -70,15 +70,16 @@
 
                           <h6 class="mb-0 text-sm">{{ $ticket->codigo }}</h6>
 
-                          <p class="text-xs text-secondary mb-0">
-
-                              {{ $ticket->utilizador->freguesia->nome ?? 'Sem Freguesia' }}
-
+                            @php
+                            $entidadeOrigem = optional($ticket->utilizador->agrupamento)->nome
+                              ?? optional($ticket->utilizador->freguesia)->nome
+                              ?? 'Sem referência';
+                            @endphp
+                            <p class="text-xs text-secondary mb-0">
+                              {{ $entidadeOrigem }}
                               <br>
-
                               <span class="text-xxs">({{ $ticket->utilizador->nome }})</span>
-
-                          </p>
+                            </p>
 
                         </div>
 

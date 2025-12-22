@@ -23,6 +23,7 @@ class RelatorioController extends Controller
 
     public function index(Request $request)
     {
+        $anoAtual = (int) date('Y');
         $escopo = $request->get('escopo', 'freguesias');
         if (! in_array($escopo, ['freguesias', 'escolas'], true)) {
             $escopo = 'freguesias';
@@ -33,10 +34,13 @@ class RelatorioController extends Controller
                 ->select('ano_referencia')
                 ->distinct()
                 ->orderByDesc('ano_referencia')
-                ->pluck('ano_referencia');
+                ->pluck('ano_referencia')
+                ->map(fn ($ano) => (int) $ano)
+                ->filter(fn ($ano) => $ano === $anoAtual)
+                ->values();
 
             if ($anosDisponiveis->isEmpty()) {
-                $anosDisponiveis = collect([date('Y')]);
+                $anosDisponiveis = collect([$anoAtual]);
             }
 
             $anoSelecionado = (int) ($request->get('ano') ?? $anosDisponiveis->first());
@@ -69,10 +73,13 @@ class RelatorioController extends Controller
             ->select('ano_instalacao')
             ->distinct()
             ->orderByDesc('ano_instalacao')
-            ->pluck('ano_instalacao');
+            ->pluck('ano_instalacao')
+            ->map(fn ($ano) => (int) $ano)
+            ->filter(fn ($ano) => $ano === $anoAtual)
+            ->values();
 
         if ($anosDisponiveis->isEmpty()) {
-            $anosDisponiveis = collect([date('Y')]);
+            $anosDisponiveis = collect([$anoAtual]);
         }
 
         $anoSelecionado = (int) ($request->get('ano') ?? $anosDisponiveis->first());
@@ -88,7 +95,7 @@ class RelatorioController extends Controller
         $listaFamilias = $resultado['listaFamilias'];
 
         return view('funcionario.relatorios.index', [
-            'title' => 'Estatísticas & Exportações',
+            'title' => 'Estatísticas das Freguesias',
             'escopoDados' => 'freguesias',
             'anoSelecionado' => $filtrosNormalizados['ano'],
             'anosDisponiveis' => $anosDisponiveis,

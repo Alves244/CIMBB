@@ -5,6 +5,7 @@
   $totalAlunos = (int) ($totaisEscolas['totalAlunos'] ?? 0);
   $totalInqueritos = (int) ($totaisEscolas['totalInqueritos'] ?? 0);
   $nivelEnsinoDistrib = collect($distribuicoesEscolas['nivel_ensino'] ?? [])->filter();
+  $nacionalidadeDistrib = collect($distribuicoesEscolas['nacionalidade'] ?? [])->filter();
   $concelhoDistrib = collect($distribuicoesEscolas['concelho'] ?? [])->filter();
   $agrupamentosDistrib = collect($distribuicoesEscolas['agrupamentos'] ?? [])->filter();
 
@@ -85,6 +86,14 @@
     );
   }
 
+  if ($nacionalidadeDistrib->isNotEmpty()) {
+    $chartConfigsEscolas['chart-escolas-nacionalidade'] = $buildChartConfig(
+      $nacionalidadeDistrib->keys()->map(fn ($nacionalidade) => $nacionalidade ?: '—')->toArray(),
+      $nacionalidadeDistrib->values()->toArray(),
+      'Alunos'
+    );
+  }
+
   if ($concelhoDistrib->isNotEmpty()) {
     $chartConfigsEscolas['chart-escolas-concelhos'] = $buildChartConfig(
       $concelhoDistrib->keys()->toArray(),
@@ -117,10 +126,8 @@
     <div class="row mb-4">
       <div class="col-12">
         <div class="card border border-success shadow-sm position-relative overflow-hidden">
-          <img src="{{ asset('assets/img/cimbb/logo/logo-cimbb.png') }}" alt="Logótipo CIMBB" class="cimbb-watermark" loading="lazy">
           <div class="card-body d-flex flex-column flex-lg-row justify-content-between align-items-start gap-4">
             <div>
-              <span class="badge bg-success text-white text-uppercase mb-2">Estatísticas das escolas</span>
               <h4 class="mb-2 text-dark">Monitoriza a integração e capacidade escolar</h4>
               <p class="mb-0 text-secondary">Filtra por concelho, agrupamento ou nível de ensino para obter indicadores específicos das escolas do território CIMBB.</p>
             </div>
@@ -305,6 +312,31 @@
           </div>
         </div>
       </div>
+      <div class="col-12 col-lg-6">
+        <div class="card h-100">
+          <div class="card-header pb-0 d-flex justify-content-between align-items-start gap-3">
+            <div>
+              <h6 class="mb-0">Totais por nacionalidade</h6>
+              <span class="text-xs text-secondary">Principais países reportados</span>
+            </div>
+            @if($nacionalidadeDistrib->isNotEmpty())
+              <div class="btn-group btn-group-sm chart-toggle-group" role="group" aria-label="Tipo de gráfico">
+                <button type="button" class="btn btn-outline-success chart-toggle" data-chart="chart-escolas-nacionalidade" data-type="bar">Barras</button>
+                <button type="button" class="btn btn-outline-success chart-toggle" data-chart="chart-escolas-nacionalidade" data-type="pie">Circular</button>
+              </div>
+            @endif
+          </div>
+          <div class="card-body">
+            @if($nacionalidadeDistrib->isNotEmpty())
+              <div class="chart-wrapper">
+                <canvas id="chart-escolas-nacionalidade"></canvas>
+              </div>
+            @else
+              <p class="text-sm text-secondary mb-0">Sem registos para os filtros selecionados.</p>
+            @endif
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="row g-4 mb-4">
@@ -414,18 +446,9 @@
     </div>
 
     <div class="card">
-      <div class="card-header pb-0 d-flex justify-content-between align-items-center">
-        <div>
-          <h6 class="mb-0">Inquéritos submetidos</h6>
-          <span class="text-xs text-secondary">Lista paginada das submissões por agrupamento</span>
-        </div>
-        <div class="text-end">
-          <span class="text-xs text-secondary text-uppercase d-block mb-1">Exportar dados</span>
-          <div class="btn-group btn-group-sm export-toggle" role="group" aria-label="Escolher dados para exportar">
-            <a href="{{ $exportFreguesiasUrl }}" class="btn {{ $escopoDados === 'freguesias' ? 'btn-success' : 'btn-outline-success' }}">Freguesias</a>
-            <a href="{{ $exportEscolasUrl }}" class="btn {{ $escopoDados === 'escolas' ? 'btn-success' : 'btn-outline-success' }}">Escolas</a>
-          </div>
-        </div>
+      <div class="card-header pb-0">
+        <h6 class="mb-0">Inquéritos submetidos</h6>
+        <span class="text-xs text-secondary">Lista paginada das submissões por agrupamento</span>
       </div>
       <div class="card-body">
         @if($listaInqueritos->count())
@@ -485,24 +508,6 @@
     .year-select:focus {
       border-color: #82d616 !important;
       box-shadow: 0 0 0 0.2rem rgba(130, 214, 22, 0.25);
-    }
-
-    .cimbb-watermark {
-      position: absolute;
-      top: 14px;
-      right: 16px;
-      width: 82px;
-      opacity: 0.25;
-      pointer-events: none;
-      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08));
-    }
-
-    @media (max-width: 575px) {
-      .cimbb-watermark {
-        width: 64px;
-        top: 10px;
-        right: 10px;
-      }
     }
 
     .scope-toggle .btn {
