@@ -13,14 +13,20 @@ use Illuminate\View\View;
 
 class AdminAgrupamentoController extends Controller
 {
+    /**
+     * Listagem principal dos agrupamentos.
+     * Inclui contagens para análise rápida do fluxo de dados e utilizadores por entidade.
+     */
     public function index(Request $request): View
     {
         $concelhoId = $request->input('concelho_id');
 
+        // Carrega relações e contadores para evitar o problema de N+1 queries
         $agrupamentosQuery = Agrupamento::with('concelho')
             ->withCount(['users', 'inqueritos'])
             ->orderBy('nome');
 
+        // Filtro geográfico solicitado pelos stakeholders (CIMBB)
         if ($concelhoId) {
             $agrupamentosQuery->where('concelho_id', $concelhoId);
         }
@@ -35,6 +41,10 @@ class AdminAgrupamentoController extends Controller
         ]);
     }
 
+    /**
+     * Persistência de novos agrupamentos.
+     * O código e o nome devem ser únicos para garantir a consistência do sistema.
+     */
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validateWithBag('createAgrupamento', [
@@ -44,11 +54,17 @@ class AdminAgrupamentoController extends Controller
         ]);
 
         $agrupamento = Agrupamento::create($data);
+
+        // Registo de atividade para histórico de segurança
         AuditLogger::log('admin_agrupamento_create', 'Criou o agrupamento '.$agrupamento->nome.'.');
 
         return back()->with('success', 'Agrupamento criado com sucesso.');
     }
 
+    /**
+     * Atualização dos dados do agrupamento.
+     * Validamos a unicidade ignorando o registo atual.
+     */
     public function update(Request $request, Agrupamento $agrupamento): RedirectResponse
     {
         $data = $request->validateWithBag('editAgrupamento', [
@@ -58,13 +74,20 @@ class AdminAgrupamentoController extends Controller
         ]);
 
         $agrupamento->update($data);
+
+        // Audit log para rastrear modificações administrativas
         AuditLogger::log('admin_agrupamento_update', 'Atualizou o agrupamento '.$agrupamento->nome.'.');
 
         return back()->with('success', 'Agrupamento atualizado com sucesso.');
     }
 
+    /**
+     * Remoção de agrupamentos.
+     * Bloqueia a eliminação se houver dependências (Integridade Referencial).
+     */
     public function destroy(Agrupamento $agrupamento): RedirectResponse
     {
+        // Impede a eliminação se existirem utilizadores ou inquéritos vinculados
         if ($agrupamento->users()->exists()) {
             return back()->with('error', 'Não pode remover um agrupamento com utilizadores associados.');
         }
@@ -75,6 +98,8 @@ class AdminAgrupamentoController extends Controller
 
         $nome = $agrupamento->nome;
         $agrupamento->delete();
+
+        // Log de remoção para segurança do sistema
         AuditLogger::log('admin_agrupamento_delete', 'Removeu o agrupamento '.$nome.'.');
 
         return back()->with('success', 'Agrupamento removido com sucesso.');
