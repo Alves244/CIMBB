@@ -89,14 +89,14 @@ class AdminUserController extends Controller
 
         // Tentativa de envio de credenciais; falha no email não impede a criação, mas gera aviso
         try {
-            Mail::to($novoUtilizador->email)->send(new WelcomeNewUserMail($novoUtilizador, $generatedPassword));
+            $novoUtilizador->notify(new \App\Notifications\SendCredentials($novoUtilizador->email, $generatedPassword));
         } catch (\Throwable $exception) {
-            Log::error('Falha ao enviar email de boas-vindas para o utilizador.', [
+            Log::error('Falha ao enviar email de credenciais para o utilizador.', [
                 'user_id' => $novoUtilizador->id,
                 'exception' => $exception->getMessage(),
             ]);
 
-            return back()->with('warning', 'Utilizador criado, mas ocorreu um erro ao enviar o email de boas-vindas. Atualize a password manualmente e partilhe o acesso.');
+            return back()->with('warning', 'Utilizador criado, mas ocorreu um erro ao enviar o email de credenciais. Atualize a password manualmente e partilhe o acesso.');
         }
 
         return back()->with('success', 'Utilizador criado e email de boas-vindas enviado com sucesso.');
