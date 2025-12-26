@@ -13,8 +13,10 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 
+// Gere a recolha anual de dados qualitativos e quantitativos das freguesias (Objetivo 2)
 class InqueritoFreguesiaController extends Controller
 {
+    // Categorias de emprego definidas pelos stakeholders para monitorização socioeconómica (Objetivo 3)
     private const SETORES_PRIORITARIOS = [
         'Administração, serviços técnicos ou trabalho de escritório',
         'Agricultura, silvicultura e pecuária',
@@ -27,9 +29,7 @@ class InqueritoFreguesiaController extends Controller
         'Outro (especificar)',
     ];
 
-    /**
-     * Mostra a lista (histórico) de inquéritos submetidos.
-     */
+    // Apresenta o histórico de inquéritos e valida janelas de submissão (Objetivo 1)
     public function index()
     {
         $user = Auth::user();
@@ -42,32 +42,27 @@ class InqueritoFreguesiaController extends Controller
         $anoAtual = date('Y');
         $jaPreencheuEsteAno = $inqueritosPassados->contains('ano', $anoAtual);
 
-        // --- LÓGICA DO PRAZO ---
-        // Define o limite: 31 de Dezembro do ano atual
+        // Define o encerramento do ciclo anual de recolha de dados
         $dataLimite = Carbon::create($anoAtual, 12, 31, 23, 59, 59);
-        
-        // Verifica se HOJE é antes ou igual à data limite
         $dentroDoPrazo = now()->lessThanOrEqualTo($dataLimite);
 
         return view('freguesia.inqueritos.index', [
             'inqueritos' => $inqueritosPassados,
             'jaPreencheuEsteAno' => $jaPreencheuEsteAno,
             'anoAtual' => $anoAtual,
-            'dentroDoPrazo' => $dentroDoPrazo, // Variável enviada para a View
+            'dentroDoPrazo' => $dentroDoPrazo,
             'dataLimite' => $dataLimite
         ]);
     }
 
-    /**
-     * Mostra o formulário para criar um novo inquérito.
-     */
+    // Calcula métricas automáticas para facilitar o preenchimento intuitivo (Objetivo 1)
     public function create()
     {
         $user = Auth::user();
         $freguesiaId = $user->freguesia_id;
         $anoAtual = date('Y');
 
-        // Segurança: Verifica se já preencheu este ano
+        // Impede submissões duplicadas para o mesmo período de referência
         $existe = InqueritoFreguesia::where('freguesia_id', $freguesiaId)
                                     ->where('ano', $anoAtual)
                                     ->exists();
@@ -76,7 +71,7 @@ class InqueritoFreguesiaController extends Controller
                              ->with('error', 'O inquérito para o ano '.$anoAtual.' já foi preenchido.');
         }
 
-        // --- CÁLCULO DOS DADOS PRÉ-PREENCHIDOS ---
+        // Agregação de dados em tempo real sobre localização, demografia e habitação
         $familiasDaFreguesia = Familia::where('freguesia_id', $freguesiaId)->get();
         $familiaIds = $familiasDaFreguesia->pluck('id');
         $agregadosDaFreguesia = AgregadoFamiliar::whereIn('familia_id', $familiaIds)->get();
@@ -87,19 +82,23 @@ class InqueritoFreguesiaController extends Controller
             ->get()
             ->keyBy('nome');
         
+        // Distribuição geográfica por tipo de núcleo (Objetivo 3)
         $preenchido = [];
         $preenchido['total_nucleo_urbano'] = $familiasDaFreguesia->where('localizacao_tipo', 'sede_freguesia')->count();
         $preenchido['total_aldeia_anexa'] = $familiasDaFreguesia->where('localizacao_tipo', 'lugar_aldeia')->count();
         $preenchido['total_agroflorestal'] = $familiasDaFreguesia->where('localizacao_tipo', 'espaco_agroflorestal')->count();
 
+        // Totais demográficos baseados na composição das famílias registadas
         $preenchido['total_adultos'] = $agregadosDaFreguesia->sum('adultos_laboral') + $agregadosDaFreguesia->sum('adultos_65_mais');
         $preenchido['total_criancas'] = $agregadosDaFreguesia->sum('criancas');
         
+        // Métricas sobre o regime de propriedade das habitações
         $preenchido['total_propria'] = $familiasDaFreguesia->where('tipologia_propriedade', 'propria')->count();
         $preenchido['total_arrendada'] = $familiasDaFreguesia
             ->whereIn('tipologia_propriedade', ['arrendada', 'cedida', 'outra'])
             ->count();
 
+        // Distribuição laboral por setor e tipo de conta (Propria vs Outrem)
         $atividadesPropria = $atividadesDaFreguesia->where('tipo', 'conta_propria');
         $atividadesOutrem = $atividadesDaFreguesia->where('tipo', 'conta_outrem');
 
@@ -117,15 +116,13 @@ class InqueritoFreguesiaController extends Controller
         return view('freguesia.inqueritos.adicionar', compact('anoAtual', 'preenchido', 'setoresLista'));
     }
 
-    /**
-     * Guarda o novo inquérito.
-     */
+    // Persiste os dados consolidados e perceções qualitativas dos serviços locais
     public function store(Request $request)
     {
         $user = Auth::user();
         $anoAtual = date('Y');
 
-        $dadosValidados = $this->validarInquerito($request); // Usa função auxiliar abaixo
+        $dadosValidados = $this->validarInquerito($request);
 
         try {
             $dadosValidados['freguesia_id'] = $user->freguesia_id;
@@ -142,9 +139,7 @@ class InqueritoFreguesiaController extends Controller
         }
     }
 
-    /**
-     * Mostra os detalhes.
-     */
+    // Permite a revisão dos dados submetidos pela freguesia
     public function show(InqueritoFreguesia $inquerito)
     {
         if ($inquerito->freguesia_id !== Auth::user()->freguesia_id) {
@@ -156,32 +151,26 @@ class InqueritoFreguesiaController extends Controller
         return view('freguesia.inqueritos.show', compact('inquerito', 'setoresLista'));
     }
 
-    /**
-     * (NOVO) Mostra o formulário de edição.
-     */
+    // Edição de inquéritos restringida pelo prazo administrativo anual
     public function edit(InqueritoFreguesia $inquerito)
     {
-        // 1. Verificar dono
         if ($inquerito->freguesia_id !== Auth::user()->freguesia_id) {
             abort(403, 'Acesso não autorizado.');
         }
 
-        // 2. Verificar PRAZO
+        // Valida se o período de edição ainda se encontra aberto
         $dataLimite = Carbon::create($inquerito->ano, 12, 31, 23, 59, 59);
         if (now()->greaterThan($dataLimite)) {
             return redirect()->route('freguesia.inqueritos.index')
                              ->with('error', 'O prazo para editar este inquérito já expirou.');
         }
 
-        // 3. Dados necessários
         $setoresLista = $this->obterSetoresFormulario();
 
         return view('freguesia.inqueritos.editar', compact('inquerito', 'setoresLista'));
     }
 
-    /**
-     * (NOVO) Atualiza os dados na BD.
-     */
+    // Atualiza os registos de monitorização respeitando a segurança territorial
     public function update(Request $request, InqueritoFreguesia $inquerito)
     {
         if ($inquerito->freguesia_id !== Auth::user()->freguesia_id) {
@@ -205,9 +194,7 @@ class InqueritoFreguesiaController extends Controller
         }
     }
 
-    /**
-     * Função auxiliar para validação (Evita repetir código no store e update)
-     */
+    // Validação centralizada de métricas e perceções de satisfação global
     private function validarInquerito(Request $request)
     {
         return $request->validate([
@@ -229,6 +216,7 @@ class InqueritoFreguesiaController extends Controller
         ]);
     }
 
+    // Formata os setores para facilitar a renderização dinâmica no formulário
     private function obterSetoresFormulario(): array
     {
         return collect(self::SETORES_PRIORITARIOS)

@@ -12,8 +12,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
+// Controlador central para gestão do fluxo de instalação e monitorização de famílias (Objetivos 2 e 3)
 class FamiliaController extends Controller
 {
+    // Definição de parâmetros fixos para garantir a consistência dos dados recolhidos (Stakeholders)
     private const TIPOLOGIAS_HABITACAO = ['moradia', 'apartamento', 'caravana_tenda', 'anexo', 'outro'];
     private const REGIMES_PROPRIEDADE = ['propria', 'arrendada', 'cedida', 'outra'];
     private const LOCALIZACOES = ['sede_freguesia', 'lugar_aldeia', 'espaco_agroflorestal'];
@@ -23,15 +25,15 @@ class FamiliaController extends Controller
     private const SITUACOES_SOCIOPROFISSIONAIS = ['conta_propria', 'conta_outrem', 'prestacao_servicos', 'desempregado', 'estudante', 'outra_situacao'];
     private const ESTADOS_ACOMPANHAMENTO = ['ativa', 'desinstalada'];
 
-    /**
-     * Mostra a lista de famílias da freguesia.
-     */
+    // Listagem de famílias residentes na freguesia do utilizador autenticado
     public function index(Request $request)
     {
         $freguesiaId = Auth::user()->freguesia_id;
         if (!$freguesiaId) {
             return redirect()->route('dashboard')->with('error', 'Utilizador sem freguesia associada.');
         }
+
+        // Permite filtrar por estado (ativa/desinstalada) para analisar fluxos de permanência
         $estadoFiltro = $request->query('estado');
         $estadosDisponiveis = self::ESTADOS_ACOMPANHAMENTO;
 
@@ -42,6 +44,7 @@ class FamiliaController extends Controller
             $query->where('estado_acompanhamento', $estadoFiltro);
         }
 
+        // Paginação para manter a performance do portal web
         $familias = $query
             ->orderBy('ano_instalacao', 'desc')
             ->paginate(10)
@@ -54,30 +57,25 @@ class FamiliaController extends Controller
         ]);
     }
 
-    /**
-     * Mostra o formulário para criar uma nova família.
-     * 
-     */
+    // Formulário de registo de nova instalação estrangeira no território
     public function create()
     {
+        // Carrega setores e nacionalidades configurados para garantir a padronização do estudo
         $setores = SetorAtividade::where('ativo', true)
             ->orderBy('macro_grupo')
             ->orderBy('nome')
             ->get();
         
-        // Carregar a lista do novo ficheiro config
         $nacionalidades = config('nacionalidades');
         $formOptions = $this->formOptions();
 
         return view('freguesia.familias.adicionar', compact('setores', 'nacionalidades', 'formOptions'));
     }
 
-    /**
-     * Guarda a nova família na base de dados.
-     * 
-     */
+    // Processa a persistência da família e respetivo agregado em transação única
     public function store(Request $request)
     {
+        // Validações complexas: regras de negócio, necessidades específicas e dados demográficos
         $dadosValidados = $request->validate($this->regrasFormulario());
         $this->validarNecessidadesOutro($dadosValidados);
         $this->validarEstadoDesinstalacao($dadosValidados);
@@ -92,10 +90,7 @@ class FamiliaController extends Controller
                 throw new \Exception('Não foi possível encontrar o concelho associado.');
             }
 
-            if (empty($freguesia->codigo)) {
-                throw new \Exception('Freguesia sem código oficial associado.');
-            }
-
+            // Geração de código único (FM-CÓDIGO_FREGUESIA-SEQUENCIAL) para rastreabilidade
             $prefixo = 'FM-'.$freguesia->codigo.'-';
             $ultimoCodigo = Familia::where('codigo', 'like', $prefixo.'%')->orderBy('codigo', 'desc')->first();
             $novoNumero = $ultimoCodigo ? ((int) substr($ultimoCodigo->codigo, -4)) + 1 : 1;
@@ -113,6 +108,7 @@ class FamiliaController extends Controller
             $agregadoPayload = $this->montarAgregado($dadosValidados);
             $adultos = $this->normalizarAdultos($dadosValidados['adultos'] ?? []);
 
+            // Garante a integridade atómica dos dados (Família + Agregado + Atividades)
             DB::transaction(function () use ($dadosFamilia, $agregadoPayload, $adultos) {
                 $familia = Familia::create($dadosFamilia);
                 $familia->agregadoFamiliar()->create($agregadoPayload);
@@ -126,17 +122,13 @@ class FamiliaController extends Controller
         }
     }
 
-    /**
-     * Mostra o formulário para editar a Família
-     * 
-     */
+    // Carrega dados para edição, protegendo o acesso por freguesia (Segurança)
     public function edit(Familia $familia)
     {
         if ($familia->freguesia_id !== Auth::user()->freguesia_id) {
             abort(403, 'Acesso não autorizado.');
         }
         
-        // Carregar a lista de nacionalidades
         $nacionalidades = config('nacionalidades');
         $setores = SetorAtividade::where('ativo', true)
             ->orderBy('macro_grupo')
@@ -149,10 +141,7 @@ class FamiliaController extends Controller
         return view('freguesia.familias.editar', compact('familia', 'nacionalidades', 'setores', 'formOptions'));
     }
 
-    /**
-     * Atualiza a Família e o seu Agregado Familiar
-     * 
-     */
+    // Atualiza registos existentes mantendo o histórico de instalação
     public function update(Request $request, Familia $familia)
     {
         if ($familia->freguesia_id !== Auth::user()->freguesia_id) {
@@ -185,9 +174,7 @@ class FamiliaController extends Controller
             ->with('success', 'Família atualizada com sucesso.');
     }
 
-    /**
-     * Remove a Família
-     */
+    // Remoção física do registo da família e dados dependentes
     public function destroy(Familia $familia)
     {
         if ($familia->freguesia_id !== Auth::user()->freguesia_id) {
@@ -202,11 +189,13 @@ class FamiliaController extends Controller
         }
     }
     
+    // Alias para o método edit, centralizando a visualização de detalhes
     public function show(Familia $familia) 
     { 
         return $this->edit($familia);
     }
 
+    // Regras de validação que espelham os requisitos demográficos e sociais do projeto
     private function regrasFormulario(): array
     {
         $anoAtual = (int) date('Y');
@@ -246,10 +235,10 @@ class FamiliaController extends Controller
         ];
     }
 
+    // Mapeamento dos dados do formulário para o modelo de Família
     private function montarDadosFamilia(array $dados): array
     {
         $necessidades = $dados['necessidades_apoio'] ?? null;
-
         $apoioOutro = trim((string) ($dados['necessidades_apoio_outro'] ?? ''));
 
         $payload = [
@@ -267,6 +256,7 @@ class FamiliaController extends Controller
             'observacoes' => $dados['observacoes'] ?? null,
         ];
 
+        // Lógica para tratar a saída de residentes do território
         if ($dados['estado_acompanhamento'] === 'desinstalada') {
             $payload['data_desinstalacao'] = !empty($dados['data_desinstalacao']) ? $dados['data_desinstalacao'] : null;
             $payload['ano_desinstalacao'] = $this->calcularAnoDesinstalacao($dados);
@@ -275,22 +265,19 @@ class FamiliaController extends Controller
             $payload['ano_desinstalacao'] = null;
         }
 
-        if (array_key_exists('condicao_alojamento', $dados)) {
-            $payload['condicao_alojamento'] = $dados['condicao_alojamento'];
-        }
-
         return $payload;
     }
 
+    // Normaliza dados de saúde para valores booleanos ou nulos (nao_sei)
     private function normalizarInscricaoCentroSaude($valor): ?int
     {
         if ($valor === 'nao_sei' || $valor === null || $valor === '') {
             return null;
         }
-
         return ($valor === '1' || $valor === 1 || $valor === true) ? 1 : 0;
     }
 
+    // Organiza os dados demográficos quantitativos do agregado familiar
     private function montarAgregado(array $dados): array
     {
         $estrutura = $dados['estrutura_familiar'] ?? null;
@@ -311,6 +298,7 @@ class FamiliaController extends Controller
         ];
     }
 
+    // Limpa e normaliza a lista de adultos e suas situações socioprofissionais
     private function normalizarAdultos(?array $adultos): array
     {
         if (empty($adultos)) {
@@ -320,10 +308,7 @@ class FamiliaController extends Controller
         return collect($adultos)
             ->map(function ($adulto) {
                 $situacao = $adulto['situacao'] ?? null;
-
-                if (!$situacao) {
-                    return null;
-                }
+                if (!$situacao) return null;
 
                 return [
                     'identificador' => $adulto['identificador'] ?? null,
@@ -337,15 +322,16 @@ class FamiliaController extends Controller
             ->all();
     }
 
+    // Sincroniza as atividades económicas dos membros adultos (Objetivo 3)
     private function sincronizarAdultos(Familia $familia, array $adultos): void
     {
         $familia->atividadesEconomicas()->delete();
-
         if (!empty($adultos)) {
             $familia->atividadesEconomicas()->createMany($adultos);
         }
     }
 
+    // Helper para disponibilizar opções estáticas às views
     private function formOptions(): array
     {
         return [
@@ -360,6 +346,7 @@ class FamiliaController extends Controller
         ];
     }
 
+    // Validação de lógica condicional para necessidades de apoio extra
     private function validarNecessidadesOutro(array $dados): void
     {
         $selecionados = collect($dados['necessidades_apoio'] ?? []);
@@ -367,72 +354,56 @@ class FamiliaController extends Controller
         $descricaoOutro = trim((string) ($dados['necessidades_apoio_outro'] ?? ''));
 
         if ($outroSelecionado && $descricaoOutro === '') {
-            throw ValidationException::withMessages([
-                'necessidades_apoio_outro' => 'Indique qual o apoio ou serviço solicitado.',
-            ]);
+            throw ValidationException::withMessages(['necessidades_apoio_outro' => 'Indique qual o apoio ou serviço solicitado.']);
         }
 
         if (!$outroSelecionado && $descricaoOutro !== '') {
-            throw ValidationException::withMessages([
-                'necessidades_apoio_outro' => 'Selecione "Outra" para descrever um apoio específico.',
-            ]);
+            throw ValidationException::withMessages(['necessidades_apoio_outro' => 'Selecione "Outra" para descrever um apoio específico.']);
         }
     }
 
+    // Validação de datas para processos de desinstalação (saída do território)
     private function validarEstadoDesinstalacao(array $dados): void
     {
         $estado = $dados['estado_acompanhamento'] ?? 'ativa';
-
-        if ($estado !== 'desinstalada') {
-            return;
-        }
+        if ($estado !== 'desinstalada') return;
 
         $ano = $dados['ano_desinstalacao'] ?? null;
         $data = $dados['data_desinstalacao'] ?? null;
 
         if (empty($ano) && empty($data)) {
-            throw ValidationException::withMessages([
-                'estado_acompanhamento' => 'Indique pelo menos o ano ou a data de desinstalação.',
-            ]);
+            throw ValidationException::withMessages(['estado_acompanhamento' => 'Indique pelo menos o ano ou a data de desinstalação.']);
         }
 
         if (!empty($ano) && !empty($data)) {
             $anoData = (int) date('Y', strtotime($data));
             if ((int) $ano !== $anoData) {
-                throw ValidationException::withMessages([
-                    'ano_desinstalacao' => 'O ano indicado tem de coincidir com a data de desinstalação.',
-                ]);
+                throw ValidationException::withMessages(['ano_desinstalacao' => 'O ano indicado tem de coincidir com a data de desinstalação.']);
             }
         }
     }
 
+    // Calcula o ano de saída com base nos dados fornecidos
     private function calcularAnoDesinstalacao(array $dados): ?int
     {
         $data = $dados['data_desinstalacao'] ?? null;
-        if (!empty($data)) {
-            return (int) date('Y', strtotime($data));
-        }
+        if (!empty($data)) return (int) date('Y', strtotime($data));
 
         return (isset($dados['ano_desinstalacao']) && $dados['ano_desinstalacao'] !== '')
-            ? (int) $dados['ano_desinstalacao']
-            : null;
+            ? (int) $dados['ano_desinstalacao'] : null;
     }
 
+    // Garante que o número de eleitores não excede a população adulta real do agregado
     private function validarEleitores(array $dados): void
     {
-        if (!array_key_exists('eleitores_repenicados', $dados) || $dados['eleitores_repenicados'] === null) {
-            return;
-        }
+        if (!array_key_exists('eleitores_repenicados', $dados) || $dados['eleitores_repenicados'] === null) return;
 
         $eleitores = (int) $dados['eleitores_repenicados'];
-        $adultosLaboral = (int) ($dados['adultos_laboral_m'] ?? 0) + (int) ($dados['adultos_laboral_f'] ?? 0);
-        $adultosSenior = (int) ($dados['adultos_senior_m'] ?? 0) + (int) ($dados['adultos_senior_f'] ?? 0);
-        $adultosTotais = $adultosLaboral + $adultosSenior;
+        $adultosTotais = (int) ($dados['adultos_laboral_m'] ?? 0) + (int) ($dados['adultos_laboral_f'] ?? 0) + 
+                         (int) ($dados['adultos_senior_m'] ?? 0) + (int) ($dados['adultos_senior_f'] ?? 0);
 
         if ($eleitores > $adultosTotais) {
-            throw ValidationException::withMessages([
-                'eleitores_repenicados' => 'O número de eleitores não pode ser superior ao total de adultos (idade laboral + seniores).',
-            ]);
+            throw ValidationException::withMessages(['eleitores_repenicados' => 'O número de eleitores não pode ser superior ao total de adultos.']);
         }
     }
 }

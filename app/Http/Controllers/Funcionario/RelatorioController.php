@@ -14,22 +14,29 @@ use App\Services\EstatisticasService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 
+// Controlador responsável pela geração de relatórios qualitativos e quantitativos (Objetivo 2)
 class RelatorioController extends Controller
 {
+    // Injeção do serviço especializado em métricas e cálculos estatísticos
     public function __construct(private EstatisticasService $estatisticasService)
     {
+        // Restrição de acesso a funcionários autorizados para salvaguardar a segurança (Objetivo 4)
         $this->middleware(['auth', 'check_funcionario']);
     }
 
+    // Método principal que gere os dois grandes âmbitos do projeto: Freguesias e Escolas
     public function index(Request $request)
     {
         $anoAtual = (int) date('Y');
+        // Define o escopo da análise (população geral ou dinâmica escolar)
         $escopo = $request->get('escopo', 'freguesias');
         if (! in_array($escopo, ['freguesias', 'escolas'], true)) {
             $escopo = 'freguesias';
         }
 
+        // Bloco dedicado à análise do fluxo de instalação em ambiente escolar (Objetivo 14)
         if ($escopo === 'escolas') {
+            // Recupera anos com dados para permitir análise temporal (Objetivo 21)
             $anosDisponiveis = InqueritoAgrupamento::query()
                 ->select('ano_referencia')
                 ->distinct()
@@ -51,6 +58,8 @@ class RelatorioController extends Controller
             $filtros = $request->all();
             $filtros['ano'] = $anoSelecionado;
             $perPage = max(1, (int) $request->get('inqueritos_por_pagina', 10));
+            
+            // Invoca o serviço para processar totais e distribuições das escolas
             $resultado = $this->estatisticasService->gerarEscolas($filtros, $perPage);
 
             return view('funcionario.relatorios.escolas', [
@@ -69,6 +78,7 @@ class RelatorioController extends Controller
             ]);
         }
 
+        // Bloco dedicado à análise socioeconómica e demográfica das Freguesias (Objetivo 22)
         $anosDisponiveis = Familia::query()
             ->select('ano_instalacao')
             ->distinct()
@@ -90,10 +100,13 @@ class RelatorioController extends Controller
         $filtros = $request->all();
         $filtros['ano'] = $anoSelecionado;
         $perPage = max(1, (int) $request->get('familias_por_pagina', 10));
+        
+        // Gera o conjunto de dados estatísticos (timeline, totais e listagens)
         $resultado = $this->estatisticasService->gerar($filtros, $perPage);
         $filtrosNormalizados = $resultado['filtros'];
         $listaFamilias = $resultado['listaFamilias'];
 
+        // Retorna a visão clara do estado da população residente estrangeira (Objetivo 21)
         return view('funcionario.relatorios.index', [
             'title' => 'Estatísticas das Freguesias',
             'escopoDados' => 'freguesias',
@@ -113,6 +126,7 @@ class RelatorioController extends Controller
         ]);
     }
 
+    // Permite a exportação de dados consistentes para suporte à intervenção pública (Objetivo 12, 15)
     public function export(Request $request)
     {
         $escopo = $request->get('escopo', 'freguesias');
@@ -124,6 +138,7 @@ class RelatorioController extends Controller
         return $this->estatisticasService->exportarPdf($request->all());
     }
 
+    // API para atualização dinâmica de gráficos baseada em filtros customizados
     public function customChart(Request $request)
     {
         $resultado = $this->estatisticasService->contarFamilias($request->all());

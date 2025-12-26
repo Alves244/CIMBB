@@ -2,23 +2,27 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\User; // <-- ADICIONA ou certifica-te que este import existe
+use App\Models\User; 
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+// Middleware de restrição de acesso para garantir que apenas administradores gerem o sistema 
 class CheckAdmin
 {
+    // Processa a validação do nível de autorização do utilizador antes de permitir o acesso [cite: 14]
     public function handle(Request $request, Closure $next): Response
     {
-        /** @var \App\Models\User|null $user */ // <-- ADICIONA ESTA LINHA PHPDoc
+        // Obtém a instância do utilizador autenticado para verificação de permissões 
+        /** @var \App\Models\User|null $user */ 
         $user = auth()->user();
 
-        // Modifica o 'if' para usar a variável $user e verificar se não é null
+        // Valida se o utilizador possui privilégios de administrador para prosseguir [cite: 14, 23]
         if (auth()->check() && $user && $user->isAdmin()) {
             return $next($request);
         }
 
+        // Bloqueia o acesso não autorizado, redirecionando para a área segura do dashboard 
         return redirect('/dashboard')->with('error', 'Acesso não autorizado.');
     }
 }

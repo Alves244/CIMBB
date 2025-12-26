@@ -7,45 +7,63 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Run the migrations (Criação da tabela).
      */
     public function up(): void
     {
         Schema::create('ticket_suportes', function (Blueprint $table) {
-            $table->id(); // id INT AUTO_INCREMENT PRIMARY KEY [cite: 173, 476]
-            $table->string('codigo', 20)->unique(); // codigo VARCHAR(20) UNIQUE NOT NULL [cite: 173, 477]
-            $table->unsignedBigInteger('utilizador_id'); // utilizador_id INT NOT NULL [cite: 173, 478]
-            $table->string('assunto', 200); // assunto VARCHAR(200) NOT NULL [cite: 173, 479]
-            $table->text('descricao'); // descricao TEXT NOT NULL [cite: 173, 480]
-            // data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP -> usar timestamps() [cite: 173, 481]
-            $table->enum('estado', ['aberto', 'em_processamento', 'resolvido', 'fechado'])->default('aberto'); // estado ENUM(...) DEFAULT 'aberto' [cite: 173, 482]
-            $table->text('resposta_admin')->nullable(); // resposta_admin TEXT NULL [cite: 173, 483]
-            $table->dateTime('data_resposta')->nullable(); // data_resposta DATETIME NULL [cite: 173, 484]
-            $table->unsignedBigInteger('administrador_id')->nullable(); // administrador_id INT NULL [cite: 173, 485]
-            $table->string('anexo', 255)->nullable(); // anexo VARCHAR(255) NULL [cite: 173, 486]
-            $table->enum('categoria', ['duvida', 'erro', 'sugestao', 'outro'])->default('duvida'); // categoria ENUM(...) DEFAULT 'duvida' [cite: 173, 487]
-            $table->timestamps(); // Cria created_at (para data_criacao) e updated_at
+            // ID único do ticket
+            $table->id(); 
 
-            // Chave estrangeira para utilizador_id -> users.id (ON DELETE CASCADE) [cite: 173, 488]
+            // Código de referência único (ex: TICKET-2025-001)
+            $table->string('codigo', 20)->unique(); 
+
+            // ID do utilizador que abriu o ticket (Freguesia/Escola)
+            $table->unsignedBigInteger('utilizador_id'); 
+
+            // Assunto e corpo da mensagem
+            $table->string('assunto', 200); 
+            $table->text('descricao'); 
+
+            // Estado do pedido (Controla o fluxo de trabalho)
+            $table->enum('estado', ['aberto', 'em_processamento', 'resolvido', 'fechado'])->default('aberto'); 
+
+            // Campos para a resposta do Administrador da CIMBB
+            $table->text('resposta_admin')->nullable(); 
+            $table->dateTime('data_resposta')->nullable(); 
+            $table->unsignedBigInteger('administrador_id')->nullable(); 
+
+            // Caminho para ficheiro em anexo (ex: print de um erro)
+            $table->string('anexo', 255)->nullable(); 
+
+            // Classificação do problema
+            $table->enum('categoria', ['duvida', 'erro', 'sugestao', 'outro'])->default('duvida'); 
+
+            // Datas de criação (data_criacao) e última atualização
+            $table->timestamps(); 
+
+            // --- RELAÇÕES ---
+
+            // Se o utilizador for apagado, os seus tickets desaparecem (cascade)
             $table->foreign('utilizador_id')
                   ->references('id')->on('users')
                   ->onDelete('cascade');
 
-            // Chave estrangeira para administrador_id -> users.id (ON DELETE SET NULL) [cite: 173, 489]
+            // Se o administrador for apagado, o ticket mantém-se mas sem responsável (set null)
             $table->foreign('administrador_id')
                   ->references('id')->on('users')
                   ->onDelete('set null');
 
-            // Índices [cite: 173, 490-493]
+            // --- PERFORMANCE ---
+            // Índices para listagens rápidas no painel de controlo
             $table->index('estado');
-            // $table->index('prioridade'); // Nota: A coluna 'prioridade' não existe na definição da tabela. Removi o índice.
-            $table->index('created_at'); // Índice na data de criação (created_at)
+            $table->index('created_at'); 
             $table->index('categoria');
         });
     }
 
     /**
-     * Reverse the migrations.
+     * Reverse the migrations (Eliminação da tabela).
      */
     public function down(): void
     {

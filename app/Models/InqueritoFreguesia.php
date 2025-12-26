@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+// Modelo para inquéritos anuais de diagnóstico local (Objetivo 1 e 3)
 class InqueritoFreguesia extends Model
 {
     use HasFactory;
@@ -13,43 +14,43 @@ class InqueritoFreguesia extends Model
     protected $table = 'inquerito_freguesias';
 
     /**
-     * Os atributos que podem ser preenchidos em massa.
-     * (VERSÃO DETALHADA RESTAURADA)
+     * Atributos que cobrem o diagnóstico demográfico, laboral e social.
+     * Estruturado para responder às métricas de integração da CIMBB.
      */
     protected $fillable = [
         'freguesia_id',
-        'utilizador_id',
-        'ano',
+        'utilizador_id',    // Rastreabilidade do técnico que respondeu (Objetivo 4)
+        'ano',              // Referência temporal para análise evolutiva
         
-        // Perguntas 11-13
-        'total_nucleo_urbano',
-        'total_aldeia_anexa',
-        'total_agroflorestal',
+        // Distribuição Geográfica (Perguntas 11-13)
+        'total_nucleo_urbano', // Concentração em vilas/cidades
+        'total_aldeia_anexa',  // Dispersão por aldeias
+        'total_agroflorestal', // Isolamento em zonas rurais
         
-        // Pergunta 14 (Restaurado)
+        // Demografia (Pergunta 14)
         'total_adultos',
         'total_criancas',
         
-        // Pergunta 15 (Restaurado)
+        // Habitação (Pergunta 15)
         'total_propria',
         'total_arrendada',
         
-        // Perguntas 16-19 (JSON - Restaurado)
-        'total_por_setor_propria',
-        'total_por_setor_outrem',
+        // Mercado de Trabalho (Perguntas 16-19 - JSON para flexibilidade)
+        'total_por_setor_propria',  // Empreendedorismo imigrante
+        'total_por_setor_outrem',   // Mão de obra empregada
         'total_trabalhadores_outrem',
 
-        // Perguntas 20-24
-        'escala_integracao',
-        'aspectos_positivos',
-        'aspectos_negativos',
-        'satisfacao_global',
-        'sugestoes',
+        // Avaliação de Impacto e Integração (Perguntas 20-24)
+        'escala_integracao',    // Métrica quantitativa de sucesso social
+        'aspectos_positivos',   // Dados qualitativos sobre benefícios
+        'aspectos_negativos',   // Identificação de conflitos ou carências
+        'satisfacao_global',    // Índice de felicidade da comunidade
+        'sugestoes',            // Base para futuras políticas públicas (Objetivo 2)
     ];
 
     /**
-     * Define os "casts" para que o Laravel trate o JSON
-     * como um array automaticamente. (Restaurado)
+     * Casts: Converte colunas JSON da base de dados em arrays PHP.
+     * Permite armazenar dados complexos de setores sem múltiplas tabelas.
      */
     protected $casts = [
         'total_por_setor_propria' => 'array',
@@ -57,7 +58,8 @@ class InqueritoFreguesia extends Model
     ];
 
     /**
-     * Relação: Um inquérito pertence a uma Freguesia.
+     * Relação: Liga o inquérito à respetiva Freguesia.
+     * Essencial para o mapeamento da "Visão Territorial" da Beira Baixa.
      */
     public function freguesia(): BelongsTo
     {

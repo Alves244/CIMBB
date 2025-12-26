@@ -13,19 +13,31 @@ class FreguesiaSeeder extends Seeder
      */
     public function run(): void
     {
-        $concelhos = config('concelhos', []);
+        // 1. Obtém a estrutura completa definida em config/concelhos.php
+        // Espera-se que cada concelho no array tenha uma chave ['freguesias']
+        $concelhosConfig = config('concelhos', []);
 
-        foreach ($concelhos as $concelho) {
+        foreach ($concelhosConfig as $concelho) {
+            
+            // 2. Procura o ID do concelho na base de dados pelo código ou nome
+            // É essencial que o ConcelhoSeeder tenha corrido primeiro
             $concelhoModel = Concelho::where('codigo', $concelho['codigo'])
                 ->orWhere('nome', $concelho['nome'])
                 ->first();
 
+            // 3. Caso o concelho não exista na BD, lança um aviso e salta para o próximo
             if (!$concelhoModel) {
                 $this->command?->warn('Concelho não encontrado no seeder: ' . $concelho['nome']);
                 continue;
             }
 
+            // 4. Itera sobre a lista de freguesias deste concelho específico
             foreach ($concelho['freguesias'] ?? [] as $freguesia) {
+                
+                // 5. updateOrCreate: 
+                // Procura pelo 'codigo' único da freguesia (DICRE).
+                // Se encontrar, atualiza o nome e o vínculo ao concelho.
+                // Se não encontrar, cria uma nova.
                 Freguesia::updateOrCreate(
                     ['codigo' => $freguesia['codigo']],
                     [

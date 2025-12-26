@@ -5,35 +5,35 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User; // Importar o Model User
+use App\Models\User; 
 use App\Services\AuditLogger;
 
+// Controlador para gestão de segurança de conta pelo próprio utilizador
 class ChangePasswordController extends Controller
 {
+    // Processa a alteração de credenciais para garantir a proteção do acesso ao portal
     public function changePassword(Request $request)
     {
-        // 1. Validação dos campos
+        // Validação rigorosa para garantir a força da nova password e evitar erros de escrita
         $request->validate([
             'current_password' => 'required',
-            'password' => 'required|min:6|confirmed', // O campo de confirmação deve chamar-se 'password_confirmation' no HTML
+            'password' => 'required|min:6|confirmed', 
         ]);
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // 2. Verificar se a password atual está correta
+        // Camada de segurança: validação da identidade através da password atual antes da mudança
         if (!Hash::check($request->get('current_password'), $user->password)) {
             return back()->withErrors(['current_password' => 'A password atual não está correta.']);
         }
 
-        // 3. Atualizar para a nova password
-        // NOTA: Se na tua base de dados a coluna se chamar 'password_hash' (como no diagrama), 
-        // muda 'password' para 'password_hash' na linha abaixo. 
-        // Se usaste o padrão do Laravel, mantém 'password'.
+        // Atualização da credencial na base de dados usando hashing seguro
         $user->update([
             'password' => Hash::make($request->get('password'))
         ]);
 
+        // Registo de auditoria para monitorização de alterações de segurança (Objetivo 4)
         AuditLogger::log('profile_password', 'Alterou a password através da página de perfil.');
 
         return back()->with('success', 'Password alterada com sucesso!');

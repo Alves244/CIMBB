@@ -7,44 +7,50 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Run the migrations (Criação da tabela).
      */
     public function up(): void
     {
         Schema::create('inquerito_freguesias', function (Blueprint $table) {
+            // ID único do inquérito
             $table->id();
-            $table->unsignedBigInteger('freguesia_id'); // A que freguesia responde
-            $table->unsignedBigInteger('utilizador_id'); // Quem respondeu
-            $table->integer('ano'); // Ano do inquérito
 
-            // Pergunta 20: Escala de integração
-            $table->tinyInteger('escala_integracao')->nullable(); // Valor de 1 a 5
+            // Identificação da Freguesia e do Utilizador que preenche
+            $table->unsignedBigInteger('freguesia_id'); 
+            $table->unsignedBigInteger('utilizador_id'); 
             
-            // Pergunta 21: Aspectos positivos
+            // Ano de referência dos dados
+            $table->integer('ano'); 
+
+            // --- AVALIAÇÃO (Perguntas 20 a 24) ---
+            // Nível de integração (Escala 1-5)
+            $table->tinyInteger('escala_integracao')->nullable(); 
+            
+            // Textos descritivos sobre a situação na freguesia
             $table->text('aspectos_positivos')->nullable();
-            
-            // Pergunta 22: Aspectos negativos
             $table->text('aspectos_negativos')->nullable();
             
-            // Pergunta 23: Nível de satisfação global
-            $table->tinyInteger('satisfacao_global')->nullable(); // Valor de 1 a 5
+            // Satisfação global da autarquia (Escala 1-5)
+            $table->tinyInteger('satisfacao_global')->nullable(); 
 
-            // Pergunta 24: Sugestões
+            // Espaço para recomendações ou observações
             $table->text('sugestoes')->nullable();
             
-            $table->timestamps(); // Data de preenchimento
+            // Regista a data/hora da submissão
+            $table->timestamps(); 
 
-            // Chaves estrangeiras
+            // --- REGRAS E RELAÇÕES ---
+            // Ligações às tabelas 'freguesias' e 'users'
             $table->foreign('freguesia_id')->references('id')->on('freguesias')->onDelete('cascade');
             $table->foreign('utilizador_id')->references('id')->on('users')->onDelete('cascade');
             
-            // Garantir que só há 1 inquérito por freguesia por ano
+            // RESTRIÇÃO CRÍTICA: Impede que uma freguesia submeta mais do que um inquérito para o mesmo ano
             $table->unique(['freguesia_id', 'ano']);
         });
     }
 
     /**
-     * Reverse the migrations.
+     * Reverse the migrations (Eliminação da tabela).
      */
     public function down(): void
     {

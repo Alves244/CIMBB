@@ -2,32 +2,34 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\User; // <-- ADICIONA ou certifica-te que este import existe
+use App\Models\User; 
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+// Middleware para restringir o acesso a utilizadores com o perfil de Junta de Freguesia
 class CheckFreguesia
 {
+    /**
+     * Valida o nível de autorização do utilizador antes de permitir a gestão de dados familiares.
+     * Crucial para o Objetivo 4: Salvaguardar dados em termos de segurança.
+     */
     public function handle(Request $request, Closure $next): Response
     {
-        /** @var \App\Models\User|null $user */ // <-- ADICIONA ESTA LINHA PHPDoc
+        /** @var \App\Models\User|null $user */
         $user = auth()->user();
 
-        // Modifica o 'if' para usar a variável $user e verificar se não é null
-        // (Nota: Ajustei a lógica aqui ligeiramente para ser mais clara)
-
-        // Se estiver autenticado E for freguesia, permite passar
+        // Se o utilizador estiver autenticado e possuir o perfil de Freguesia, autoriza o pedido
         if (auth()->check() && $user && $user->isFreguesia()) {
             return $next($request);
         }
 
-        // Se estiver autenticado mas NÃO for freguesia, redireciona com erro
+        // Se o utilizador estiver logado mas tentar aceder a uma área de freguesia sem permissão
         if (auth()->check()){
              return redirect('/dashboard')->with('error', 'Acesso não autorizado.');
         }
 
-        // Se não estiver autenticado (fallback, embora o middleware 'auth' deva tratar disto)
+        // Caso o utilizador não tenha sessão iniciada, redireciona para o login (Salvaguarda de Acesso)
         return redirect()->route('login');
     }
 }

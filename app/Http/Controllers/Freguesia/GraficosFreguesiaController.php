@@ -10,23 +10,22 @@ use App\Models\SetorAtividade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+// Responsável por agregar dados estatísticos para visualização gráfica no portal (Objetivo 2)
 class GraficosFreguesiaController extends Controller
 {
-    /**
-     * Prepara os dados para serem visualizados em gráficos.
-     */
+    // Prepara e estrutura os dados para os gráficos de monitorização da freguesia
     public function index()
     {
         $freguesiaId = Auth::user()->freguesia_id;
         
-        // 1. Buscar todos os dados relevantes da freguesia
+        // Recupera os dados base filtrados pela área geográfica do utilizador
         $familias = Familia::where('freguesia_id', $freguesiaId)->get();
         $familiaIds = $familias->pluck('id');
         $agregados = AgregadoFamiliar::whereIn('familia_id', $familiaIds)->get();
         $atividades = AtividadeEconomica::whereIn('familia_id', $familiaIds)->get();
         $setores = SetorAtividade::all()->pluck('nome', 'id');
 
-        // --- 1. Nacionalidades (Top 5) ---
+        // Estrutura o Top 5 de nacionalidades para analisar fluxos migratórios (Objetivo 2)
         $nacionalidadesData = $familias->groupBy('nacionalidade')
             ->map->count()
             ->sortDesc()
@@ -35,7 +34,7 @@ class GraficosFreguesiaController extends Controller
             ->values()
             ->toArray();
 
-        // --- 2. Localização (Pie Chart Data) ---
+        // Mapeia a distribuição das famílias pelo território da freguesia (Objetivo 3)
         $localizacaoLabels = [
             'sede_freguesia' => 'Sede da freguesia',
             'lugar_aldeia' => 'Lugar / aldeia',
@@ -47,7 +46,7 @@ class GraficosFreguesiaController extends Controller
             $localizacaoData[$label] = $familias->where('localizacao_tipo', $valor)->count();
         }
 
-        // --- 2.1 Condição do alojamento ---
+        // Analisa a vertente qualitativa das condições de habitabilidade (Objetivo 2)
         $condicaoLabels = [
             'bom_estado' => 'Bom estado',
             'estado_razoavel' => 'Estado razoável',
@@ -60,14 +59,14 @@ class GraficosFreguesiaController extends Controller
             $condicaoData[$label] = $familias->where('condicao_alojamento', $valor)->count();
         }
 
-        // --- 3. Distribuição Etária (Total de Indivíduos) ---
+        // Consolida a distribuição etária para análise demográfica da Beira Baixa (Objetivo 3)
         $etariaData = [
             'Adultos Laboral (18-65)' => $agregados->sum('adultos_laboral'),
             'Adultos Seniores (65+)' => $agregados->sum('adultos_65_mais'),
             'Crianças/Jovens (<18)' => $agregados->sum('criancas'),
         ];
         
-        // --- 4. Top 5 Setores de Atividade ---
+        // Identifica os principais setores de inserção laboral (Objetivo 3)
         $setorDataRaw = $atividades->groupBy('setor_id')
             ->map->count()
             ->sortDesc();
@@ -81,12 +80,13 @@ class GraficosFreguesiaController extends Controller
         ->values()
         ->toArray();
 
-        // --- 5. Integração em serviços ---
+        // Monitoriza a integração nos serviços públicos de saúde (Objetivo 2)
         $centroSaudeData = [
             'Inscritas' => $familias->where('inscrito_centro_saude', true)->count(),
             'Por inscrever' => $familias->where('inscrito_centro_saude', false)->count(),
         ];
 
+        // Avalia a taxa de escolarização dos novos residentes (Objetivo 3)
         $escolaLabels = [
             'sim' => 'Inscritas',
             'nao' => 'Não inscritas',
@@ -98,7 +98,7 @@ class GraficosFreguesiaController extends Controller
             $escolaData[$label] = $familias->where('inscrito_escola', $valor)->count();
         }
 
-        // --- 6. Necessidades de apoio ---
+        // Quantifica as necessidades de apoio para orientar intervenções públicas (Objetivo 3)
         $necessidadesData = $familias
             ->pluck('necessidades_apoio')
             ->filter()
@@ -124,9 +124,7 @@ class GraficosFreguesiaController extends Controller
             ->values()
             ->toArray();
 
-        // --- REMOVIDO: Evolução da Propriedade (Gráfico 5) ---
-
-        // Passar os dados para a View
+        // Disponibiliza os dados formatados em JSON para os componentes de gráficos (ex: Chart.js)
         return view('freguesia.graficos.index', [
             'nacionalidadesJson' => json_encode($nacionalidadesData),
             'localizacaoJson' => json_encode($localizacaoData),
@@ -137,7 +135,6 @@ class GraficosFreguesiaController extends Controller
             'escolaJson' => json_encode($escolaData),
             'necessidadesJson' => json_encode($necessidadesData),
             'totalFamilias' => $familias->count(),
-            // 'propriedadeTempoJson' REMOVIDO
         ]);
     }
 }

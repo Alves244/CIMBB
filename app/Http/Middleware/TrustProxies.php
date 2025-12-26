@@ -5,19 +5,20 @@ namespace App\Http\Middleware;
 use Illuminate\Http\Middleware\TrustProxies as Middleware;
 use Illuminate\Http\Request;
 
+// Middleware que permite à aplicação confiar em servidores intermediários (proxies/load balancers)
 class TrustProxies extends Middleware
 {
     /**
-     * The trusted proxies for this application.
-     *
-     * @var array|string|null
+     * Lista de endereços IP dos proxies em que a aplicação deve confiar.
+     * Se estiver definido como null, o sistema pode ser configurado para confiar em todos (útil em certas clouds).
+     * Garante a integridade da comunicação entre o servidor institucional e o utilizador final.
      */
     protected $proxies;
 
     /**
-     * The headers that should be used to detect proxies.
-     *
-     * @var int
+     * Define quais os cabeçalhos HTTP que devem ser utilizados para detetar informações do cliente.
+     * Inclui protocolos, portas e IPs originais, essencial para o registo correto no AuditLogger.
+     * Suporta padrões comuns e infraestruturas específicas como AWS ELB.
      */
     protected $headers =
         Request::HEADER_X_FORWARDED_FOR |

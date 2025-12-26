@@ -7,29 +7,39 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Run the migrations (Criação da tabela).
      */
     public function up(): void
     {
+        // Cria a tabela de histórico de atividades
         Schema::create('log_acessos', function (Blueprint $table) {
-            $table->id(); // id INT AUTO_INCREMENT PRIMARY KEY [cite: 179, 508]
-            $table->unsignedBigInteger('utilizador_id'); // utilizador_id INT NOT NULL [cite: 179, 509]
-            $table->string('acao', 100); // acao VARCHAR(100) NOT NULL [cite: 179, 510]
-            $table->timestamp('data_hora')->useCurrent(); // data_hora DATETIME DEFAULT CURRENT_TIMESTAMP [cite: 179, 511]
-            $table->string('ip', 45)->nullable(); // ip VARCHAR(45) NULL [cite: 179, 512]
-            $table->text('descricao')->nullable(); // descricao TEXT NULL [cite: 179, 513]
+            
+            // ID único do registo de log
+            $table->id(); 
 
-            // Chave estrangeira para utilizador_id -> users.id [cite: 179, 514]
-            // Nota: O teu SQL não define ON DELETE. O padrão é RESTRICT. Considera 'cascade' ou 'set null'.
-            $table->foreign('utilizador_id')
-                  ->references('id')->on('users'); // Tabela 'users'
+            // ID do utilizador que realizou a ação (Liga à tabela 'users')
+            $table->unsignedBigInteger('utilizador_id'); 
 
-            // Não precisa de timestamps() se data_hora já existe
+            // Nome da ação (ex: 'LOGIN', 'CRIAR_FAMILIA', 'EXPORTAR_PDF')
+            $table->string('acao', 100); 
+
+            // Data e hora exata da ocorrência (Preenchido automaticamente)
+            $table->timestamp('data_hora')->useCurrent(); 
+
+            // Endereço IP de onde veio o pedido (Suporta IPv4 e IPv6)
+            $table->string('ip', 45)->nullable(); 
+
+            // Detalhes extras sobre a ação (ex: "Exportou dados do concelho de Castelo Branco")
+            $table->text('descricao')->nullable(); 
+
+            // --- RELAÇÕES ---
+            // Define que o log pertence a um utilizador da tabela 'users'
+            $table->foreign('utilizador_id')->references('id')->on('users');
         });
     }
 
     /**
-     * Reverse the migrations.
+     * Reverse the migrations (Eliminação da tabela).
      */
     public function down(): void
     {

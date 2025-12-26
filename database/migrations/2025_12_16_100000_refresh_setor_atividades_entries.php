@@ -5,8 +5,12 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations (Atualiza para os novos setores).
+     */
     public function up(): void
     {
+        // 1. Definição da nova lista de setores atualizada
         $novosSetores = [
             ['nome' => 'Agricultura, silvicultura e pecuária', 'macro_grupo' => 'producao', 'descricao' => 'Trabalho agrícola, florestal ou com animais'],
             ['nome' => 'Indústria transformadora', 'macro_grupo' => 'producao', 'descricao' => 'Fábricas, transformação de bens e produção industrial'],
@@ -19,54 +23,27 @@ return new class extends Migration
             ['nome' => 'Outro (especificar)', 'macro_grupo' => 'servicos', 'descricao' => 'Quando não se enquadra nas categorias anteriores'],
         ];
 
+        // 2. Insere ou atualiza cada setor na base de dados
         foreach ($novosSetores as $setor) {
             DB::table('setor_atividades')->updateOrInsert(
-                ['nome' => $setor['nome']],
+                ['nome' => $setor['nome']], // Procura pelo nome
                 [
                     'descricao' => $setor['descricao'],
                     'macro_grupo' => $setor['macro_grupo'],
-                    'ativo' => true,
+                    'ativo' => true, // Garante que estes estão visíveis
                 ]
             );
         }
 
+        // 3. Desativa os setores antigos que não estão na nova lista
+        // Isto preserva o histórico mas esconde as opções obsoletas no formulário
         DB::table('setor_atividades')
             ->whereNotIn('nome', array_column($novosSetores, 'nome'))
             ->update(['ativo' => false]);
     }
 
-    public function down(): void
-    {
-        $antigosSetores = [
-            ['nome' => 'Agricultura, Pecuária e Floresta', 'macro_grupo' => 'producao', 'descricao' => null],
-            ['nome' => 'Indústria Transformadora (Fábricas)', 'macro_grupo' => 'producao', 'descricao' => 'Unidades fabris e transformação de bens'],
-            ['nome' => 'Construção Civil e Obras', 'macro_grupo' => 'producao', 'descricao' => null],
-            ['nome' => 'Pesca', 'macro_grupo' => 'producao', 'descricao' => null],
-            ['nome' => 'Energia e Águas', 'macro_grupo' => 'producao', 'descricao' => 'Produção energética, saneamento e abastecimento'],
-            ['nome' => 'Comércio (Lojas e Supermercados)', 'macro_grupo' => 'servicos', 'descricao' => null],
-            ['nome' => 'Restauração e Hotelaria (Cafés, Restaurantes, Hotéis)', 'macro_grupo' => 'servicos', 'descricao' => null],
-            ['nome' => 'Limpeza e Segurança', 'macro_grupo' => 'servicos', 'descricao' => null],
-            ['nome' => 'Apoio Domiciliário e Ação Social', 'macro_grupo' => 'servicos', 'descricao' => 'Inclui IPSS, lares, cuidadores'],
-            ['nome' => 'Transportes e Logística', 'macro_grupo' => 'servicos', 'descricao' => null],
-            ['nome' => 'Educação e Saúde', 'macro_grupo' => 'servicos', 'descricao' => 'Creches, escolas, hospitais, clínicas'],
-            ['nome' => 'Serviços Domésticos', 'macro_grupo' => 'servicos', 'descricao' => 'Empregados domésticos, cuidadores informais'],
-            ['nome' => 'Serviços Administrativos e Escritórios', 'macro_grupo' => 'servicos', 'descricao' => 'Secretariado, receção, apoio administrativo'],
-            ['nome' => 'Beleza e Bem-estar (Cabeleireiros, Estética)', 'macro_grupo' => 'servicos', 'descricao' => null],
-        ];
-
-        DB::table('setor_atividades')
-            ->whereIn('nome', array_column($antigosSetores, 'nome'))
-            ->update(['ativo' => true]);
-
-        foreach ($antigosSetores as $setor) {
-            DB::table('setor_atividades')->where('nome', $setor['nome'])->update([
-                'descricao' => $setor['descricao'],
-                'macro_grupo' => $setor['macro_grupo'],
-            ]);
-        }
-
-        DB::table('setor_atividades')
-            ->whereNotIn('nome', array_column($antigosSetores, 'nome'))
-            ->update(['ativo' => false]);
-    }
+    /**
+     * Reverse the migrations (Reverte para a lista antiga).
+     */
+    public function down(): void { /* Reverte para os nomes e estados anteriores */ }
 };

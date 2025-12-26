@@ -7,24 +7,36 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Run the migrations (Criação da tabela).
      */
     public function up(): void
     {
+        // Cria a tabela para guardar variáveis globais do sistema
         Schema::create('configuracao_sistemas', function (Blueprint $table) {
-            $table->id(); // id INT AUTO_INCREMENT PRIMARY KEY [cite: 176, 498]
-            $table->string('chave', 100)->unique(); // chave VARCHAR(100) UNIQUE NOT NULL [cite: 176, 499]
-            $table->text('valor'); // valor TEXT NOT NULL [cite: 176, 500]
-            $table->text('descricao')->nullable(); // descricao TEXT NULL [cite: 176, 501]
-            // Nota: O tipo 'json' não é padrão SQL mas útil. Se preferir só SQL padrão, remova 'json'.
-            $table->enum('tipo', ['string', 'int', 'boolean', 'json'])->default('string'); // tipo ENUM(...) DEFAULT 'string' [cite: 176, 502]
-            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate(); // updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP [cite: 176, 503]
-            // Não precisa de created_at se só existe updated_at
+            
+            // ID único do registo
+            $table->id(); 
+
+            // Nome da configuração (ex: 'NOME_APP'). 
+            // 'unique' garante que não há duas chaves iguais.
+            $table->string('chave', 100)->unique(); 
+
+            // O conteúdo da definição em si
+            $table->text('valor'); 
+
+            // Explicação para o administrador saber o que esta chave controla
+            $table->text('descricao')->nullable(); 
+
+            // Define como o sistema deve ler o dado (Texto, Número, Sim/Não ou Lista)
+            $table->enum('tipo', ['string', 'int', 'boolean', 'json'])->default('string'); 
+
+            // Regista automaticamente a data da última alteração
+            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate(); 
         });
     }
 
     /**
-     * Reverse the migrations.
+     * Reverse the migrations (Eliminação da tabela).
      */
     public function down(): void
     {

@@ -11,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Schema::table (em vez de create) indica que vamos EDITAR a tabela 'users'.
         Schema::table('users', function (Blueprint $table) {
-            //
+            // Aqui é onde adicionas as novas colunas.
+            // Exemplo: $table->string('nif')->nullable();
         });
     }
 
@@ -22,7 +24,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            //
+            // Aqui deves desfazer o que fizeste em cima (apagar a coluna).
+            // Exemplo: $table->dropColumn('nif');
         });
     }
 };

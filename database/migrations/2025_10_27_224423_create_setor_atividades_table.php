@@ -7,24 +7,34 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Run the migrations (Criação da tabela).
      */
     public function up(): void
     {
+        // Cria a tabela 'setor_atividades'
         Schema::create('setor_atividades', function (Blueprint $table) {
-            $table->id(); // id INT AUTO_INCREMENT PRIMARY KEY [cite: 164, 453]
-            $table->string('nome', 100)->unique(); // nome VARCHAR(100) NOT NULL UNIQUE [cite: 164, 454]
-            $table->text('descricao')->nullable(); // descricao TEXT NULL [cite: 164, 455]
-            $table->boolean('ativo')->default(true); // ativo BOOLEAN DEFAULT TRUE [cite: 164, 456]
-            // Não necessita de timestamps() se não for especificado
+            
+            // ID único do setor (Chave Primária)
+            $table->id(); 
+            
+            // Nome do setor (Ex: "Restauração"). 
+            // 'unique' impede nomes duplicados na lista.
+            $table->string('nome', 100)->unique(); 
+            
+            // Campo de texto longo para detalhar o que o setor abrange (opcional)
+            $table->text('descricao')->nullable(); 
+            
+            // Define se o setor aparece nas opções de escolha (predefinido como Ativo)
+            $table->boolean('ativo')->default(true); 
         });
     }
 
     /**
-     * Reverse the migrations.
+     * Reverse the migrations (Eliminação da tabela).
      */
     public function down(): void
     {
+        // Remove a tabela
         Schema::dropIfExists('setor_atividades');
     }
 };

@@ -7,22 +7,24 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+// Modelo que representa a unidade mínima de análise territorial (Objetivo 3)
 class Freguesia extends Model
 {
     use HasFactory;
 
-    // Garante que o Laravel usa a tabela 'freguesias'
+    // Define explicitamente a tabela para garantir a integridade das migrações
     protected $table = 'freguesias';
 
+    // Atributos fundamentais para a identificação e hierarquia geográfica
     protected $fillable = [
         'nome',
-        'concelho_id',
-        'codigo',
+        'concelho_id', // Chave estrangeira para a hierarquia municipal (Objetivo 1)
+        'codigo',      // Código DICO (Distrito/Concelho/Freguesia) para fins estatísticos
     ];
 
     /**
-    * Define a relação inversa: Uma Freguesia pertence a um Concelho.
-     * (Relação A no ER [cite: 518])
+     * Relação: Uma Freguesia pertence a um Concelho.
+     * Permite agregar dados locais para uma visão municipal e regional (Objetivo 2).
      */
     public function concelho(): BelongsTo
     {
@@ -30,17 +32,17 @@ class Freguesia extends Model
     }
 
     /**
-     * Define a relação: Uma Freguesia pode ter muitos Utilizadores (Users).
-     * (Relação B no ER [cite: 519])
+     * Relação: Uma Freguesia possui vários Utilizadores.
+     * Identifica os técnicos da Junta autorizados a registar agregados (Objetivo 4).
      */
     public function users(): HasMany
     {
-        return $this->hasMany(User::class); // Usar o modelo User do Laravel
+        return $this->hasMany(User::class);
     }
 
     /**
-     * Define a relação: Uma Freguesia pode ter muitas Famílias.
-     * (Relação C no ER [cite: 520])
+     * Relação: Uma Freguesia contém várias Famílias.
+     * Permite a monitorização do impacto da imigração a nível local (Objetivo 3).
      */
     public function familias(): HasMany
     {

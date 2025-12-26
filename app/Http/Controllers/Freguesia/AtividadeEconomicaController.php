@@ -8,65 +8,57 @@ use App\Models\Familia;
 use App\Models\SetorAtividade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule; // Adicionado para validação do 'in'
+use Illuminate\Validation\Rule;
 
+// Gere a recolha de dados qualitativos sobre a situação laboral das famílias na freguesia
 class AtividadeEconomicaController extends Controller
 {
-    /**
-     * Helper para verificar se o utilizador atual pode aceder a esta atividade.
-     * (Verifica se a atividade pertence a uma família da freguesia do utilizador)
-     */
+    // Validação de segurança para garantir que os dados pertencem à área geográfica do utilizador
     private function verificarPermissao(AtividadeEconomica $atividade)
     {
-        // Carrega a família da atividade e compara a freguesia_id com a do utilizador
-        // (Usa a relação 'familia')
+        // Impede que um utilizador de uma freguesia aceda a dados de outra (Requisito de Segurança)
         if ($atividade->familia->freguesia_id !== Auth::user()->freguesia_id) {
-            abort(403, 'Acesso não autorizado.'); // Pára a execução
+            abort(403, 'Acesso não autorizado.');
         }
     }
 
-    /**
-     * Mostra o formulário para criar uma nova atividade para uma família específica.
-     * (Carrega o seu 'adicionar.blade.php')
-     */
+    // Apresenta o formulário para registar a dinâmica económica de um agregado familiar
     public function create(Familia $familia)
     {
-        // Verificar permissão (na família)
+        // Verifica se a família reside no território de competência do utilizador autenticado
         if ($familia->freguesia_id !== Auth::user()->freguesia_id) {
              return redirect()->route('freguesia.familias.index')->with('error', 'Não tem permissão para esta ação.');
         }
 
+        // Obtém os setores definidos pelos stakeholders para garantir a consistência estatística
         $setores = SetorAtividade::where('ativo', true)->orderBy('nome')->get();
         return view('freguesia.atividades.adicionar', compact('familia', 'setores'));
     }
 
-    /**
-     * Guarda a nova atividade económica na base de dados.
-     */
+    // Guarda os dados da atividade, permitindo monitorizar o tipo de inserção no mercado de trabalho
     public function store(Request $request, Familia $familia)
     {
-        // 1. Verificar Permissão (na família)
+        // Reforço da validação geográfica antes da persistência dos dados
         if ($familia->freguesia_id !== Auth::user()->freguesia_id) {
              return redirect()->route('freguesia.familias.index')->with('error', 'Não tem permissão para esta ação.');
         }
 
-        // 2. Validar
+        // Valida se a ocupação é por conta própria ou outrem, conforme os parâmetros do estudo
         $dadosValidados = $request->validate([
-            'tipo' => ['required', Rule::in(['conta_propria', 'conta_outrem'])], // Validação correta
+            'tipo' => ['required', Rule::in(['conta_propria', 'conta_outrem'])],
             'setor_id' => 'required|exists:setor_atividades,id',
             'descricao' => 'nullable|string|max:500',
         ]);
 
         try {
-            // 3. Criar (Usa a relação 'atividadesEconomicas')
+            // Associa a nova atividade à família para análise qualitativa do impacto local
             $familia->atividadesEconomicas()->create([
                 'tipo' => $dadosValidados['tipo'],
                 'setor_id' => $dadosValidados['setor_id'],
                 'descricao' => $dadosValidados['descricao'],
             ]);
 
-            // 4. Redirecionar para a PÁGINA DE EDIÇÃO DA FAMÍLIA
-             return redirect()->route('freguesia.familias.edit', $familia->id)
+            return redirect()->route('freguesia.familias.edit', $familia->id)
                            ->with('success', 'Nova atividade económica adicionada!');
 
         } catch (\Exception $e) {
@@ -74,13 +66,10 @@ class AtividadeEconomicaController extends Controller
         }
     }
     
-    /**
-     * Mostra o formulário para editar uma atividade existente.
-     * (Carrega o seu 'editar.blade.php')
-     */
+    // Permite a atualização de dados laborais em caso de mudança na situação da família
     public function edit(AtividadeEconomica $atividade)
     {
-        $this->verificarPermissao($atividade); // Verifica se o user pode editar esta atividade
+        $this->verificarPermissao($atividade);
 
         $setores = SetorAtividade::where('ativo', true)->orderBy('nome')->get();
         
@@ -90,14 +79,11 @@ class AtividadeEconomicaController extends Controller
         ]);
     }
 
-    /**
-     * Atualiza a atividade económica na base de dados.
-     */
+    // Atualiza a informação económica garantindo que os dados permanecem atuais e pertinentes
     public function update(Request $request, AtividadeEconomica $atividade)
     {
-        $this->verificarPermissao($atividade); // Verifica permissão
+        $this->verificarPermissao($atividade);
 
-        // Validar os dados
         $dadosValidados = $request->validate([
             'tipo' => ['required', Rule::in(['conta_propria', 'conta_outrem'])],
             'setor_id' => 'required|exists:setor_atividades,id',
@@ -107,7 +93,6 @@ class AtividadeEconomicaController extends Controller
         try {
             $atividade->update($dadosValidados);
 
-            // Redirecionar de volta para a PÁGINA DE EDIÇÃO DA FAMÍLIA
             return redirect()->route('freguesia.familias.edit', $atividade->familia_id)
                            ->with('success', 'Atividade económica atualizada.');
 
@@ -116,18 +101,15 @@ class AtividadeEconomicaController extends Controller
         }
     }
 
-    /**
-     * Apaga a atividade económica da base de dados.
-     */
+    // Remove registos económicos para manter a base de dados limpa e consistente
     public function destroy(AtividadeEconomica $atividade)
     {
-        $this->verificarPermissao($atividade); // Verifica permissão
+        $this->verificarPermissao($atividade);
         
         try {
-            $familia_id = $atividade->familia_id; // Guarda o ID da família
+            $familia_id = $atividade->familia_id;
             $atividade->delete();
 
-            // Redirecionar de volta para a PÁGINA DE EDIÇÃO DA FAMÍLIA
             return redirect()->route('freguesia.familias.edit', $familia_id)
                            ->with('success', 'Atividade económica foi apagada.');
 
@@ -136,9 +118,9 @@ class AtividadeEconomicaController extends Controller
         }
     }
 
-    // O método show() não é necessário se não o estiver a usar
+    // Redireciona para a edição para centralizar a gestão da informação
     public function show(AtividadeEconomica $atividade) 
     { 
-        return $this->edit($atividade); // Por agora, redireciona para a edição
+        return $this->edit($atividade);
     }
 }
