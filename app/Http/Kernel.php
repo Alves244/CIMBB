@@ -51,7 +51,7 @@ class Kernel extends HttpKernel
      * Estes são os "rótulos" que usas nas tuas rotas para controlar quem entra onde.
      */
     protected $routeMiddleware = [
-        //'auth' => \App\Http\Middleware\Authenticate::class,
+        //'auth' => \App\Http\Middleware\Authenticate::class,  !!!algum erro!!!
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
         'can' => \Illuminate\Auth\Middleware\Authorize::class,
