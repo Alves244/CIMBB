@@ -10,6 +10,29 @@ use App\Services\AuditLogger;
 class SessionsController extends Controller
 {
     /**
+     * Atualiza a senha do usuário após o reset.
+     */
+    public function reset(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $status = \Illuminate\Support\Facades\Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->password = bcrypt($password);
+                $user->save();
+            }
+        );
+
+        return $status === \Illuminate\Support\Facades\Password::PASSWORD_RESET
+            ? redirect('/login')->with('success', 'Senha redefinida com sucesso!')
+            : back()->withErrors(['email' => [__($status)]]);
+    }
+    /**
      * Mostra o formulário de login.
      */
     public function create()

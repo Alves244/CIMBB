@@ -40,7 +40,7 @@
               </div>
               <div class="card-footer text-center pt-0 px-lg-2 px-1">
                 <small class="text-muted">Esqueceu-se da password? Redefina a sua password
-                  <a href="/login/forgot-password" class="text-success text-gradient font-weight-bold">aqui</a>
+                  <a href="/forgot-password" class="text-success text-gradient font-weight-bold">aqui</a>
                 </small>
               </div>
             </div>

@@ -12,6 +12,15 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
+     * Envia a notificação de redefinição de senha personalizada em português.
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\ResetPassword($token));
+    }
+    use HasApiTokens, HasFactory, Notifiable;
+
+    /**
      * Os atributos que podem ser preenchidos em massa.
      */
     protected $fillable = [

@@ -2,59 +2,48 @@
 
 @section('content')
 
-<div class="page-header section-height-75">
-    <div class="container">
-        <div class="row">
-            <div class="col-xl-4 col-lg-5 col-md-6 d-flex flex-column mx-auto">
-                <div class="card card-plain mt-8">
-                    @if($errors->any())
-                        <div class="mt-3  alert alert-primary alert-dismissible fade show" role="alert">
-                            <span class="alert-text text-white">
-                            {{$errors->first()}}</span>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
-                                <i class="fa fa-close" aria-hidden="true"></i>
-                            </button>
+
+<main class="main-content mt-0">
+    <section class="d-flex align-items-center justify-content-center" style="padding-top: 40px; padding-bottom: 0;">
+        <div class="container-fluid px-0">
+            <div class="row justify-content-between align-items-center gy-5 px-4">
+                <div class="col-xl-4 col-lg-5 col-md-6 d-flex flex-column me-auto" style="margin-left:-30px;">
+                    <div class="card card-plain mt-4 mb-2">
+                        <div class="card-header pb-0 text-left bg-transparent">
+                              <h3 class="fs-3 fw-bold text-success text-gradient mb-2">Recuperar password</h3>
+                            <p class="mb-0">Insira o seu e-mail para receber o link de redefinição.</p>
                         </div>
-                    @endif
-                    @if(session('success'))
-                        <div class="m-3  alert alert-success alert-dismissible fade show" id="alert-success" role="alert">
-                            <span class="alert-text text-white">
-                            {{ session('success') }}</span>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
-                                <i class="fa fa-close" aria-hidden="true"></i>
-                            </button>
-                        </div>
-                    @endif
-                    <div class="card-header pb-0 text-left bg-transparent">
-                        <h4 class="mb-0">Forgot your password? Enter your email here</h4>
-                    </div>
-                    <div class="card-body">
-                    
-                        <form action="/forgot-password" method="POST" role="form text-left">
-                            @csrf
-                            <div>
-                                <label for="email">Email</label>
-                                <div class="">
-                                    <input id="email" name="email" type="email" class="form-control" placeholder="Email" aria-label="Email" aria-describedby="email-addon">
+                        <div class="card-body">
+                            <form action="/forgot-password" method="POST" role="form text-left">
+                                @csrf
+                                <label for="email">E-mail</label>
+                                <div class="mb-3">
+                                    <input id="email" name="email" type="email" class="form-control" placeholder="O seu e-mail" aria-label="Email" aria-describedby="email-addon">
                                     @error('email')
                                         <p class="text-danger text-xs mt-2">{{ $message }}</p>
                                     @enderror
                                 </div>
-                            </div>
-                            <div class="text-center">
-                                <button type="submit" class="btn bg-gradient-info w-100 mt-4 mb-0">Recover your password</button>
-                            </div>
-                        </form>
+                                <div class="text-center">
+                                    <button type="submit" class="btn bg-gradient-success w-100 mt-4 mb-0 fw-bold text-white">RECEBER LINK DE RECUPERAÇÃO</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="card-footer text-center pt-0 px-lg-2 px-1">
+                            <small class="text-muted">Lembrou-se da password? <a href="/login" class="text-success text-gradient font-weight-bold">Entrar</a></small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-6 col-lg-6 col-md-8 d-flex justify-content-start ms-xl-n4">
+                    <div class="w-100 d-flex justify-content-start align-items-center">
+                        <img src="{{ asset('assets/img/cimbb/logo/logo-cimbb.png') }}"
+                                 class="img-fluid"
+                                 style="max-width: 720px; width: 100%;"
+                                 alt="Logotipo CIMBB">
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="oblique position-absolute top-0 h-100 d-md-block d-none me-n8">
-                    <div class="oblique-image bg-cover position-absolute fixed-top ms-auto h-100 z-index-0 ms-n6" style="background-image:url('../assets/img/curved-images/curved6.jpg')"></div>
-                </div>
-            </div>
         </div>
-    </div>
-</div>
+    </section>
+</main>
 
 @endsection
