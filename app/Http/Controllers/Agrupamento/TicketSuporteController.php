@@ -10,17 +10,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
+/**
+ * Controlador para gestão de tickets de suporte pelos agrupamentos.
+ */
 class TicketSuporteController extends Controller
 {
+    // Listagem dos tickets de suporte do agrupamento autenticado
     public function index(Request $request)
     {
         $ticketsQuery = TicketSuporte::where('utilizador_id', Auth::id());
-
+        // Filtro por estado do ticket para facilitar a gestão pelo agrupamento
         if ($request->filled('estado')) {
             $estadoFiltro = $request->estado === 'respondido' ? 'respondido' : 'em_processamento';
             $ticketsQuery->where('estado', $estadoFiltro);
         }
 
+        // Ordenação por data de criação para exibir os tickets mais recentes primeiro
         $meusTickets = $ticketsQuery
             ->orderByDesc('created_at')
             ->paginate(10)
@@ -29,13 +34,16 @@ class TicketSuporteController extends Controller
         return view('agrupamento.ticket.index', compact('meusTickets'));
     }
 
+    // Formulário para criação de um novo ticket de suporte
     public function create()
     {
         return view('agrupamento.ticket.create');
     }
 
+    // Armazenamento de um novo ticket de suporte com validação
     public function store(Request $request)
     {
+        // Validação dos dados de entrada
         $dadosValidados = $request->validate([
             'assunto' => 'required|string|max:200',
             'categoria' => 'required|in:duvida,erro,sugestao,outro',
@@ -43,6 +51,7 @@ class TicketSuporteController extends Controller
             'anexo' => 'nullable|file|mimes:pdf,jpg,png,zip|max:2048',
         ]);
 
+        // Processamento do anexo se fornecido
         $caminhoAnexo = null;
         if ($request->hasFile('anexo')) {
             $caminhoAnexo = $request->file('anexo')->store('anexos_suporte', 'public');
@@ -50,6 +59,7 @@ class TicketSuporteController extends Controller
 
         $codigoTicket = 'TKT-' . date('Ymd') . '-' . strtoupper(Str::random(6));
 
+        // Criação do ticket e da mensagem inicial dentro de um bloco try-catch para tratamento de erros
         try {
             $ticket = TicketSuporte::create([
                 'utilizador_id' => Auth::id(),
@@ -76,6 +86,7 @@ class TicketSuporteController extends Controller
         }
     }
 
+    // Exibição detalhada de um ticket específico
     public function show(TicketSuporte $ticket)
     {
         if ($ticket->utilizador_id !== Auth::id()) {
@@ -88,6 +99,7 @@ class TicketSuporteController extends Controller
         return view('agrupamento.ticket.show', compact('ticket', 'podeResponder'));
     }
 
+    // Armazenamento de uma nova mensagem no ticket de suporte
     public function storeMessage(Request $request, TicketSuporte $ticket)
     {
         if ($ticket->utilizador_id !== Auth::id()) {

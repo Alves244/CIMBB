@@ -14,10 +14,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
-// Responsável pela submissão e consulta de inquéritos por parte dos Agrupamentos de Escolas
+/**
+ * Controlador para gestão dos inquéritos submetidos pelos agrupamentos.
+ */
 class InqueritoAgrupamentoController extends Controller
 {
-    // Definição dos parâmetros qualitativos de ensino conforme as diretrizes dos stakeholders
+    // Níveis de ensino reconhecidos para categorização dos dados
     private array $niveisEnsino = [
         'Pré-Escolar',
         '1.º Ciclo do EB',
@@ -28,23 +30,23 @@ class InqueritoAgrupamentoController extends Controller
         'Ensino Superior',
     ];
 
-    // Dashboard inicial do agrupamento para gestão dos seus inquéritos submetidos
+    // Listagem dos inquéritos submetidos pelo agrupamento autenticado
     public function index(): View
     {
         $user = Auth::user();
         $agrupamentoId = $user->agrupamento_id;
         
-        // Verifica se existe uma janela de recolha ativa definida pela CIMBB
+        // Obtém o período de inquérito ativo para agrupamentos
         $periodoAtual = InqueritoPeriodo::periodoAtivo(InqueritoPeriodo::TIPO_AGRUPAMENTO);
         $anoAtual = $periodoAtual?->ano ?? (int) date('Y');
 
-        // Obtém o histórico de participações do agrupamento para monitorização temporal
+        // Consulta dos inquéritos submetidos pelo agrupamento
         $inqueritos = InqueritoAgrupamento::withCount('registos')
             ->where('agrupamento_id', $agrupamentoId)
             ->orderByDesc('ano_referencia')
             ->get();
 
-        // Controlos de interface baseados nos prazos e submissões anteriores
+        // Verifica se o agrupamento já submeteu o inquérito para o ano atual
         $jaPreencheuEsteAno = $inqueritos->contains('ano_referencia', $anoAtual);
         $dataLimite = $periodoAtual?->fecha_em ?? now()->copy()->setDate($anoAtual, 12, 31)->endOfDay();
         $dentroDoPrazo = $periodoAtual?->estaAberto() ?? false;
@@ -59,30 +61,31 @@ class InqueritoAgrupamentoController extends Controller
         ]);
     }
 
-    // Prepara o formulário de recolha de dados para o período anual em curso
+    // Formulário para submissão de um novo inquérito pelo agrupamento
     public function create(): View
     {
         $user = Auth::user();
         $agrupamentoId = $user->agrupamento_id;
         $periodoAtivo = InqueritoPeriodo::periodoAtivo(InqueritoPeriodo::TIPO_AGRUPAMENTO);
 
-        // Bloqueio de segurança: impede o acesso se o período de recolha não estiver aberto
+        // Validação de integridade: assegura que existe um período ativo para submissão
         abort_if(! $periodoAtivo, 403, 'Não existe período aberto para submissão. Contacte a CIMBB.');
 
         $anoAtual = $periodoAtivo->ano;
         $agrupamento = $user->agrupamento?->load('concelho');
 
-        // Validação de integridade: exige vínculo territorial para correta análise de impacto local
+        // Validação de integridade: assegura que o agrupamento e o concelho estão corretamente associados
         abort_if(! $agrupamento, 403, 'Não foi possível identificar o seu agrupamento.');
         abort_if(! $agrupamento->concelho, 403, 'Associe um concelho ao agrupamento antes de submeter o inquérito.');
 
-        // Garante que o agrupamento apenas submete uma participação por ciclo anual
+        // Verifica se o agrupamento já submeteu o inquérito para o ano atual
         $jaPreencheu = InqueritoAgrupamento::where('agrupamento_id', $agrupamentoId)
             ->where('ano_referencia', $anoAtual)
             ->exists();
 
         abort_if($jaPreencheu, 403, 'O inquérito deste ano já foi submetido.');
 
+        // Renderiza o formulário de submissão com os dados necessários
         return view('agrupamento.inqueritos.create', [
             'anoAtual' => $anoAtual,
             'concelhoNome' => $agrupamento->concelho->nome,
@@ -93,24 +96,26 @@ class InqueritoAgrupamentoController extends Controller
         ]);
     }
 
-    // Processa a submissão dos dados quantitativos sobre a população estrangeira escolar
+    // Processa a submissão do inquérito pelo agrupamento 
     public function store(Request $request): RedirectResponse
     {
+        // Obtém o utilizador autenticado e o período de inquérito ativo
         $user = Auth::user();
         $agrupamentoId = $user->agrupamento_id;
         $periodoAtivo = InqueritoPeriodo::periodoAtivo(InqueritoPeriodo::TIPO_AGRUPAMENTO);
 
+        // Validação de integridade: assegura que existe um período ativo para submissão
         if (! $periodoAtivo) {
             return redirect()->route('agrupamento.inqueritos.index')->with('error', 'Não existe período aberto para submissão.');
         }
 
         $agrupamento = $user->agrupamento?->load('concelho');
-
+        // Validação de integridade: assegura que o agrupamento e o concelho estão corretamente associados
         if (! $agrupamento || ! $agrupamento->concelho) {
             return redirect()->route('agrupamento.inqueritos.index')->with('error', 'Associe um concelho ao agrupamento antes de submeter o inquérito.');
         }
 
-        // Validação da estrutura de dados para assegurar a consistência da informação recolhida
+        // Validação dos dados de entrada
         $validated = $request->validate([
             'ano_referencia' => ['required', 'integer', Rule::in([$periodoAtivo->ano])],
             'registos' => ['required', 'array', 'min:1'],
@@ -122,7 +127,7 @@ class InqueritoAgrupamentoController extends Controller
 
         $validated['ano_referencia'] = $periodoAtivo->ano;
 
-        // Verificação final de duplicados antes de persistir os dados
+        // Verifica se o agrupamento já submeteu o inquérito para o ano indicado
         $jaPreencheu = InqueritoAgrupamento::where('agrupamento_id', $agrupamentoId)
             ->where('ano_referencia', $validated['ano_referencia'])
             ->exists();
@@ -133,7 +138,7 @@ class InqueritoAgrupamentoController extends Controller
 
         $concelhoId = $agrupamento->concelho_id;
 
-        // Mapeia os registos injetando o ID do concelho para facilitar a análise regional posterior
+        // Prepara os registos para inserção, associando o concelho do agrupamento
         $registos = collect($validated['registos'])->map(function (array $registo) use ($concelhoId) {
             $registo['concelho_id'] = $concelhoId;
             return $registo;
@@ -142,7 +147,7 @@ class InqueritoAgrupamentoController extends Controller
         $totalRegistos = $registos->count();
         $totalAlunos = $registos->sum('numero_alunos');
 
-        // Executa a gravação em transação para garantir que o cabeçalho e detalhes são gravados em conjunto
+        // Utiliza uma transação para garantir a integridade dos dados durante a criação do inquérito e dos seus registos
         DB::transaction(function () use ($registos, $agrupamentoId, $user, $validated, $totalRegistos, $totalAlunos) {
             $inquerito = InqueritoAgrupamento::create([
                 'agrupamento_id' => $agrupamentoId,
@@ -152,7 +157,7 @@ class InqueritoAgrupamentoController extends Controller
                 'total_alunos' => $totalAlunos,
                 'submetido_em' => now(),
             ]);
-
+            // Criação dos registos associados ao inquérito
             foreach ($registos as $registo) {
                 InqueritoAgrupamentoRegisto::create([
                     'inquerito_id' => $inquerito->id,
@@ -164,18 +169,18 @@ class InqueritoAgrupamentoController extends Controller
                 ]);
             }
 
-            // Registo de auditoria para monitorizar a atividade de carregamento de dados
+            // Registo da ação no log de auditoria para rastreabilidade
             AuditLogger::log('agrupamento_inquerito_create', 'Submeteu o inquérito '.$validated['ano_referencia'].' com '.$totalRegistos.' registos.');
         });
 
         return redirect()->route('agrupamento.inqueritos.index')->with('success', 'Inquérito submetido com sucesso.');
     }
 
-    // Permite ao agrupamento rever os dados que submeteu para um determinado ano
+    // Visualização detalhada de um inquérito submetido pelo agrupamento
     public function show(InqueritoAgrupamento $inquerito): View
     {
         $user = Auth::user();
-        // Segurança: impede a visualização de dados de outros agrupamentos
+        // Garante que o inquérito pertence ao agrupamento do utilizador autenticado
         abort_if($inquerito->agrupamento_id !== $user->agrupamento_id, 403);
 
         $inquerito->load(['registos.concelho']);

@@ -9,22 +9,24 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Services\AuditLogger;
 
-// Gestão de tickets de suporte para apoio aos utilizadores do sistema de monitorização
+/**
+ * Controlador para gestão administrativa de tickets de suporte.
+ */
 class AdminTicketController extends Controller
 {
-    // Listagem global de pedidos de suporte com filtragem por estado e prioridade visual
+    // Listagem paginada de tickets com filtros e ordenação personalizados
     public function index(Request $request)
     {
-        // Eager loading para obter os dados geográficos do autor do pedido
+        // Consulta base com relacionamentos necessários
         $ticketsQuery = TicketSuporte::with('utilizador.freguesia');
 
-        // Filtro dinâmico para separar processos concluídos de processos pendentes
+        // Filtro por estado do ticket para gestão eficiente do suporte
         if ($request->filled('estado')) {
             $estadoFiltro = $request->estado === 'respondido' ? 'respondido' : 'em_processamento';
             $ticketsQuery->where('estado', $estadoFiltro);
         }
 
-        // Ordenação personalizada para destacar tickets que requerem atenção imediata
+        // Ordenação personalizada para priorizar tickets em estados críticos
         $tickets = $ticketsQuery
             ->orderByRaw("FIELD(estado, 'em_processamento', 'respondido', 'aberto', 'resolvido', 'fechado')")
             ->orderBy('created_at', 'desc')
@@ -34,38 +36,38 @@ class AdminTicketController extends Controller
         return view('admin.tickets.index', compact('tickets'));
     }
 
-    // Exibição detalhada do ticket incluindo o histórico completo de interação
+    // Exibição detalhada de um ticket específico com contexto administrativo
     public function show(TicketSuporte $ticket)
     {
-        // Carrega as relações necessárias para o contexto administrativo da resposta
+        // Carregamento dos relacionamentos necessários para a visualização completa do ticket
         $ticket->load(['utilizador.freguesia', 'administrador', 'mensagens.autor']);
         
         return view('admin.tickets.show', compact('ticket'));
     }
 
-    // Processamento da resposta do administrador e atualização do ciclo de vida do ticket
+    // Resposta a um ticket de suporte com validação e atualização de estado
     public function reply(Request $request, TicketSuporte $ticket)
     {
-        // Validação da mensagem para garantir a qualidade da comunicação oficial
+        // Validação dos dados de entrada
         $request->validate([
             'mensagem' => 'required|string|max:4000',
             'estado' => 'nullable|in:respondido,resolvido,fechado'
         ]);
 
-        // Registo da nova mensagem na thread de suporte
+        // Criação da nova mensagem associada ao ticket
         TicketMensagem::create([
             'ticket_id' => $ticket->id,
             'autor_id' => Auth::id(),
             'mensagem' => $request->mensagem,
         ]);
 
-        // Definição do novo estado com fallback de segurança para 'respondido'
+        // Determinação do novo estado do ticket com fallback para 'respondido'
         $novoEstado = $request->estado ?? 'respondido';
         if (! in_array($novoEstado, ['respondido', 'resolvido', 'fechado'])) {
             $novoEstado = 'respondido';
         }
 
-        // Atualização dos metadados do ticket e identificação do admin responsável
+        // Atualização do ticket com a resposta do administrador
         $ticket->update([
             'resposta_admin' => $request->mensagem,
             'estado' => $novoEstado,
@@ -73,7 +75,7 @@ class AdminTicketController extends Controller
             'data_resposta' => now(),
         ]);
 
-        // Log de auditoria para rastrear o suporte prestado aos utilizadores do território
+        // Registo da ação no histórico para rastreabilidade
         AuditLogger::log('ticket_reply', 'Respondeu ao ticket '.$ticket->codigo.' para '.$ticket->utilizador->nome.'.');
 
         return redirect()->route('admin.tickets.index')

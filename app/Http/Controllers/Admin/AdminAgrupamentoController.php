@@ -11,22 +11,23 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
+/**
+ * Controlador para gestão administrativa de agrupamentos.
+ */
 class AdminAgrupamentoController extends Controller
 {
-    /**
-     * Listagem principal dos agrupamentos.
-     * Inclui contagens para análise rápida do fluxo de dados e utilizadores por entidade.
-     */
+    // Listagem paginada de agrupamentos com filtros e contadores
     public function index(Request $request): View
     {
+        // Filtro por concelho
         $concelhoId = $request->input('concelho_id');
 
-        // Carrega relações e contadores para evitar o problema de N+1 queries
+        // Consulta base com contadores e ordenação
         $agrupamentosQuery = Agrupamento::with('concelho')
             ->withCount(['users', 'inqueritos'])
             ->orderBy('nome');
 
-        // Filtro geográfico solicitado pelos stakeholders (CIMBB)
+        // Aplica filtro se fornecido
         if ($concelhoId) {
             $agrupamentosQuery->where('concelho_id', $concelhoId);
         }
@@ -34,6 +35,7 @@ class AdminAgrupamentoController extends Controller
         $agrupamentos = $agrupamentosQuery->paginate(12)->withQueryString();
         $concelhos = Concelho::orderBy('nome')->get();
 
+        // Renderiza a vista com os dados necessários
         return view('admin.agrupamentos.index', [
             'agrupamentos' => $agrupamentos,
             'concelhos' => $concelhos,
@@ -42,11 +44,11 @@ class AdminAgrupamentoController extends Controller
     }
 
     /**
-     * Persistência de novos agrupamentos.
-     * O código e o nome devem ser únicos para garantir a consistência do sistema.
+     * Armazenamento de um novo agrupamento após validação.
      */
     public function store(Request $request): RedirectResponse
     {
+        // Validação dos dados de entrada
         $data = $request->validateWithBag('createAgrupamento', [
             'nome' => ['required', 'string', 'max:150', 'unique:agrupamentos,nome'],
             'codigo' => ['nullable', 'string', 'max:20', 'unique:agrupamentos,codigo'],
@@ -55,18 +57,18 @@ class AdminAgrupamentoController extends Controller
 
         $agrupamento = Agrupamento::create($data);
 
-        // Registo de atividade para histórico de segurança
+        // Log de auditoria para rastrear a criação de novos agrupamentos
         AuditLogger::log('admin_agrupamento_create', 'Criou o agrupamento '.$agrupamento->nome.'.');
 
         return back()->with('success', 'Agrupamento criado com sucesso.');
     }
 
     /**
-     * Atualização dos dados do agrupamento.
-     * Validamos a unicidade ignorando o registo atual.
+     * Atualização de um agrupamento existente após validação.
      */
     public function update(Request $request, Agrupamento $agrupamento): RedirectResponse
     {
+        // Validação dos dados de entrada
         $data = $request->validateWithBag('editAgrupamento', [
             'nome' => ['required', 'string', 'max:150', Rule::unique('agrupamentos', 'nome')->ignore($agrupamento->id)],
             'codigo' => ['nullable', 'string', 'max:20', Rule::unique('agrupamentos', 'codigo')->ignore($agrupamento->id)],
@@ -75,19 +77,18 @@ class AdminAgrupamentoController extends Controller
 
         $agrupamento->update($data);
 
-        // Audit log para rastrear modificações administrativas
+        // Log de auditoria para rastrear atualizações de agrupamentos
         AuditLogger::log('admin_agrupamento_update', 'Atualizou o agrupamento '.$agrupamento->nome.'.');
 
         return back()->with('success', 'Agrupamento atualizado com sucesso.');
     }
 
     /**
-     * Remoção de agrupamentos.
-     * Bloqueia a eliminação se houver dependências (Integridade Referencial).
+     * Remoção de um agrupamento, se não houver vínculos existentes.
      */
     public function destroy(Agrupamento $agrupamento): RedirectResponse
     {
-        // Impede a eliminação se existirem utilizadores ou inquéritos vinculados
+        // Verifica vínculos com utilizadores e inquéritos antes de permitir a remoção
         if ($agrupamento->users()->exists()) {
             return back()->with('error', 'Não pode remover um agrupamento com utilizadores associados.');
         }
@@ -99,7 +100,7 @@ class AdminAgrupamentoController extends Controller
         $nome = $agrupamento->nome;
         $agrupamento->delete();
 
-        // Log de remoção para segurança do sistema
+        // Log de auditoria para rastrear remoções de agrupamentos
         AuditLogger::log('admin_agrupamento_delete', 'Removeu o agrupamento '.$nome.'.');
 
         return back()->with('success', 'Agrupamento removido com sucesso.');

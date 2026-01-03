@@ -7,21 +7,23 @@ use App\Models\LogAcesso;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-// Controlador para visualização do histórico de atividades, garantindo a transparência e segurança do sistema
+/**
+ * Controlador para gestão administrativa de logs de acesso e ações do sistema.
+ */
 class AdminLogController extends Controller
 {
-    // Listagem centralizada de logs para auditoria de acessos e alterações de dados
+    // Listagem paginada de logs com filtros avançados
     public function index(Request $request): View
     {
-        // Recupera os registos ordenados pelos mais recentes para facilitar a monitorização contínua
+        // Consulta base com relacionamentos necessários
         $logsQuery = LogAcesso::with('utilizador')->orderByDesc('data_hora');
 
-        // Filtro por tipo de ação para identificar eventos específicos (ex: criação, edição ou remoção)
+        // Filtro por ação específica para análise detalhada
         if ($request->filled('acao')) {
             $logsQuery->where('acao', $request->acao);
         }
 
-        // Motor de busca para encontrar atividades por descrição ou dados do utilizador (nome/email)
+        // Filtro de pesquisa textual para investigação de eventos específicos
         if ($request->filled('pesquisa')) {
             $termo = $request->pesquisa;
             $logsQuery->where(function ($query) use ($termo) {
@@ -33,7 +35,7 @@ class AdminLogController extends Controller
             });
         }
 
-        // Filtro temporal para análise de eventos em períodos específicos de recolha de dados
+        // Filtros de intervalo de datas para delimitar o período de análise
         if ($request->filled('inicio')) {
             $logsQuery->whereDate('data_hora', '>=', $request->inicio);
         }
@@ -42,10 +44,10 @@ class AdminLogController extends Controller
             $logsQuery->whereDate('data_hora', '<=', $request->fim);
         }
 
-        // Paginação densa para permitir a análise eficiente de grandes fluxos de informação
+        // Paginação dos resultados com preservação dos parâmetros de consulta
         $logs = $logsQuery->paginate(20)->withQueryString();
 
-        // Extração de ações únicas da base de dados para preencher os filtros da interface
+        // Obtenção das ações distintas para o filtro dropdown
         $acoesDisponiveis = LogAcesso::select('acao')
             ->distinct()
             ->orderBy('acao')

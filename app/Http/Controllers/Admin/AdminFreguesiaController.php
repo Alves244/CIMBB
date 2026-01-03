@@ -10,20 +10,23 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-// Gestão das freguesias para monitorização detalhada do impacto local nos diversos territórios [cite: 14, 22]
+/**
+ * Controlador para gestão administrativa de freguesias.
+ */
 class AdminFreguesiaController extends Controller
 {
-    // Listagem com suporte a filtros geográficos e métricas de utilizadores e famílias [cite: 21]
+    // Listagem paginada de freguesias com filtros e contadores associados
     public function index(Request $request): View
     {
+        // Filtro por concelho
         $concelhoId = $request->input('concelho_id');
 
-        // Carregamento otimizado com contagens para análise qualitativa e quantitativa [cite: 15, 21]
+        // Consulta base com contadores e ordenação alfabética
         $freguesiasQuery = Freguesia::with('concelho')
             ->withCount(['users', 'familias'])
             ->orderBy('nome');
 
-        // Aplicação do filtro por concelho para análise de fluxos populacionais específicos [cite: 11]
+        // Aplica filtro se fornecido
         if ($concelhoId) {
             $freguesiasQuery->where('concelho_id', $concelhoId);
         }
@@ -38,7 +41,7 @@ class AdminFreguesiaController extends Controller
         ]);
     }
 
-    // Criação de novos registos garantindo que pertencem a um concelho válido da CIMBB [cite: 14]
+    // Criação de nova freguesia com validação dos dados
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validateWithBag('createFreguesia', [
@@ -49,13 +52,13 @@ class AdminFreguesiaController extends Controller
 
         $freguesia = Freguesia::create($data);
         
-        // Registo de auditoria para salvaguardar a segurança das operações administrativas [cite: 23]
+        // Histórico de criação para auditoria e rastreabilidade
         AuditLogger::log('admin_freguesia_create', 'Criou a freguesia '.$freguesia->nome.'.');
 
         return back()->with('success', 'Freguesia criada com sucesso.');
     }
 
-    // Atualização de dados da freguesia mantendo a integridade referencial
+    // Atualização de freguesia existente com validação
     public function update(Request $request, Freguesia $freguesia): RedirectResponse
     {
         $data = $request->validateWithBag('editFreguesia', [
@@ -66,16 +69,16 @@ class AdminFreguesiaController extends Controller
 
         $freguesia->update($data);
         
-        // Histórico de alterações para controlo dos administradores e stakeholders [cite: 17, 23]
+        // Registro de atualização no histórico para rastreabilidade
         AuditLogger::log('admin_freguesia_update', 'Atualizou a freguesia '.$freguesia->nome.'.');
 
         return back()->with('success', 'Freguesia atualizada com sucesso.');
     }
 
-    // Remoção protegida para evitar perda de dados históricos de residentes [cite: 10, 11]
+    // Remoção de freguesia com verificações de dependências
     public function destroy(Freguesia $freguesia): RedirectResponse
     {
-        // Verifica se existem utilizadores ou agregados familiares antes de permitir a eliminação
+        // Verifica vínculos antes de permitir a remoção para manter a integridade dos dados
         if ($freguesia->users()->exists()) {
             return back()->with('error', 'Não pode remover uma freguesia com utilizadores associados.');
         }
@@ -87,7 +90,7 @@ class AdminFreguesiaController extends Controller
         $nome = $freguesia->nome;
         $freguesia->delete();
         
-        // Audit log para rastreabilidade de remoções no portal [cite: 23]
+        // Registro de remoção no histórico para rastreabilidade
         AuditLogger::log('admin_freguesia_delete', 'Removeu a freguesia '.$nome.'.');
 
         return back()->with('success', 'Freguesia removida com sucesso.');

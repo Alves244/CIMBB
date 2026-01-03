@@ -7,27 +7,26 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Services\AuditLogger;
 
+/**
+ * Controlador para gestão da informação do utilizador.
+ */
 class InfoUserController extends Controller
 {
-    /**
-     * Mostra o formulário de edição de perfil.
-     */
+    // Mostra o formulário de edição do perfil do utilizador
     public function create()
     {
+        // Verifica se a vista 'profile' existe
         if (view()->exists('profile')) {
             return view('profile');
         }
-        // Fallback para o nome de template antigo
+        // Caso contrário, mostra a vista padrão
         return view('laravel-examples.user-profile');
     }
 
-    /**
-     * Atualiza a informação do utilizador.
-     * (Apenas para o telemóvel)
-     */
+    // Atualiza a informação do perfil do utilizador
     public function store(Request $request)
     {
-        // 1. Validar apenas o telemóvel
+        // Validar os dados recebidos
         $validatedData = $request->validate([
             'telemovel' => 'nullable|digits:9', 
         ]);
@@ -35,29 +34,27 @@ class InfoUserController extends Controller
         /** @var \App\Models\User $user */ 
         $user = Auth::user();
 
-        // 2. Atualizar apenas o telemóvel
+        // Atualiza o telemóvel do utilizador
         $user->update([
             'telemovel' => $validatedData['telemovel'],
         ]);
-
+        // Regista a ação no log de auditoria
         AuditLogger::log('profile_update', 'Atualizou o telemóvel no perfil.');
-
+        // Redireciona de volta com uma mensagem de sucesso
         return back()->with('success', 'Telemóvel atualizado com sucesso!');
     }
 
 
-    /**
-     * Atualiza a palavra-passe do utilizador.
-     */
+    // Atualiza a password do utilizador
     public function updatePassword(Request $request)
     {
-        // 1. Validar os dados
+        // Validar os dados recebidos
         $request->validate([
             'current_password' => 'required|string',
             'new_password' => 'required|string|min:8|confirmed',
         ]);
 
-        // 2. Verificar se a password atual está correta
+        // Verifica se a password atual está correta
         if (!Hash::check($request->current_password, auth()->user()->password)) {
             return back()->withErrors(['current_password' => 'A palavra-passe atual está incorreta.']);
         }
@@ -65,13 +62,13 @@ class InfoUserController extends Controller
         /** @var \App\Models\User $user */ 
         $user = auth()->user();
 
-        // 3. Atualizar a password
+        // Atualiza a nova password
         $user->update([
             'password' => Hash::make($request->new_password)
         ]);
-
+        // Regista a ação no log de auditoria
         AuditLogger::log('profile_password', 'Alterou a palavra-passe através do perfil.');
-
+        // Redireciona de volta com uma mensagem de sucesso
         return back()->with('success_password', 'Palavra-passe alterada com sucesso!');
     }
 }
