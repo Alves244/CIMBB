@@ -16,7 +16,6 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // --- Utilizador Admin ---
-        // Procura pelo email; se não existir, cria.
         User::firstOrCreate(
             ['email' => 'admin@cimbb.pt'], // 1. Procura por este email
             [ // 2. Se não encontrar, cria com estes dados
@@ -43,9 +42,7 @@ class UserSeeder extends Seeder
         );
 
         // --- Utilizador Freguesia ---
-        // Busca o ID da primeira freguesia encontrada na BD
         $primeiraFreguesia = Freguesia::first(); 
-
         if ($primeiraFreguesia) { // Só cria se encontrar uma freguesia
             User::firstOrCreate(
                 ['email' => 'freguesia_1@cimbb.pt'], // 1. Procura por este email
@@ -53,7 +50,7 @@ class UserSeeder extends Seeder
                     'nome' => 'Funcionário Teste Freguesia X',
                     'password' => Hash::make('12345678'),
                     'perfil' => 'freguesia',
-                    'freguesia_id' => $primeiraFreguesia->id, // Associa o ID encontrado
+                    'freguesia_id' => $primeiraFreguesia->id,
                     'telemovel' => null,
                     'email_verified_at' => now(),
                 ]
@@ -65,11 +62,10 @@ class UserSeeder extends Seeder
         // --- Utilizador Agrupamento ---
         $agrupamentoPadrao = Agrupamento::where('codigo', 'AE-JSR')->first()
             ?? Agrupamento::first();
-
-        if ($agrupamentoPadrao) {
+        if ($agrupamentoPadrao) { // Só cria se encontrar um agrupamento
             User::updateOrCreate(
-                ['email' => 'escola@cimbb.pt'],
-                [
+                ['email' => 'escola@cimbb.pt'],// 1. Procura por este email
+                [// 2. Se não encontrar, cria com estes dados
                     'nome' => 'Coordenador Agrupamento Teste',
                     'password' => Hash::make('12345678'),
                     'perfil' => 'agrupamento',
@@ -79,8 +75,6 @@ class UserSeeder extends Seeder
                     'email_verified_at' => now(),
                 ]
             );
-        } else {
-            $this->command?->warn('Nenhum agrupamento encontrado. O utilizador de agrupamento não foi criado.');
         }
     }
 }

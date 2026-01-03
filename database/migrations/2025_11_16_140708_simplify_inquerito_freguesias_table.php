@@ -13,8 +13,7 @@ return new class extends Migration
     {
         Schema::table('inquerito_freguesias', function (Blueprint $table) {
             
-            // 1. Adicionar o novo campo para a Pergunta 16
-            // "indivíduos que praticam algum tipo de negócio" 
+            // 1. Adicionar novo campo para indivíduos com negócio próprio
             $table->integer('total_individuos_negocio_proprio')->default(0)->after('total_propria');
 
             // 2. Remover os campos que já não são pedidos
@@ -34,7 +33,7 @@ return new class extends Migration
             // 1. Remover o novo campo
             $table->dropColumn('total_individuos_negocio_proprio');
 
-            // 2. Recriar os campos antigos (para o caso de precisares de reverter)
+            // 2. Recriar os campos antigos
             $table->integer('total_criancas')->default(0)->after('total_adultos');
             $table->integer('total_arrendada')->default(0)->after('total_propria');
             $table->json('total_por_setor_propria')->nullable()->after('total_arrendada');

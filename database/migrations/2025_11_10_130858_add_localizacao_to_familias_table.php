@@ -9,17 +9,13 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('familias', function (Blueprint $table) {
-            
-            
+            // Adiciona a coluna 'localizacao' à tabela 'familias'
             $table->enum('localizacao', ['nucleo_urbano', 'aldeia_anexa', 'espaco_agroflorestal'])
                   ->after('tipologia_propriedade')
-                  ->comment('Localização da habitação (baseado no inquérito PDF Perg. 11-13)');
+                  ->comment('Localização da habitação');
         });
     }
 

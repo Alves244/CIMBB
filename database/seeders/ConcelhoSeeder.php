@@ -12,8 +12,10 @@ class ConcelhoSeeder extends Seeder
      */
     public function run(): void
     {
+        // Obtém a lista de concelhos do arquivo de configuração
         $concelhos = config('concelhos', []);
 
+        // Insere ou atualiza cada concelho na base de dados
         foreach ($concelhos as $concelho) {
             Concelho::updateOrCreate(
                 ['nome' => $concelho['nome']],

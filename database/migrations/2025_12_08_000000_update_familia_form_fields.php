@@ -7,9 +7,13 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::table('familias', function (Blueprint $table) {
+            // Adiciona novos campos à tabela 'familias'
             $table->string('localizacao_tipo', 50)->default('sede_freguesia')->after('tipologia_propriedade');
             $table->string('localizacao_detalhe')->nullable()->after('localizacao_tipo');
             $table->string('condicao_alojamento', 30)->default('bom_estado')->after('localizacao_detalhe');
@@ -19,25 +23,31 @@ return new class extends Migration
             $table->text('observacoes')->nullable()->after('necessidades_apoio');
         });
 
+        // Modifica os enums existentes nas colunas 'tipologia_habitacao' e 'tipologia_propriedade'
         DB::statement("ALTER TABLE familias MODIFY tipologia_habitacao VARCHAR(50) NOT NULL");
         DB::statement("ALTER TABLE familias MODIFY tipologia_propriedade VARCHAR(50) NOT NULL");
 
+        // Atualiza os valores existentes para se adequarem aos novos enums
         DB::table('familias')->where('tipologia_habitacao', 'casa')->update(['tipologia_habitacao' => 'moradia']);
         DB::table('familias')->where('tipologia_habitacao', 'quinta')->update(['tipologia_habitacao' => 'outro']);
 
+        // Atualiza os valores existentes para se adequarem aos novos enums
         DB::table('familias')->update([
             'localizacao_tipo' => DB::raw("CASE localizacao WHEN 'nucleo_urbano' THEN 'sede_freguesia' WHEN 'aldeia_anexa' THEN 'lugar_aldeia' WHEN 'espaco_agroflorestal' THEN 'espaco_agroflorestal' ELSE 'sede_freguesia' END"),
         ]);
 
         Schema::table('familias', function (Blueprint $table) {
+            // Remove a coluna 'localizacao' da tabela 'familias'
             $table->dropColumn('localizacao');
         });
 
         Schema::table('agregado_familiars', function (Blueprint $table) {
+            // Adiciona a coluna 'estrutura_familiar' à tabela 'agregado_familiars'
             $table->json('estrutura_familiar')->nullable()->after('total_membros');
         });
 
         Schema::table('atividade_economicas', function (Blueprint $table) {
+            // Adiciona novas colunas à tabela 'atividade_economicas'
             $table->string('identificador', 20)->nullable()->after('familia_id');
             $table->string('vinculo', 20)->nullable()->after('tipo');
             $table->string('local_trabalho', 120)->nullable()->after('setor_id');
@@ -45,7 +55,9 @@ return new class extends Migration
 
         DB::statement("ALTER TABLE atividade_economicas MODIFY tipo VARCHAR(50) NOT NULL");
     }
-
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::table('familias', function (Blueprint $table) {

@@ -6,8 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
+        // Cria a tabela 'inquerito_agrupamento_registos'
         Schema::create('inquerito_agrupamento_registos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('inquerito_id')->constrained('inquerito_agrupamentos')->cascadeOnDelete();
@@ -20,6 +24,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('inquerito_agrupamento_registos');

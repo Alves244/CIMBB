@@ -7,12 +7,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::table('setor_atividades', function (Blueprint $table) {
+            // Adiciona a coluna 'macro_grupo' à tabela 'setor_atividades'
             $table->string('macro_grupo', 40)->default('producao')->after('nome');
         });
 
+        // Atualiza os valores existentes para a nova coluna 'macro_grupo'
         DB::table('setor_atividades')->whereIn('nome', [
             'Agricultura',
             'Floresta e limpezas',
@@ -20,6 +25,7 @@ return new class extends Migration
             'Indústria',
         ])->update(['macro_grupo' => 'producao']);
 
+        // Serviços
         DB::table('setor_atividades')->whereIn('nome', [
             'Turismo (Restauração e Alojamento)',
             'Serviço social',
@@ -28,6 +34,9 @@ return new class extends Migration
         ])->update(['macro_grupo' => 'servicos']);
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::table('setor_atividades', function (Blueprint $table) {

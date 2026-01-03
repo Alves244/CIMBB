@@ -12,14 +12,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Chamar os seeders pela ordem de dependência
+        // Chamadas para os seeders individuais
         $this->call([
             ConcelhoSeeder::class,
             FreguesiaSeeder::class, 
             AgrupamentoSeeder::class,
-            SetorAtividadeSeeder::class, // Chamado SÓ UMA VEZ
+            SetorAtividadeSeeder::class,
             UserSeeder::class,
-            // A chamada duplicada foi removida
+            
         ]);
     }
 }

@@ -5,8 +5,12 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
+        // Define os novos setores de atividades a serem inseridos ou atualizados
         $novosSetores = [
             ['nome' => 'Agricultura, silvicultura e pecuária', 'macro_grupo' => 'producao', 'descricao' => 'Trabalho agrícola, florestal ou com animais'],
             ['nome' => 'Indústria transformadora', 'macro_grupo' => 'producao', 'descricao' => 'Fábricas, transformação de bens e produção industrial'],
@@ -19,6 +23,7 @@ return new class extends Migration
             ['nome' => 'Outro (especificar)', 'macro_grupo' => 'servicos', 'descricao' => 'Quando não se enquadra nas categorias anteriores'],
         ];
 
+        // Insere ou atualiza os setores de atividades na tabela 'setor_atividades'
         foreach ($novosSetores as $setor) {
             DB::table('setor_atividades')->updateOrInsert(
                 ['nome' => $setor['nome']],
@@ -30,11 +35,15 @@ return new class extends Migration
             );
         }
 
+        // Desativa os setores que não estão na lista de novos setores
         DB::table('setor_atividades')
             ->whereNotIn('nome', array_column($novosSetores, 'nome'))
             ->update(['ativo' => false]);
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         $antigosSetores = [

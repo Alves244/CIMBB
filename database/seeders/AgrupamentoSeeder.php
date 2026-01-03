@@ -12,9 +12,7 @@ use Illuminate\Support\Str;
 
 class AgrupamentoSeeder extends Seeder
 {
-    /**
-     * Conjuntos de Agrupamentos / Escolas por concelho.
-     */
+    // Lista de agrupamentos, escolas profissionais e IPCB a serem inseridos ou atualizados
     private array $agrupamentos = [
         ['nome' => 'Agrupamento de Escolas José Silvestre Ribeiro', 'codigo' => 'AE-JSR', 'concelho' => 'Idanha-a-Nova'],
         ['nome' => 'Agrupamento de Escolas Ribeiro Sanches', 'codigo' => 'AE-RS', 'concelho' => 'Penamacor'],
@@ -41,13 +39,18 @@ class AgrupamentoSeeder extends Seeder
         ['nome' => 'IPCB – EST', 'codigo' => 'IPCB-EST', 'concelho' => 'Castelo Branco'],
     ];
 
+    /**
+     * Run the database seeds.
+     */
     public function run(): void
     {
+        // Obter mapeamento de concelhos (nome => id)
         $concelhos = Concelho::pluck('id', 'nome');
 
-        // Remove o agrupamento de testes legado e respetivas dependências, caso ainda exista.
+        // Remover dados de teste existentes
         $agrupamentoTeste = Agrupamento::where('codigo', 'AGR-TESTE')->first();
 
+        // Limpar registros relacionados em inquerito_agrupamento_registos e inquerito_agrupamentos
         if ($agrupamentoTeste) {
             $inqueritoIds = InqueritoAgrupamento::where('agrupamento_id', $agrupamentoTeste->id)->pluck('id');
 
@@ -60,7 +63,7 @@ class AgrupamentoSeeder extends Seeder
 
             $agrupamentoTeste->delete();
         }
-
+        // Inserir ou atualizar agrupamentos, escolas profissionais e IPCB
         foreach ($this->agrupamentos as $item) {
             $concelhoName = $item['concelho'];
             $concelhoId = $concelhos[$concelhoName] ?? null;
@@ -80,7 +83,5 @@ class AgrupamentoSeeder extends Seeder
                 ]
             );
         }
-
-        $this->command?->info('Agrupamentos, escolas profissionais e IPCB sincronizados.');
     }
 }

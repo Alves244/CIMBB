@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('familia_id')->unique();
 
-            // --- NOVOS CAMPOS DE GÉNERO (Perg. 14) ---
+            // --- NOVOS CAMPOS DE GÉNERO ---
             $table->integer('adultos_laboral_m')->default(0)->comment('Adultos Idade Laboral - Masculino');
             $table->integer('adultos_laboral_f')->default(0)->comment('Adultos Idade Laboral - Feminino');
             $table->integer('adultos_laboral_n')->default(0)->comment('Adultos Idade Laboral - N/I (Não Informado)');
@@ -28,8 +28,7 @@ return new class extends Migration
             $table->integer('criancas_f')->default(0)->comment('Crianças/Jovens - Feminino');
             $table->integer('criancas_n')->default(0)->comment('Crianças/Jovens - N/I (Não Informado)');
 
-            // --- TOTAIS GERADOS AUTOMATICAMENTE PELA BD ---
-            // (Estes são os campos que o seu código antigo usava)
+            // --- CAMPOS CALCULADOS ---
             $table->integer('adultos_laboral')->storedAs('adultos_laboral_m + adultos_laboral_f + adultos_laboral_n');
             $table->integer('adultos_65_mais')->storedAs('adultos_65_mais_m + adultos_65_mais_f + adultos_65_mais_n');
             $table->integer('criancas')->storedAs('criancas_m + criancas_f + criancas_n');

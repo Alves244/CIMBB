@@ -6,8 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
+        // remove chave estrangeira e coluna de estabelecimento_id de inquerito_agrupamento_registos
         if (Schema::hasTable('inquerito_agrupamento_registos') && Schema::hasColumn('inquerito_agrupamento_registos', 'estabelecimento_id')) {
             Schema::table('inquerito_agrupamento_registos', function (Blueprint $table) {
                 $table->dropForeign(['estabelecimento_id']);
@@ -15,9 +19,13 @@ return new class extends Migration
             });
         }
 
+        // drop tabela estabelecimentos_ensino
         Schema::dropIfExists('estabelecimentos_ensino');
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         if (! Schema::hasTable('estabelecimentos_ensino')) {

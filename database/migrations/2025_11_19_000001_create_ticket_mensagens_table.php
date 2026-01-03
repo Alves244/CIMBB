@@ -6,9 +6,13 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('ticket_mensagens', function (Blueprint $table) {
+            // Definição da tabela 'ticket_mensagens' para armazenar mensagens dos tickets de suporte
             $table->id();
             $table->foreignId('ticket_id')
                 ->constrained('ticket_suportes')
@@ -21,6 +25,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('ticket_mensagens');

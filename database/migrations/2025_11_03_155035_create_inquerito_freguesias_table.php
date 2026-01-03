@@ -12,27 +12,29 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('inquerito_freguesias', function (Blueprint $table) {
+            // Definição das colunas da tabela 'inquerito_freguesias'
             $table->id();
-            $table->unsignedBigInteger('freguesia_id'); // A que freguesia responde
-            $table->unsignedBigInteger('utilizador_id'); // Quem respondeu
-            $table->integer('ano'); // Ano do inquérito
+            $table->unsignedBigInteger('freguesia_id');
+            $table->unsignedBigInteger('utilizador_id');
+            $table->integer('ano');
 
-            // Pergunta 20: Escala de integração
-            $table->tinyInteger('escala_integracao')->nullable(); // Valor de 1 a 5
+            // Pergunta 1: Satisfação com serviços públicos
+            $table->tinyInteger('escala_integracao')->nullable();
             
-            // Pergunta 21: Aspectos positivos
+            // Pergunta 2: Acesso a serviços de saúde
             $table->text('aspectos_positivos')->nullable();
             
-            // Pergunta 22: Aspectos negativos
+            // Pergunta 3: Acesso a educação
             $table->text('aspectos_negativos')->nullable();
             
-            // Pergunta 23: Nível de satisfação global
-            $table->tinyInteger('satisfacao_global')->nullable(); // Valor de 1 a 5
+            // Pergunta 4: Infraestruturas e transportes
+            $table->tinyInteger('satisfacao_global')->nullable();
 
-            // Pergunta 24: Sugestões
+            // Pergunta 5: Sugestões para melhorias
             $table->text('sugestoes')->nullable();
             
-            $table->timestamps(); // Data de preenchimento
+            // Data de preenchimento do inquérito
+            $table->timestamps();
 
             // Chaves estrangeiras
             $table->foreign('freguesia_id')->references('id')->on('freguesias')->onDelete('cascade');

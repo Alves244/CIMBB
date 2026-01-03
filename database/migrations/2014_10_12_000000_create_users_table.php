@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
+            // Cria a tabela 'users'
             $table->id();
             $table->string('nome');
             $table->string('email')->unique();
@@ -24,7 +25,6 @@ return new class extends Migration
             $table->timestamps();
         });
     }
-
     /**
      * Reverse the migrations.
      */

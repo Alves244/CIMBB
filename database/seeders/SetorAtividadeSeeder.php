@@ -14,6 +14,7 @@ class SetorAtividadeSeeder extends Seeder
      */
     public function run(): void
     {
+        // Define os setores de atividade a serem inseridos
         $setores = [
             ['nome' => 'Agricultura, silvicultura e pecuária', 'descricao' => 'Trabalho agrícola, florestal ou com animais', 'macro_grupo' => 'producao', 'ativo' => true],
             ['nome' => 'Indústria transformadora', 'descricao' => 'Fábricas, transformação de bens e produção industrial', 'macro_grupo' => 'producao', 'ativo' => true],
@@ -26,8 +27,7 @@ class SetorAtividadeSeeder extends Seeder
             ['nome' => 'Outro (especificar)', 'descricao' => 'Utilize quando não se enquadra nas categorias anteriores', 'macro_grupo' => 'servicos', 'ativo' => true],
         ];
 
-        // Limpa a tabela antes de inserir (Necessário se não usar migrate:fresh)
-        // Para evitar o erro de foreign key, desativamos as verificações
+        // Limpa a tabela antes de inserir os novos dados
         Schema::disableForeignKeyConstraints();
         DB::table('setor_atividades')->truncate();
         Schema::enableForeignKeyConstraints();
